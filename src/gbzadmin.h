@@ -3,7 +3,7 @@
 
 // gbzadmin
 // GTKmm bzadmin
-// Copyright (c) 2005 - 2009 Michael Sheppard
+// Copyright (c) 2005 - 2012 Michael Sheppard
 //  
 // Code based on BZFlag-2.0.x and SVN 2.99
 // Portions Copyright (c) 1993 - 2009 Tim Riker
@@ -248,6 +248,7 @@ private:
 	Glib::ustring _password;
 	Glib::ustring _server;
 	Glib::ustring _port_str;
+	Glib::ustring _motto;
 	int _port;
 	bool auto_cmd;
 	bool useUDP;

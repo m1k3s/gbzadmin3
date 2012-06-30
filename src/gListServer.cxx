@@ -1,6 +1,6 @@
 // gbzadmin
 // GTKmm bzadmin
-// Copyright (c) 2005 - 2009 Michael Sheppard
+// Copyright (c) 2005 - 2012 Michael Sheppard
 //  
 // Code based on BZFlag-2.0.x and SVN 2.4.x
 // Portions Copyright (c) 1993 - 2009 Tim Riker
@@ -59,6 +59,7 @@ void gListServer::getToken(Glib::ustring callsign, Glib::ustring password)
 	Glib::ustring msg;
 	int timeout = 15;
 	
+	// build the POST statement
 	msg = "action=LIST&version=";
 	msg += ServerVersion;
 	msg += "&clientversion";

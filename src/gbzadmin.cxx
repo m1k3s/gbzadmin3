@@ -1,6 +1,6 @@
 // gbzadmin version 2.4.x
 // GTKmm bzadmin
-// Copyright (c) 2005 - 2009 Michael Sheppard
+// Copyright (c) 2005 - 2012 Michael Sheppard
 //  
 // Code based on BZFlag-2.0.x and SVN 2.4.x
 // Portions Copyright (c) 1993 - 2009 Tim Riker
@@ -853,7 +853,9 @@ void gbzadmin::get_gconf_config()
 {
 	_callsign = conf_client->Gnome::Conf::Client::get_string("/apps/gbzadmin3/general/callsign");
 	_password = conf_client->Gnome::Conf::Client::get_string("/apps/gbzadmin3/general/password");
+	// TODO: add a server level that stores the 4 MRU servers
 	_server = conf_client->Gnome::Conf::Client::get_string("/apps/gbzadmin3/general/server");
+	// TODO: add a port level that stores the 4 MRU ports
 	_port_str = conf_client->Gnome::Conf::Client::get_string("/apps/gbzadmin3/general/port");
 	_port = atoi(_port_str.c_str());
 	win_x = conf_client->Gnome::Conf::Client::get_int("/apps/gbzadmin3/general/window_x");
@@ -888,175 +890,174 @@ void gbzadmin::get_gconf_config()
 	msg_mask["time"] = conf_client->Gnome::Conf::Client::get_bool("/apps/gbzadmin3/messages/msg_time_stamp");
 }
 #if 0
-void parse_config_file(gchar *filename)
+void gbzadmin::parse_config_file(Glib::ustring filename)
 {
 	gchar variable[64];
 	gchar value[512];
-	FILE  *f;
+	Glib::ustring buf;
 	gint result = 0;
 	
-	if ((f = g_fopen(filename,"r")) == NULL) {
-		g_printf("Failed to open config file %s to read\n", filename);
-		return;
-	}
-	do {
-		result = fscanf(f, "%32[^#=]=%256[^\n]\n", variable, value);
-		if ((result < 2) || (result == EOF))
-			break;
+	ifstream is;
+	is.open(filename.c_str());
+	if (is.is_open()) {
+		do {
+			is.getline(buf, 256);
+			buf.clear();
+			
+			result = sscanf(buf, "%32[^#=]=%256[^\n]\n", variable, value);
+			if ((result < 2) || (result == EOF))
+				break;
 
-		/*
-		 * now that we have the variable,value pair we need to assign
-		 * the value to the prefs.value
-		 */
-		if (g_ascii_strcasecmp(variable, "callsign") == 0) {
- 			g_stpcpy(prefs.callsign, value);
- 		} else if (g_ascii_strcasecmp(variable, "email") == 0) {
- 			g_stpcpy(prefs.email, value);
-		} else if (g_ascii_strcasecmp(variable, "password") == 0) {
-			g_stpcpy(prefs.password, value);
- 		} else if (g_ascii_strcasecmp(variable, "server") == 0) {
- 			g_stpcpy(prefs.server, value);
- 		} else if (g_ascii_strcasecmp(variable, "sort_svr_list") == 0) {
- 			if (atoi(value) == 1)
- 				prefs.sort_svr_list = TRUE;
- 			else
- 				prefs.sort_svr_list = FALSE;
- 		} else if (g_ascii_strcasecmp(variable, "always_query") == 0) {
- 			if (atoi(value))
- 				prefs.always_query = TRUE;
- 			else
- 				prefs.always_query = FALSE;
- 		} else if (g_ascii_strcasecmp(variable, "port") == 0) {
- 			g_stpcpy(prefs.port, value);
- 		} else if (g_ascii_strcasecmp(variable, "auto_cmd") == 0) {
- 			if (atoi(value))
- 				prefs.auto_cmd = TRUE;
- 			else
- 				prefs.auto_cmd = FALSE;
- 		} else if (g_ascii_strcasecmp(variable, "echo_pings") == 0) {
- 			if (atoi(value))
- 				prefs.echo_pings = TRUE;
- 			else
- 				prefs.echo_pings = FALSE;
- 		} else if (g_ascii_strcasecmp(variable, "sort_players") == 0) {
- 			if (atoi(value))
- 				prefs.sort_players = TRUE;
- 			else
- 				prefs.sort_players = FALSE;
- 		} else if (g_ascii_strcasecmp(variable, "msg_new_rabbit") == 0) {
- 			if (atoi(value))
- 				prefs.msg_mask[msg_new_rabbit] = TRUE;
- 			else
- 				prefs.msg_mask[msg_new_rabbit] = FALSE;
- 		} else if (g_ascii_strcasecmp(variable, "msg_pause") == 0) {
- 			if (atoi(value))
- 				prefs.msg_mask[msg_pause] = TRUE;
- 			else
- 				prefs.msg_mask[msg_pause] = FALSE;
- 		} else if (g_ascii_strcasecmp(variable, "msg_alive") == 0) {
- 			if (atoi(value))
- 				prefs.msg_mask[msg_alive] = TRUE;
- 			else
- 				prefs.msg_mask[msg_alive] = FALSE;
- 		} else if (g_ascii_strcasecmp(variable, "msg_lag_ping") == 0) {
- 			if (atoi(value))
- 				prefs.msg_mask[msg_lag_ping] = TRUE;
- 			else
- 				prefs.msg_mask[msg_lag_ping] = FALSE;
- 		} else if (g_ascii_strcasecmp(variable, "msg_set_var") == 0) {
- 			if (atoi(value))
- 				prefs.msg_mask[msg_set_var] = TRUE;
- 			else
- 				prefs.msg_mask[msg_set_var] = FALSE;
- 		} else if (g_ascii_strcasecmp(variable, "msg_add_player") == 0) {
- 			if (atoi(value))
- 				prefs.msg_mask[msg_add_player] = TRUE;
- 			else
- 				prefs.msg_mask[msg_add_player] = FALSE;
- 		} else if (g_ascii_strcasecmp(variable, "msg_remove_player") == 0) {
- 			if (atoi(value))
- 				prefs.msg_mask[msg_remove_player] = TRUE;
- 			else
- 				prefs.msg_mask[msg_remove_player] = FALSE;
- 		} else if (g_ascii_strcasecmp(variable, "msg_admin_info") == 0) {
- 			if (atoi(value))
- 				prefs.msg_mask[msg_admin_info] = TRUE;
- 			else
- 				prefs.msg_mask[msg_admin_info] = FALSE;
- 		} else if (g_ascii_strcasecmp(variable, "msg_score_over") == 0) {
- 			if (atoi(value))
- 				prefs.msg_mask[msg_score_over] = TRUE;
- 			else
- 				prefs.msg_mask[msg_score_over] = FALSE;
- 		} else if (g_ascii_strcasecmp(variable, "msg_time_update") == 0) {
- 			if (atoi(value))
- 				prefs.msg_mask[msg_time_update] = TRUE;
- 			else
- 				prefs.msg_mask[msg_time_update] = FALSE;
- 		} else if (g_ascii_strcasecmp(variable, "msg_killed") == 0) {
- 			if (atoi(value))
- 				prefs.msg_mask[msg_killed] = TRUE;
- 			else
- 				prefs.msg_mask[msg_killed] = FALSE;
- 		} else if (g_ascii_strcasecmp(variable, "msg_score") == 0) {
- 			if (atoi(value))
- 				prefs.msg_mask[msg_score] = TRUE;
- 			else
- 				prefs.msg_mask[msg_score] = FALSE;
- 		} else if (g_ascii_strcasecmp(variable, "msg_message") == 0) {
- 			if (atoi(value))
- 				prefs.msg_mask[msg_message] = TRUE;
- 			else
- 				prefs.msg_mask[msg_message] = FALSE;
- 		} else if (g_ascii_strcasecmp(variable, "msg_captures") == 0) {
- 			if (atoi(value))
- 				prefs.msg_mask[msg_captures] = TRUE;
- 			else
- 				prefs.msg_mask[msg_captures] = FALSE;
- 		} else if (g_ascii_strcasecmp(variable, "msg_roger") == 0) {
- 			if (atoi(value))
- 				prefs.msg_mask[msg_roger] = TRUE;
- 			else
- 				prefs.msg_mask[msg_roger] = FALSE;
- 		} else if (g_ascii_strcasecmp(variable, "msg_flags") == 0) {
- 			if (atoi(value))
- 				prefs.msg_mask[msg_flags] = TRUE;
- 			else
- 				prefs.msg_mask[msg_flags] = FALSE;
- 		} else if (g_ascii_strcasecmp(variable, "msg_time_stamp") == 0) {
- 			if (atoi(value))
- 				prefs.msg_mask[msg_time_stamp] = TRUE;
- 			else
- 				prefs.msg_mask[msg_time_stamp] = FALSE;
- 		}
-#ifdef _ENABLE_PLAYER_UPDATE_
-		 else if (g_ascii_strcasecmp(variable, "msg_player_update") == 0) {
- 			if (atoi(value))
- 				prefs.msg_mask[msg_player_update] = TRUE;
- 			else
- 				prefs.msg_mask[msg_player_update] = FALSE;
- 		}
-#endif
-		 else if (g_ascii_strcasecmp(variable, "print_unknown") == 0) {
- 			if (atoi(value))
- 				print_unknown = TRUE;
- 			else
- 				print_unknown = FALSE;
- 		} else {
-			continue;
-		}
-	} while (result != EOF);
-	
-	fclose(f);
-	
-	return;
+			// now that we have the variable,value pair we need to assign
+			// the value to the prefs.value
+			 
+			if (g_ascii_strcasecmp(variable, "callsign") == 0) {
+	 			g_stpcpy(_callsign, value);
+	 		} else if (g_ascii_strcasecmp(variable, "motto") == 0) {
+	 			g_stpcpy(_motto, value);
+			} else if (g_ascii_strcasecmp(variable, "password") == 0) {
+				g_stpcpy(_password, value);
+	 		} else if (g_ascii_strcasecmp(variable, "server") == 0) {
+	 			g_stpcpy(_server, value);
+	 		} else if (g_ascii_strcasecmp(variable, "sort_svr_list") == 0) {
+	 			if (atoi(value) == 1)
+	 				_sort_svr_list = true;
+	 			else
+	 				_sort_svr_list = false;
+	 		} else if (g_ascii_strcasecmp(variable, "always_query") == 0) {
+	 			if (atoi(value))
+	 				prefs.always_query = true;
+	 			else
+	 				prefs.always_query = false;
+	 		} else if (g_ascii_strcasecmp(variable, "port") == 0) {
+	 			g_stpcpy(_port_str, value);
+	 		} else if (g_ascii_strcasecmp(variable, "auto_cmd") == 0) {
+	 			if (atoi(value))
+	 				auto_cmd = true;
+	 			else
+	 				auto_cmd = false;
+	 		} else if (g_ascii_strcasecmp(variable, "echo_pings") == 0) {
+	 			if (atoi(value))
+	 				prefs.echo_pings = TRUE;
+	 			else
+	 				prefs.echo_pings = FALSE;
+	 		} else if (g_ascii_strcasecmp(variable, "sort_players") == 0) {
+	 			if (atoi(value))
+	 				prefs.sort_players = TRUE;
+	 			else
+	 				prefs.sort_players = FALSE;
+	 		} else if (g_ascii_strcasecmp(variable, "msg_new_rabbit") == 0) {
+	 			if (atoi(value))
+	 				prefs.msg_mask[msg_new_rabbit] = TRUE;
+	 			else
+	 				prefs.msg_mask[msg_new_rabbit] = FALSE;
+	 		} else if (g_ascii_strcasecmp(variable, "msg_pause") == 0) {
+	 			if (atoi(value))
+	 				prefs.msg_mask[msg_pause] = TRUE;
+	 			else
+	 				prefs.msg_mask[msg_pause] = FALSE;
+	 		} else if (g_ascii_strcasecmp(variable, "msg_alive") == 0) {
+	 			if (atoi(value))
+	 				prefs.msg_mask[msg_alive] = TRUE;
+	 			else
+	 				prefs.msg_mask[msg_alive] = FALSE;
+	 		} else if (g_ascii_strcasecmp(variable, "msg_lag_ping") == 0) {
+	 			if (atoi(value))
+	 				prefs.msg_mask[msg_lag_ping] = TRUE;
+	 			else
+	 				prefs.msg_mask[msg_lag_ping] = FALSE;
+	 		} else if (g_ascii_strcasecmp(variable, "msg_set_var") == 0) {
+	 			if (atoi(value))
+	 				prefs.msg_mask[msg_set_var] = TRUE;
+	 			else
+	 				prefs.msg_mask[msg_set_var] = FALSE;
+	 		} else if (g_ascii_strcasecmp(variable, "msg_add_player") == 0) {
+	 			if (atoi(value))
+	 				prefs.msg_mask[msg_add_player] = TRUE;
+	 			else
+	 				prefs.msg_mask[msg_add_player] = FALSE;
+	 		} else if (g_ascii_strcasecmp(variable, "msg_remove_player") == 0) {
+	 			if (atoi(value))
+	 				prefs.msg_mask[msg_remove_player] = TRUE;
+	 			else
+	 				prefs.msg_mask[msg_remove_player] = FALSE;
+	 		} else if (g_ascii_strcasecmp(variable, "msg_admin_info") == 0) {
+	 			if (atoi(value))
+	 				prefs.msg_mask[msg_admin_info] = TRUE;
+	 			else
+	 				prefs.msg_mask[msg_admin_info] = FALSE;
+	 		} else if (g_ascii_strcasecmp(variable, "msg_score_over") == 0) {
+	 			if (atoi(value))
+	 				prefs.msg_mask[msg_score_over] = TRUE;
+	 			else
+	 				prefs.msg_mask[msg_score_over] = FALSE;
+	 		} else if (g_ascii_strcasecmp(variable, "msg_time_update") == 0) {
+	 			if (atoi(value))
+	 				prefs.msg_mask[msg_time_update] = TRUE;
+	 			else
+	 				prefs.msg_mask[msg_time_update] = FALSE;
+	 		} else if (g_ascii_strcasecmp(variable, "msg_killed") == 0) {
+	 			if (atoi(value))
+	 				prefs.msg_mask[msg_killed] = TRUE;
+	 			else
+	 				prefs.msg_mask[msg_killed] = FALSE;
+	 		} else if (g_ascii_strcasecmp(variable, "msg_score") == 0) {
+	 			if (atoi(value))
+	 				prefs.msg_mask[msg_score] = TRUE;
+	 			else
+	 				prefs.msg_mask[msg_score] = FALSE;
+	 		} else if (g_ascii_strcasecmp(variable, "msg_message") == 0) {
+	 			if (atoi(value))
+	 				prefs.msg_mask[msg_message] = TRUE;
+	 			else
+	 				prefs.msg_mask[msg_message] = FALSE;
+	 		} else if (g_ascii_strcasecmp(variable, "msg_captures") == 0) {
+	 			if (atoi(value))
+	 				prefs.msg_mask[msg_captures] = TRUE;
+	 			else
+	 				prefs.msg_mask[msg_captures] = FALSE;
+	 		} else if (g_ascii_strcasecmp(variable, "msg_roger") == 0) {
+	 			if (atoi(value))
+	 				prefs.msg_mask[msg_roger] = TRUE;
+	 			else
+	 				prefs.msg_mask[msg_roger] = FALSE;
+	 		} else if (g_ascii_strcasecmp(variable, "msg_flags") == 0) {
+	 			if (atoi(value))
+	 				prefs.msg_mask[msg_flags] = TRUE;
+	 			else
+	 				prefs.msg_mask[msg_flags] = FALSE;
+	 		} else if (g_ascii_strcasecmp(variable, "msg_time_stamp") == 0) {
+	 			if (atoi(value))
+	 				prefs.msg_mask[msg_time_stamp] = TRUE;
+	 			else
+	 				prefs.msg_mask[msg_time_stamp] = FALSE;
+	 		}
+	#ifdef _ENABLE_PLAYER_UPDATE_
+			 else if (g_ascii_strcasecmp(variable, "msg_player_update") == 0) {
+	 			if (atoi(value))
+	 				prefs.msg_mask[msg_player_update] = TRUE;
+	 			else
+	 				prefs.msg_mask[msg_player_update] = FALSE;
+	 		}
+	#endif
+			 else if (g_ascii_strcasecmp(variable, "print_unknown") == 0) {
+	 			if (atoi(value))
+	 				print_unknown = TRUE;
+	 			else
+	 				print_unknown = FALSE;
+	 		} else {
+				continue;
+			}
+		} while (result != EOF);
+	}
+	is.close();
 }
 
-/*
- * configuration preferences are preserved by saving to a file
- * called ".gbzadmin" in the user's home directory
- */
-void save_config_file(gchar *filename)
+//
+// configuration preferences are preserved by saving to a file
+// called ".gbzadmin" in the user's home directory
+//
+void gbzadmin::save_config_file(gchar *filename)
 {
 	FILE *f;
 	
@@ -1115,20 +1116,13 @@ void gbzadmin::set_message_filter(Glib::ustring type, bool set)
 		msg_mask[type] = true;
 		if (tmp != msg_mask[type]) {
 			cmd_str = "/show " + type;
-//			Glib::ustring str("--- Message's of type ");
-//			str += "'" + type + "'" + " will now be shown\n";
-//			msg_view.add_text(str, Glib::ustring("rogue"));
 		}
 	} else {
 		msg_mask[type] = false;
 		if (tmp != msg_mask[type]) {
 			cmd_str = "/hide " + type;
-//			Glib::ustring str("--- Message's of type ");
-//			str += "'" + type + "'" + " will now be hidden\n";
-//			msg_view.add_text(str, Glib::ustring("rogue"));
 		}
 	}
-//	process_command();
 }
 
 Glib::ustring gbzadmin::get_team_str(int t)
@@ -1176,12 +1170,6 @@ void gbzadmin::handle_joinserver_message(void *vbuf)
     return;
   }
  	serverName = addr.c_str();
- 	// ServerNameLen - 1;
-  //info.serverName[ServerNameLen - 1] = 0;
-
-//  referrer = referrer.c_str();
-  // ReferrerLen - 1);
-  //info.referrer[ReferrerLen - 1] = 0;
 
   _port = port;
   if (team == NoTeam) {
@@ -1330,7 +1318,6 @@ void gbzadmin::handle_remove_player_message(void *vbuf)
 		}	
 	}
 		
-
 	if (msg_mask["leave"]) {
 		if (player) {
 			// get current time
@@ -3023,9 +3010,10 @@ void gbzadmin::connect_clicked(const Glib::ustring& name, const sigc::slot<void>
 // this data can be opened in a spreadsheet application
 // as TXT|CSV or parsed with Perl.
 //
-// NOTE: In order to use this feature you must ceate a gconf entry.
+// NOTE: In order to use this feature you must create a gconf entry.
 // you can create it manually by running a terminal and executing:
-//       gconftool-2 -s -t string /apps/gbzadmin3/general/statsPath /Documents
+//    gconftool-2 -s -t string /apps/gbzadmin3/general/statsPath /Documents
+// where /Documents is the directory you want to save the file in.
 void gbzadmin::dump_player_stats(Player *player)
 {
 	std::ofstream os;

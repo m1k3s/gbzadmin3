@@ -2,7 +2,7 @@
 #define _common_h_
 // gbzadmin
 // GTKmm bzadmin
-// Copyright (c) 2005 - 2009 Michael Sheppard
+// Copyright (c) 2005 - 2012 Michael Sheppard
 //  
 // Code based on BZFlag-2.0.x
 // Portions Copyright (c) 1993 - 2009 Tim Riker

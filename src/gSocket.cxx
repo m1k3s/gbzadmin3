@@ -1,6 +1,6 @@
 // gbzadmin
 // GTKmm bzadmin
-// Copyright (c) 2005 - 2009 Michael Sheppard
+// Copyright (c) 2005 - 2012 Michael Sheppard
 //  
 // Code based on BZFlag-2.0.x and SVN 2.4.x
 // Portions Copyright (c) 1993 - 2009 Tim Riker
@@ -206,10 +206,6 @@ bool gSocket::resolveHost(const Glib::ustring& host)
   hints.ai_socktype = SOCK_STREAM;
   hints.ai_flags |= AI_CANONNAME;
 
-//  if (getaddrinfo(host.c_str(), NULL, &hints, &res)) {
-//  	return false;
-//  }
-
   int error = getaddrinfo(host.c_str(), NULL, &hints, &res);
   switch (error) {
 		default: // no error (error == 0)
@@ -294,8 +290,6 @@ bool gSocket::join(Glib::ustring callsign, Glib::ustring password)
 	listServer.queryListServer(callsign, password, token);
 	// request to enter the game -- sending callsign and token
 	sendEnter(TankPlayer, ObserverTeam, callsign, "gbzadmin", token);
-//	sendCaps(false, false);
-//	sendCustomData("motto", "gbzadmin");
 	
 	// FIXME: need to make sure all this stuff goes before
 	//        calling readEnter()
@@ -358,7 +352,7 @@ int gSocket::send(guint16 code, guint16 len,	const void* msg)
 {
 	if (state != Okay)
   	return -1;
-  //printf("Sent packet size: %d\n", len);
+  //std::cerr << "Sending packet size: " << len << std::endl;
   	
   bool useUDP=false;
   char msgbuf[MaxPacketLen];
@@ -382,7 +376,7 @@ int gSocket::send(guint16 code, guint16 len,	const void* msg)
 
   if (useUDP) {
     usent = ::sendto(urecvfd, (const char *)msgbuf, (char*)buf - msgbuf, 0, &usendaddr, sizeof(usendaddr));
-    // we don't care about errors yet
+    // we don't care about errors yet, but I'm sure we will...
     return 1;
   }
 	sent = ::send(fd, (const char*)msgbuf, len + 4, 0);
@@ -531,7 +525,6 @@ void gSocket::sendEnter(unsigned char type, unsigned int team, Glib::ustring cal
 {
   if (state != Okay)
   	return;
-  //PlayerIdPLen + 4 + CallSignLen + MottoLen + TokenLen + VersionLen
   char msg[PlayerIdPLen + 4 + CallSignLen + MottoLen + TokenLen + VersionLen] = {0};
   void* buf = msg;
 
@@ -545,7 +538,7 @@ void gSocket::sendEnter(unsigned char type, unsigned int team, Glib::ustring cal
   buf = (void*)((char*)buf + TokenLen);
   ::memcpy(buf, getAppVersion(), ::strlen(getAppVersion()) + 1);
   buf = (void*)((char*)buf + VersionLen);
-	//(uint16_t)((char*)buf - msg)
+  
   this->send(MsgEnter, sizeof(msg), msg);
 }
 
