@@ -1115,14 +1115,20 @@ void gbzadmin::set_message_filter(Glib::ustring type, bool set)
 		msg_mask[type] = true;
 		if (tmp != msg_mask[type]) {
 			cmd_str = "/show " + type;
+//			Glib::ustring str("--- Message's of type ");
+//			str += "'" + type + "'" + " will now be shown\n";
+//			msg_view.add_text(str, Glib::ustring("rogue"));
 		}
 	} else {
 		msg_mask[type] = false;
 		if (tmp != msg_mask[type]) {
 			cmd_str = "/hide " + type;
+//			Glib::ustring str("--- Message's of type ");
+//			str += "'" + type + "'" + " will now be hidden\n";
+//			msg_view.add_text(str, Glib::ustring("rogue"));
 		}
 	}
-	process_command();
+//	process_command();
 }
 
 Glib::ustring gbzadmin::get_team_str(int t)
@@ -2311,6 +2317,20 @@ void gbzadmin::process_command()
 			} else {
 				show_help(cmd_str);
 			}
+		} else if (cmd_str.substr(0, 5) == "/show") {
+			// handle message filter show command
+			Glib::ustring type(cmd_str.substr(6));
+			set_message_filter(type, true);
+			Glib::ustring str("--- Message's of type ");
+			str += "'" + type + "'" + " will now be shown\n";
+			msg_view.add_text(str, Glib::ustring("rogue"));
+		} else if (cmd_str.substr(0, 5) == "/hide") {
+			// handle message filter hide command
+			Glib::ustring type(cmd_str.substr(6));
+			set_message_filter(type, false);
+			Glib::ustring str("--- Message's of type ");
+			str += "'" + type + "'" + " will now be hidden\n";
+			msg_view.add_text(str, Glib::ustring("rogue"));
 		} else { // or send the command to the server
 			send_message(cmd_str, ServerPlayer);
 		}
