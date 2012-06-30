@@ -583,7 +583,7 @@ void gbzadmin::on_about_activate()
 
 	dlg.set_name("gBZAdmin");
 	dlg.set_version(VERSION);
-	dlg.set_copyright("Copyright (c) 2005 - 2009 Michael Sheppard\nPortions Copyright (c) 1993 - 2009 Tim Riker");
+	dlg.set_copyright("Copyright (c) 2005 - 2012 Michael Sheppard\nPortions Copyright (c) 1993 - 2009 Tim Riker");
 	dlg.set_license(license);
 	dlg.set_comments(comment);
 	dlg.set_authors(authors);
