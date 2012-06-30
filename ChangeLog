@@ -1,0 +1,7 @@
+Changed to Gtk::Builder from LibGlade - 04.25.2009
+modifed to work with upcoming version 3.0 - 07.14.2009
+add tcp bits per second flow rate indicator to statusbar - 07.17.2009
+added per view font support - 07.18.2009
+added gconf support - 07.18.2009
+added reverse resolution command - 07.22.2009
+added command line history - 07-22-2009

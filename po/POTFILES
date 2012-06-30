@@ -1,0 +1,4 @@
+	../src/main.c \
+	../src/gui.c \
+	../src/gbzadmin.c \
+	../src/support.c
