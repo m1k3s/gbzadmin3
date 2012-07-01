@@ -199,6 +199,11 @@ void gbzadmin::on_save_activate()
 	save_dialog->show();
 }
 
+void gbzadmin::on_save_config_activate()
+{
+	save_gconf();
+}
+
 void gbzadmin::on_prefs_activate()
 {
 	pref_dialog_setup();
@@ -289,6 +294,7 @@ void gbzadmin::connect_dialog_setup()
 
 		w_callsign->set_text(_callsign);
 		w_password->set_text(_password);
+		// TODO: add MRU server/port
 		w_server->set_text(_server);
 		w_port->set_text(_port_str);
 		
@@ -355,10 +361,15 @@ void gbzadmin::pref_dialog_setup()
 		refBuilder->get_widget("use_udp", check);
 		check->set_active(useUDP);
 		
+		bool line_numbers = conf_client->Gnome::Conf::Client::get_bool("/apps/gbzadmin3/views/msg_view/line_numbers");
+		refBuilder->get_widget("line_numbers", check);
+		check->set_active(line_numbers);
+		
 		// check to see if dump_players should be sensitive
 		// If this check button is insensitive the gconf key is not set. You must
 		// set it manually by running the following command in a terminal,
 		//  gconftool-2 -s -t string /apps/gbzadmin3/general/statsPath /Documents
+		// where /Documents is the directory you want to save the file in.
 		Glib::ustring sp = conf_client->Gnome::Conf::Client::get_string("/apps/gbzadmin3/general/statsPath");
 		refBuilder->get_widget("pref_dump_players", check);
 		if (sp.empty())
@@ -443,6 +454,10 @@ void gbzadmin::on_pref_dialog_response(gint response_id)
 		checked = w->get_active();
 		dump_players = checked;
 		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/options/dump_players", dump_players);
+		
+		refBuilder->get_widget("line_numbers", w);
+		checked = w->get_active();
+		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/views/msg_view/line_numbers", checked);
 
 		Gtk::Entry *e;
 		refBuilder->get_widget("pref_callsign_entry", e);
@@ -610,6 +625,7 @@ void gbzadmin::add_callbacks()
 	connect_clicked("connect", sigc::mem_fun(*this, &gbzadmin::on_connect_activate));
 	connect_clicked("disconnect", sigc::mem_fun(*this, &gbzadmin::on_disconnect_activate));
 	connect_clicked("save", sigc::mem_fun(*this, &gbzadmin::on_save_activate));
+	connect_clicked("save_config", sigc::mem_fun(*this, &gbzadmin::on_save_config_activate));
 	connect_clicked("preferences", sigc::mem_fun(*this, &gbzadmin::on_prefs_activate));
 	connect_clicked("message_view_scrolling", sigc::mem_fun(*this, &gbzadmin::on_message_view_scrolling_activate));
 	connect_clicked("mute", sigc::mem_fun(*this, &gbzadmin::on_mute_activate));
@@ -2432,7 +2448,7 @@ void gbzadmin::query_listServer()
 	// ctime str is terminated with '\n'
 	Glib::ustring str(msg_view.Color(YellowFg));
 	str += Glib::ustring::compose("--- queried (%1) list server in %2 seconds on %3",
-			sock.getVersion(), elapsed, ctime(&tm));
+			ServerVersion/*sock.getVersion()*/, elapsed, ctime(&tm));
 			
 	msg_view.add_text(str);
 }
@@ -2871,9 +2887,9 @@ void gbzadmin::enable_connected_items(bool set)
 	refBuilder->get_widget("uptime", item);
 	item->set_sensitive(set);
 	
-	item = 0;
-	refBuilder->get_widget("query_listserver", item);
-	item->set_sensitive(set);
+//	item = 0;
+//	refBuilder->get_widget("query_listserver", item);
+//	item->set_sensitive(set);
 	
 	Gtk::ToolButton *button = 0;
 	refBuilder->get_widget("clientquery_button", button);

@@ -57,7 +57,7 @@ const gchar *TermColors[] = {
 };
 
 view::view()
-	: Gtk::TextView(), capture(false), viewFont("Monospace 9")
+	: Gtk::TextView(), capture(false), line_numbers(false), viewFont("Monospace 9")
 {
 	capture_dialog = 0;
 	view_dialog = 0;
@@ -247,6 +247,9 @@ void view::init(Glib::RefPtr <Gtk::Builder> _refBuilder, const gchar* which, Gli
 		tmp_path += theView;
 		tmp_path += "/background";
 		color_bg = client->Gnome::Conf::Client::get_string(tmp_path);
+		
+		// line numbers are for the message view only
+		line_numbers = client->Gnome::Conf::Client::get_bool("/apps/gbzadmin3/views/msg_view/line_numbers");
 	}	
 	view_scroll = false;
 	capture = false;
@@ -595,7 +598,7 @@ void view::on_client_callback(guint connection_id, Gnome::Conf::Entry entry)
 
 void view::save_gconf()
 {
-	Glib::ustring path("/apps/gbzadmin3/view/"), tmp_path(path);
+	Glib::ustring path("/apps/gbzadmin3/views/"), tmp_path(path);
 	tmp_path += theView;
 	tmp_path += "/font";
 	client->Gnome::Conf::Client::set(tmp_path, viewFont);
@@ -607,6 +610,8 @@ void view::save_gconf()
 	tmp_path = path + theView;
 	tmp_path += "/background";
 	client->Gnome::Conf::Client::set(tmp_path, color_bg);
+	
+	client->Gnome::Conf::Client::set("/apps/gbzadmin3/views/msg_view/line_numbers", line_numbers);
 }
 
 std::vector<Glib::ustring> view::split(const Glib::ustring& in, const Glib::ustring &delims)

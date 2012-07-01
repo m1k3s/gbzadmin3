@@ -99,6 +99,7 @@ protected:
 	void on_server_list_window_activate();
 	bool on_delete_event (GdkEventAny *event);
 	void on_query_listserver_activate();
+	void on_save_config_activate();
 	
 	// signal callback function
 	void on_read_data();

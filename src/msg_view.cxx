@@ -29,7 +29,7 @@ msgView::msgView()
 
 msgView::~msgView()
 {
-
+	save_gconf();
 }
 
 void msgView::init(Glib::RefPtr <Gtk::Builder> _refBuilder, Glib::RefPtr<Gnome::Conf::Client> _client)
@@ -103,6 +103,48 @@ void msgView::format(Glib::ustring& formatted, Glib::ustring msg, guint8 src, gu
 
     formatted += message + "\n";
   }
+}
+//
+// overrides
+//
+
+// add colorized text to the view using the tagtable
+void msgView::add_text(const gchar *str, const gchar *tag)
+{
+	// TODO: prepend line number if option is enabled
+	if (get_line_numbers()) {
+		gchar lino[1024] = "[0000] ";
+		strcat(lino, str);
+		view::add_text(lino, tag);
+	} else {
+		view::add_text(str, tag);
+	}
+}
+
+// add colorized text to the view using the tagtable
+void msgView::add_text(Glib::ustring str, Glib::ustring tag)
+{
+	// TODO: prepend line number if option is enabled
+	if (get_line_numbers()) {
+		Glib::ustring lino("[0000] ");
+		lino += str;
+		view::add_text(lino, tag);
+	} else {
+		view::add_text(str, tag);
+	}
+}
+
+// add text using ANSI color codes
+void msgView::add_text(Glib::ustring &str)
+{
+	// TODO: prepend line number if option is enabled
+	if (get_line_numbers()) {
+		Glib::ustring lino("[0000] ");
+		lino += str;
+		view::add_text(lino);
+	} else {
+		view::add_text(str);
+	}
 }
 
 
