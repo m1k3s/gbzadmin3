@@ -589,6 +589,8 @@ void view::on_client_callback(guint connection_id, Gnome::Conf::Entry entry)
 				font = value.get_string();
 				me->Gtk::Widget::modify_font(Pango::FontDescription(font));
 				viewFont = font;
+			} else if (tokens[4] == "line_numbers") {
+				line_numbers = value.get_bool();
 			} else {
 				return;
 			}
