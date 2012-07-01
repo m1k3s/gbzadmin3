@@ -29,7 +29,6 @@ msgView::msgView()
 
 msgView::~msgView()
 {
-//	save_gconf();
 }
 
 void msgView::init(Glib::RefPtr <Gtk::Builder> _refBuilder, Glib::RefPtr<Gnome::Conf::Client> _client)
@@ -113,7 +112,7 @@ void msgView::add_text(const gchar *str, const gchar *tag)
 {
 	if (line_numbers) {
 		char tmp[512];
-		::snprintf(tmp, sizeof(tmp), "[%04d] ", buffer->get_line_count());
+		::snprintf(tmp, sizeof(tmp), "%s[%04d] ", Color(PGreen4Fg).c_str(), buffer->get_line_count());
 		strcat(tmp, str);
 		view::add_text(tmp, tag);
 	} else {
@@ -127,20 +126,22 @@ void msgView::add_text(Glib::ustring str, Glib::ustring tag)
 	if (line_numbers) {
 		char tmp[512];
 		::snprintf(tmp, sizeof(tmp), "[%04d] ", buffer->get_line_count());
-		Glib::ustring lino(Glib::ustring(tmp) += str);
+		Glib::ustring tag(Color(PGreen4Fg));
+		Glib::ustring lino(tag + Glib::ustring(tmp) + str);
 		view::add_text(lino, tag);
 	} else {
 		view::add_text(str, tag);
 	}
 }
 
-// add text using ANSI color codes
+// add text using ANSI color codes, line numbering is colored
 void msgView::add_text(Glib::ustring &str)
 {
 	if (line_numbers) {
 		char tmp[512];
-		::snprintf(tmp, sizeof(tmp), "%s[%04d] ", Color(PGreen4Fg).c_str(), buffer->get_line_count());
-		Glib::ustring lino(Glib::ustring(tmp) += str);
+		::snprintf(tmp, sizeof(tmp), "[%04d] ", buffer->get_line_count());
+		Glib::ustring tag(Color(PGreen4Fg));
+		Glib::ustring lino(tag + Glib::ustring(tmp) + str);
 		view::add_text(lino);
 	} else {
 		view::add_text(str);

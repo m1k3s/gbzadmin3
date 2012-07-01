@@ -2171,6 +2171,7 @@ bool gbzadmin::update_timer()
 		count = msg_view.get_buffer_size();
 		Glib::ustring str = Glib::ustring::compose("Line: %1  Count: %2", line, count);
 		set_status_message(StatusMsgLine, str.c_str());
+		prev_line = line;
 	}
 	
 	return running;

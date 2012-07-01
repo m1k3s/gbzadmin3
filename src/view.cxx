@@ -24,9 +24,9 @@
 
 #include "view.h"
 
-// ANSI code TextTag equivalents - these should line up with the enums in ansicodes.h
+// ANSI code Gtk::TextTag equivalents
 const gchar *TermColors[] = {
-  							// foreground colors
+  // foreground colors ////
 	"rabbit",			// white, actually
 	"red", 				// red
   "green", 			// green
@@ -35,12 +35,12 @@ const gchar *TermColors[] = {
   "purple", 		// purple
   "observer", 	// cyan3
   "default", 		// gainesboro
-  							// custom colors
+  // custom fg colors /////
   "hunter",  		// orange
   "server",			// goldenrod
   "brdcast",		// cyan4
   "srvdirect",	// PaleGreen4
-  							// background colors
+  // background colors ////
   "black_bg",		// black
 	"red_bg", 		// red
   "green_bg", 	// green
@@ -49,7 +49,7 @@ const gchar *TermColors[] = {
   "purple_bg", 	// purple
   "cyan3_bg",		// cyan3
   "white_bg", 	// gainesboro
-  							// custom colors
+  // custom bg colors /////
   "orange_bg",  // orange
   "golden_bg",	// goldenrod
   "cyan4_bg",		// cyan4
@@ -63,11 +63,16 @@ view::view()
 	view_dialog = 0;
 	color_fg = "white";
 	color_bg = "black";
+	cnxn = 0;
 }
 
 view::~view()
-{	
-//	client->notify_remove(cnxn);
+{
+	// we only want to do this once
+	if (cnxn > 0) {
+		client->notify_remove(cnxn);
+		cnxn = 0;
+	}
 	
 	if(capture)
 		cap_os.close();
