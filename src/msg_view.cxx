@@ -111,9 +111,9 @@ void msgView::format(Glib::ustring& formatted, Glib::ustring msg, guint8 src, gu
 // add colorized text to the view using the tagtable
 void msgView::add_text(const gchar *str, const gchar *tag)
 {
-	// TODO: prepend line number if option is enabled
-	if (get_line_numbers()) {
+	if (line_numbers) {
 		gchar lino[1024] = "[0000] ";
+		::snprintf(lino, sizeof(lino), "[%04d] ", buffer->get_line_count());
 		strcat(lino, str);
 		view::add_text(lino, tag);
 	} else {
@@ -124,10 +124,10 @@ void msgView::add_text(const gchar *str, const gchar *tag)
 // add colorized text to the view using the tagtable
 void msgView::add_text(Glib::ustring str, Glib::ustring tag)
 {
-	// TODO: prepend line number if option is enabled
-	if (get_line_numbers()) {
-		Glib::ustring lino("[0000] ");
-		lino += str;
+	if (line_numbers) {
+		char tmp[512];
+		::snprintf(tmp, sizeof(tmp), "[%04d] ", buffer->get_line_count());
+		Glib::ustring lino(Glib::ustring(tmp) += str);
 		view::add_text(lino, tag);
 	} else {
 		view::add_text(str, tag);
@@ -137,10 +137,10 @@ void msgView::add_text(Glib::ustring str, Glib::ustring tag)
 // add text using ANSI color codes
 void msgView::add_text(Glib::ustring &str)
 {
-	// TODO: prepend line number if option is enabled
-	if (get_line_numbers()) {
-		Glib::ustring lino("[0000] ");
-		lino += str;
+	if (line_numbers) {
+		char tmp[512];
+		::snprintf(tmp, sizeof(tmp), "[%04d] ", buffer->get_line_count());
+		Glib::ustring lino(Glib::ustring(tmp) += str);
 		view::add_text(lino);
 	} else {
 		view::add_text(str);

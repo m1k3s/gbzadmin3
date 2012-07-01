@@ -57,7 +57,7 @@ const gchar *TermColors[] = {
 };
 
 view::view()
-	: Gtk::TextView(), capture(false), line_numbers(false), viewFont("Monospace 9")
+	: Gtk::TextView(), line_numbers(false), capture(false), viewFont("Monospace 9")
 {
 	capture_dialog = 0;
 	view_dialog = 0;
