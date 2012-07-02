@@ -152,7 +152,6 @@ void serverVars::add(const Glib::ustring& variable, const Glib::ustring& value)
 	row[columns.variable] = variable;
 	row[columns.value] = value;
 
-//	Glib::ustring def(defaults[idx]);
 	Glib::ustring def = dbItems.find(variable);
 	row[columns.def_val] = def;
 

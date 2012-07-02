@@ -3,7 +3,7 @@
 
 // 2.4.0 default variable values
 static const char* defaults[][256] = {
-	{"_HTTPIndexResourceDir", "?"},
+	{"_HTTPIndexResourceDir", ""},
 	{"_agilityAdVel", "2.25"},
 	{"_agilityTimeWindow", "1"},
 	{"_agilityVelDelta", "0.3"},
@@ -169,7 +169,7 @@ static const char* defaults[][256] = {
 	{"_wingsJumpVelocity", "_jumpVelocity"},
 	{"_wingsSlideTime", "0"},
 	{"_worldSize", "800"},
-	{"poll", "?"}
+	{"poll", ""}
 };
 
 const int maxIdx = sizeof(defaults) / sizeof(defaults[0]);
@@ -192,8 +192,8 @@ public:
 	Glib::ustring find(Glib::ustring variable)
 	{
 		Glib::ustring var;
-		int count = name.size();
-		for (int k = 0; k < count; k++) {
+		
+		for (std::vector<Glib::ustring>::size_type k = 0; k != name.size(); k++) {
 			if (name.at(k) == variable) {
 				var = defValue.at(k);
 				break;
@@ -204,3 +204,4 @@ public:
 };
 
 #endif // _default_vars_h_
+
