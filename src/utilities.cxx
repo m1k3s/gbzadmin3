@@ -28,10 +28,13 @@ char *getAppVersion()
 {
 	char buf[128];
 	char *os_name = getOsName();
+	char *machine = getMachine();
 	
 	snprintf(buf, sizeof(buf), "gbzadmin-%s.%d-%s-%s-gtkmm", VERSION,
 			getBuildDate(), Gbzadmin_Build_Type, os_name);
+			
 	free(os_name);
+	free(machine);
 	
 	return ::strdup(buf);
 }
@@ -55,6 +58,15 @@ char *getOsName()
 		return ::strdup("Unknown");
 
 	return ::strdup(os.sysname);
+}
+
+char *getMachine()
+{
+	struct utsname os;
+	if (uname(&os))
+		return ::strdup("Unknown");
+
+	return ::strdup(os.machine);
 }
 
 const char *getServerVersion()

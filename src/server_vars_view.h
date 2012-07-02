@@ -91,6 +91,8 @@ private:
 	typedef std::vector<Variable> VarVal;
 	VarVal variables;
 	int idx;
+	
+	serverDBItems dbItems;
 };
 
 inline gint serverVars::get_n_variables()

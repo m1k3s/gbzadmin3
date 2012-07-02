@@ -60,8 +60,6 @@ public:
 	bool get_scroll() { return view_scroll; }
 	void set_shrink(bool set) { do_shrink = set; }
 	bool get_shrink() { return do_shrink; }
-//	bool get_line_numbers() { return line_numbers; }
-//	Glib::RefPtr <Gtk::TextBuffer> get_text_buffer() { return buffer; }
 	void clear();
 	Glib::ustring get_color(int idx);
 	bool start_capture();
@@ -96,11 +94,9 @@ private:
 	Glib::RefPtr <Gtk::Builder> refBuilder;
 	Glib::RefPtr<Gnome::Conf::Client> client;
 	Gtk::TextView *me;
-//	Glib::RefPtr <Gtk::TextBuffer> buffer;
 	bool view_scroll;
 	bool capture;
 	bool do_shrink;
-//	bool line_numbers;
 	std::ofstream cap_os;
 	Gtk::FileChooserDialog *capture_dialog;
 	Gtk::Dialog *view_dialog;

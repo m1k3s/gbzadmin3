@@ -47,6 +47,8 @@ void serverVars::init(Glib::RefPtr <Gtk::Builder> _refBuilder)
 {
 	refBuilder = _refBuilder;
 	
+	dbItems.init();
+	
 	refBuilder->get_widget("server_view", view);
 	
 	vars = Gtk::ListStore::create(columns);
@@ -74,9 +76,9 @@ void serverVars::init(Glib::RefPtr <Gtk::Builder> _refBuilder)
 		val_col->property_foreground() = VALUE;
 		val_col->property_background() = BKGRND;
 		val_col->property_font() = FONT;
-		//Set the editable property to false until admin rights have been established,
+		// set the editable property to false until admin rights have been established
 		val_col->property_editable() = false;
-	  //Connect to the "edited" signal, sending the model_column too,
+	  // connect to the "edited" signal, sending the model_column too
 		val_col->signal_edited().connect(sigc::mem_fun(*this, &serverVars::on_column_value_edited));
 		// setup a custom cell function
 		pViewColumn->set_cell_data_func(*pCellRenderer, sigc::mem_fun(*this, &serverVars::on_cell_data));
@@ -96,8 +98,8 @@ void serverVars::init(Glib::RefPtr <Gtk::Builder> _refBuilder)
 	view->append_column(*pViewColumn);
 	
 	// is-value-default column, this column is not visible. This column is used to
-	// color code the variable values, blue if default, red if not default.
-	// default server variables values are in default_vars.h. These are only 2.0 defaults.
+	// color code the variable values, DEFAULT if default, CHANGED if not default.
+	// default server variable values are in default_vars.h. These are only 2.0 defaults.
 	pViewColumn = Gtk::manage(new Gtk::TreeView::Column("isDefault Value", columns.isdef_val));
   pCellRenderer = pViewColumn->get_first_cell_renderer();
   isdef_col = dynamic_cast<Gtk::CellRendererText*>(pCellRenderer);
@@ -150,7 +152,8 @@ void serverVars::add(const Glib::ustring& variable, const Glib::ustring& value)
 	row[columns.variable] = variable;
 	row[columns.value] = value;
 
-	Glib::ustring def(defaults[idx]);
+//	Glib::ustring def(defaults[idx]);
+	Glib::ustring def = dbItems.find(variable);
 	row[columns.def_val] = def;
 
 	if ((value != def) && (def != Glib::ustring("none"))) {
@@ -178,7 +181,8 @@ void serverVars::update(const Glib::ustring& variable, const Glib::ustring& valu
 			Gtk::TreeRow row = *(vars->get_iter(path));
 			row[columns.value] = value;
 
-			Glib::ustring def(defaults[k]);
+//			Glib::ustring def(defaults[k]);
+			Glib::ustring def = dbItems.find(variable);
 			if ((value != def) && (def != Glib::ustring("none"))) {
 				row[columns.isdef_val] = Glib::ustring("false");
 			} else {

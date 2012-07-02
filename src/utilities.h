@@ -52,6 +52,7 @@ const char* const Gbzadmin_Build_Type	=	"DEVEL";	// DEVEL | STABLE | MAINT
 
 char* getAppVersion();
 char* getOsName();
+char *getMachine();
 const char* getServerVersion();
 char *url_encode(const char *text);
 

@@ -305,10 +305,10 @@ void* Parser::unpack_address(void* _buf, struct in_addr *addr)
   guint32 hostaddr;
 
   // FIXME - should actually parse the first byte
-  // to see if it's IPv4 or IPv6, But first let's
+  // to see if it's IPv4 or IPv6, But for now let's
   // see if we get anything other than IPv4.
   if (buf[0] != 0x04) {
-  	std::cout << "*** IPv: 0x" << std::hex << buf[0] << std::endl;
+  	std::cout << "*** IP version: 0x detected." << std::hex << buf[0] << std::endl;
   }
   ++buf;
   // everything in in_addr should be stored in network byte order
