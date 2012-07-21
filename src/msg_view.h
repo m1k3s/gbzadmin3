@@ -35,7 +35,7 @@ class msgView : public view
 public:
 	msgView();
 	~msgView();
-	void init(Glib::RefPtr <Gtk::Builder> _refBuilder, Glib::RefPtr<Gnome::Conf::Client> _client);
+	void init(Glib::RefPtr <Gtk::Builder> _refBuilder/*, Glib::RefPtr<Gnome::Conf::Client> _client*/);
 	void format(Glib::ustring& formatted, Glib::ustring msg, guint8 src, guint8 dst,
 						guint16 dstTeam, guint8 me, Glib::ustring src_callsign, Glib::ustring dst_callsign);
 	Glib::ustring colorBullet();

@@ -24,7 +24,7 @@ GBZADMIN_DATE=`date -u +%Y-%m-%d`
 GBZADMIN_VERSION="2.99"
 host=`uname`
 
-pkg_modules="gtkmm-2.4 >= 2.8.0 gconfmm-2.6"
+pkg_modules="gtkmm-2.4 >= 2.8.0" # gconfmm-2.6"
 PKG_CHECK_MODULES(PACKAGE, [$pkg_modules])
 AC_SUBST(PACKAGE_CPPFLAGS)
 AC_SUBST(PACKAGE_LIBS)

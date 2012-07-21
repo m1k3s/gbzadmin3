@@ -34,9 +34,9 @@ playerView::playerView()
 	
 }
 
-void playerView::init(Glib::RefPtr <Gtk::Builder> _refBuilder, Glib::RefPtr<Gnome::Conf::Client> _client)
+void playerView::init(Glib::RefPtr <Gtk::Builder> _refBuilder/*, Glib::RefPtr<Gnome::Conf::Client> _client*/)
 {
-	view::init(_refBuilder, "player_view", _client);
+	view::init(_refBuilder, "player_view"/*, _client*/);
 	set_scroll(false);
 }
 

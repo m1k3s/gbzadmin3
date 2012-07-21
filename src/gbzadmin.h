@@ -24,7 +24,6 @@
 //  =====================================================================
 
 #include <gtkmm.h>
-#include <gconfmm.h>
 #include <iostream>
 #include <fstream>
 #include <sys/types.h>
@@ -110,7 +109,6 @@ protected:
 	void clear_status_message(gint statusbar);
 	void push_pop_status(gint statusbar, const gchar *msg, bool push);
 	void toggle_capture_file();
-	void get_gconf_config();
 	void shut_down();
 	void set_message_filter(Glib::ustring type, bool set);
 	Glib::ustring get_team_str(int t);
@@ -137,11 +135,9 @@ protected:
 	bool isConnected();
 	void dump_player_stats(Player *p);
 	void show_help(Glib::ustring what);
-	void save_gconf();
 	void displayHostName(Glib::ustring param);
-	
-	// gconf client callback
-	void on_client_callback(guint connection_id, Gnome::Conf::Entry entry);
+	void save_config_file(Glib::ustring filename);
+	void parse_config_file(Glib::ustring filename);
 	
 	// timer functions
 	bool update_timer();
@@ -198,10 +194,6 @@ private:
 	Gtk::Dialog *flag_reset_dialog;
 	Gtk::Dialog *lagwarn_dialog;
 	Gtk::FileChooserDialog *save_dialog;
-	
-	// gconf
-	Glib::RefPtr<Gnome::Conf::Client> conf_client;
-	guint cnxn;
 	
 	// Unfortunately Glade Interface Builder does not support
 	// Gtk::ComboBoxText widgets. So we must supply our own.

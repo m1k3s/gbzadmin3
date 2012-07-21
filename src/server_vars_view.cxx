@@ -54,6 +54,10 @@ void serverVars::init(Glib::RefPtr <Gtk::Builder> _refBuilder)
 	vars = Gtk::ListStore::create(columns);
 	
 	view->set_model(vars);
+	
+	Gdk::Color color;
+	color.parse("#757575");
+	view->modify_base(Gtk::STATE_SELECTED, color);
 
 	// Variable name column
 	Gtk::TreeView::Column* pViewColumn = Gtk::manage(new Gtk::TreeView::Column("Variable", columns.variable));
@@ -180,7 +184,6 @@ void serverVars::update(const Glib::ustring& variable, const Glib::ustring& valu
 			Gtk::TreeRow row = *(vars->get_iter(path));
 			row[columns.value] = value;
 
-//			Glib::ustring def(defaults[k]);
 			Glib::ustring def = dbItems.find(variable);
 			if ((value != def) && (def != Glib::ustring("none"))) {
 				row[columns.isdef_val] = Glib::ustring("false");

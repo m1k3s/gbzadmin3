@@ -212,13 +212,18 @@ public:
 
 	Glib::ustring find(Glib::ustring variable)
 	{
-		Glib::ustring var;
+		Glib::ustring var("");
+		bool found = false;
 		
 		for (std::vector<Glib::ustring>::size_type k = 0; k != name.size(); k++) {
 			if (name.at(k) == variable) {
 				var = defValue.at(k);
+				found = true;
 				break;
 			}
+		}
+		if (!found) {
+			var = "UNKNOWN";
 		}
 		return var;
 	}

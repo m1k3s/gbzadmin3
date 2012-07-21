@@ -24,6 +24,7 @@
 #include "gbzadmin.h"
 
 const char *windowTitle = "gBZAdmin3";
+const char *configFileName = "/.gbzadmin";
 
 // message mask/prefs dialog widget names
 const gchar *msg_names[] = {
@@ -69,23 +70,28 @@ void gbzadmin::power_down()
 	Gtk::Window *app;
 	refBuilder->get_widget("app", app);
 	
-	// save window position and size to gconf key
+	// save window position and size to conf file
 	app->get_size(win_width, win_height);
 	app->get_position(win_x, win_y);
-	conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/general/window_x", win_x);
-	conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/general/window_y", win_y);
-	conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/general/window_width", win_width);
-	conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/general/window_height", win_height);
+//	conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/general/window_x", win_x);
+//	conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/general/window_y", win_y);
+//	conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/general/window_width", win_width);
+//	conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/general/window_height", win_height);
 	
 	// save pane positions
 	Gtk::Paned *pane;
 	refBuilder->get_widget("vpaned1", pane);
 	msg_pane = pane->get_position();
-	conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/general/msg_pane", msg_pane);
+//	conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/general/msg_pane", msg_pane);
 	
 	refBuilder->get_widget("hpaned1", pane);
 	game_pane = pane->get_position();
-	conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/general/game_pane", game_pane);
+//	conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/general/game_pane", game_pane);
+
+	Glib::ustring configPath(Glib::get_home_dir());
+	configPath += configFileName;
+	
+	save_config_file(configPath);
 
 	if (app)
 		app->hide(); // hide() will cause main::run() to end.
@@ -109,8 +115,8 @@ void gbzadmin::shut_down()
 {	
 	sock.sendExit();
 	sock.disconnect();
-	conf_client->remove_dir("/apps/gbzadmin3");
-	conf_client->notify_remove(cnxn);
+//	conf_client->remove_dir("/apps/gbzadmin3");
+//	conf_client->notify_remove(cnxn);
 	
 	power_down();
 }
@@ -201,7 +207,10 @@ void gbzadmin::on_save_activate()
 
 void gbzadmin::on_save_config_activate()
 {
-	save_gconf();
+	Glib::ustring configPath(Glib::get_home_dir());
+	configPath += configFileName;
+	
+	save_config_file(configPath);
 }
 
 void gbzadmin::on_prefs_activate()
@@ -320,10 +329,10 @@ void gbzadmin::on_connect_dialog_response(gint response_id)
 		_password.assign(w_password->get_text(), 0, PasswordLen);
 		
 		// update gconf, these may have changed
-		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/general/callsign", _callsign);
-		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/general/password", _password);
-		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/general/server", _server);
-		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/general/port", _port_str);
+//		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/general/callsign", _callsign);
+//		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/general/password", _password);
+//		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/general/server", _server);
+//		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/general/port", _port_str);
 
 		// TODO: keep a history of 4 MRU servers and ports
 		
@@ -361,7 +370,7 @@ void gbzadmin::pref_dialog_setup()
 		refBuilder->get_widget("use_udp", check);
 		check->set_active(useUDP);
 		
-		bool line_numbers = conf_client->Gnome::Conf::Client::get_bool("/apps/gbzadmin3/views/msg_view/line_numbers");
+		bool line_numbers = false; //conf_client->Gnome::Conf::Client::get_bool("/apps/gbzadmin3/views/msg_view/line_numbers");
 		refBuilder->get_widget("line_numbers", check);
 		check->set_active(line_numbers);
 		
@@ -370,7 +379,7 @@ void gbzadmin::pref_dialog_setup()
 		// set it manually by running the following command in a terminal,
 		//  gconftool-2 -s -t string /apps/gbzadmin3/general/statsPath /Documents
 		// where /Documents is the directory you want to save the file in.
-		Glib::ustring sp = conf_client->Gnome::Conf::Client::get_string("/apps/gbzadmin3/general/statsPath");
+		Glib::ustring sp = ""; //conf_client->Gnome::Conf::Client::get_string("/apps/gbzadmin3/general/statsPath");
 		refBuilder->get_widget("pref_dump_players", check);
 		if (sp.empty())
 			check->set_sensitive(false);
@@ -405,73 +414,73 @@ void gbzadmin::on_pref_dialog_response(gint response_id)
 			set_message_filter(msg_names[k], checked);
 		}
 		// save message masks to gconf
-		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/messages/msg_new_rabbit" , msg_mask["rabbit"]);
-		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/messages/msg_pause" , msg_mask["pause"]);
-		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/messages/msg_alive" , msg_mask["spawn"]);	
-		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/messages/msg_lag_ping" , msg_mask["ping"]);
-		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/messages/msg_set_var" , msg_mask["bzdb"]);
-		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/messages/msg_add_player" , msg_mask["join"]);
-		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/messages/msg_remove_player" , msg_mask["leave"]);
-		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/messages/msg_admin_info" , msg_mask["admin"]);
-		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/messages/msg_killed" , msg_mask["kill"]);
-		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/messages/msg_score" , msg_mask["score"]);
-		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/messages/msg_message" , msg_mask["chat"]);
-		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/messages/msg_roger" , msg_mask["roger"]);
-		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/messages/msg_flags" , msg_mask["flags"]);
-		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/messages/msg_time_stamp" , msg_mask["time"]);
+//		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/messages/msg_new_rabbit" , msg_mask["rabbit"]);
+//		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/messages/msg_pause" , msg_mask["pause"]);
+//		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/messages/msg_alive" , msg_mask["spawn"]);	
+//		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/messages/msg_lag_ping" , msg_mask["ping"]);
+//		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/messages/msg_set_var" , msg_mask["bzdb"]);
+//		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/messages/msg_add_player" , msg_mask["join"]);
+//		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/messages/msg_remove_player" , msg_mask["leave"]);
+//		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/messages/msg_admin_info" , msg_mask["admin"]);
+//		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/messages/msg_killed" , msg_mask["kill"]);
+//		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/messages/msg_score" , msg_mask["score"]);
+//		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/messages/msg_message" , msg_mask["chat"]);
+//		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/messages/msg_roger" , msg_mask["roger"]);
+//		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/messages/msg_flags" , msg_mask["flags"]);
+//		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/messages/msg_time_stamp" , msg_mask["time"]);
 	
 		refBuilder->get_widget("pref_auto_cmd", w);
 		checked = w->get_active();
 		auto_cmd = checked;
-		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/options/auto_cmd", auto_cmd);
+//		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/options/auto_cmd", auto_cmd);
 		
 		refBuilder->get_widget("pref_pings", w);
 		checked = w->get_active();
 		echo_pings = checked;
-		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/options/echo_pings", echo_pings);
+//		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/options/echo_pings", echo_pings);
 		
 		refBuilder->get_widget("pref_save_password", w);
 		checked = w->get_active();
 		save_password = checked;
-		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/options/save_password", save_password);
+//		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/options/save_password", save_password);
 		
 		refBuilder->get_widget("connect_at_startup", w);
 		checked = w->get_active();
 		connect_at_startup = checked;
-		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/options/connect_at_startup", connect_at_startup);
+//		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/options/connect_at_startup", connect_at_startup);
 		
 		refBuilder->get_widget("use_udp", w);
 		checked = w->get_active();
 		useUDP = checked;
-		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/options/use_udp", useUDP);
+//		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/options/use_udp", useUDP);
 		
 		refBuilder->get_widget("net_stats", w);
 		checked = w->get_active();
 		sock.setNetStats(checked);
-		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/options/net_stats", sock.netStatsEnabled());
+//		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/options/net_stats", sock.netStatsEnabled());
 		
 		refBuilder->get_widget("pref_dump_players", w);
 		checked = w->get_active();
 		dump_players = checked;
-		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/options/dump_players", dump_players);
+//		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/options/dump_players", dump_players);
 		
 		refBuilder->get_widget("line_numbers", w);
 		checked = w->get_active();
-		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/views/msg_view/line_numbers", checked);
+//		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/views/msg_view/line_numbers", checked);
 
 		Gtk::Entry *e;
 		refBuilder->get_widget("pref_callsign_entry", e);
 		_callsign = e->get_text();
-		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/general/callsign", _callsign);
+//		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/general/callsign", _callsign);
 		
 		refBuilder->get_widget("pref_server_entry", e);
 		_server = e->get_text();
-		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/general/server", _server);
+//		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/general/server", _server);
 		
 		refBuilder->get_widget("pref_port_entry", e);
 		_port_str = e->get_text();
 		_port = atoi(_port_str.c_str());
-		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/general/port", _port_str);
+//		conf_client->Gnome::Conf::Client::set("/apps/gbzadmin3/general/port", _port_str);
 		
 		if (response_id == Gtk::RESPONSE_OK)
 			pref_dialog->hide();
@@ -493,6 +502,13 @@ Gtk::Window *gbzadmin::init_gbzadmin(Glib::RefPtr<Gtk::Builder> _refBuilder)
 	save_password = true;
 	connect_at_startup = false;
 	
+	win_x = 0;
+	win_y = 0;
+	win_width = 800;
+	win_height = 600;
+	msg_pane = 300;
+	game_pane = 400;
+	
 	current_cmd_type = NoCommand;
 		
 	refBuilder->get_widget("app", app);
@@ -500,22 +516,18 @@ Gtk::Window *gbzadmin::init_gbzadmin(Glib::RefPtr<Gtk::Builder> _refBuilder)
 		return 0;
 	}
 	
-	conf_client = Gnome::Conf::Client::get_default_client();
-	// check for the gconf key first
-	if (conf_client->dir_exists("/apps/gbzadmin3")) {
-		// monitor the gconf key for this app
-  	conf_client->add_dir("/apps/gbzadmin3");
+	Glib::ustring configPath(Glib::get_home_dir());
+	configPath += configFileName;
+	
+	// check for the config file first
+	if (Glib::file_test(configPath, Glib::FILE_TEST_EXISTS)) {
+		parse_config_file(configPath);
 	} else {
 		// run preferences dialog for initial setup
 		pref_dialog_setup();
-		// now monitor the gconf key
-  	conf_client->add_dir("/apps/gbzadmin3");
 	}
 	
-	// get the configuration from gconf
-	get_gconf_config();
-	
-	// set window size and position from gconf
+	// set window size and position from config
 	app->move(win_x, win_y);
 	app->resize(win_width, win_height);
 	
@@ -528,11 +540,11 @@ Gtk::Window *gbzadmin::init_gbzadmin(Glib::RefPtr<Gtk::Builder> _refBuilder)
 	pane->set_position(game_pane);
 	
 	// init the views
-	player_view.init(refBuilder, conf_client);
-	msg_view.init(refBuilder, conf_client);
+	player_view.init(refBuilder/*, conf_client*/);
+	msg_view.init(refBuilder/*, conf_client*/);
 	server_vars_view.init(refBuilder);
-	game_view.init(refBuilder, conf_client);
-	server_list_view.init(refBuilder, conf_client);
+	game_view.init(refBuilder/*, conf_client*/);
+	server_list_view.init(refBuilder/*, conf_client*/);
 	cmd.init(refBuilder);
 	
 	add_callbacks();
@@ -682,9 +694,6 @@ void gbzadmin::add_callbacks()
 	if (lagwarn_dialog)
 		lagwarn_dialog->signal_response().connect(sigc::mem_fun(*this, &gbzadmin::on_lagwarn_dialog_response));
 		
-	// add the gconf client notification
-	cnxn = conf_client->notify_add("/apps/gbzadmin3", sigc::mem_fun(*this, &gbzadmin::on_client_callback));
-	
 	// connect the server variable changed signal
 	server_vars_view.on_variable_changed.connect(sigc::mem_fun(*this, &gbzadmin::on_variable_changed));
 }
@@ -865,60 +874,19 @@ void gbzadmin::toggle_capture_file()
 	}
 }
 
-void gbzadmin::get_gconf_config()
-{
-	_callsign = conf_client->Gnome::Conf::Client::get_string("/apps/gbzadmin3/general/callsign");
-	_password = conf_client->Gnome::Conf::Client::get_string("/apps/gbzadmin3/general/password");
-	// TODO: add a server level that stores the 4 MRU servers
-	_server = conf_client->Gnome::Conf::Client::get_string("/apps/gbzadmin3/general/server");
-	// TODO: add a port level that stores the 4 MRU ports
-	_port_str = conf_client->Gnome::Conf::Client::get_string("/apps/gbzadmin3/general/port");
-	_port = atoi(_port_str.c_str());
-	win_x = conf_client->Gnome::Conf::Client::get_int("/apps/gbzadmin3/general/window_x");
-	win_y = conf_client->Gnome::Conf::Client::get_int("/apps/gbzadmin3/general/window_y");
-	win_width = conf_client->Gnome::Conf::Client::get_int("/apps/gbzadmin3/general/window_width");
-	win_height = conf_client->Gnome::Conf::Client::get_int("/apps/gbzadmin3/general/window_height");
-	
-	msg_pane = conf_client->Gnome::Conf::Client::get_int("/apps/gbzadmin3/general/msg_pane");
-	game_pane = conf_client->Gnome::Conf::Client::get_int("/apps/gbzadmin3/general/game_pane");
-		
-	auto_cmd = conf_client->Gnome::Conf::Client::get_bool("/apps/gbzadmin3/options/auto_cmd");
-	echo_pings = conf_client->Gnome::Conf::Client::get_bool("/apps/gbzadmin3/options/echo_pings");
-	save_password = conf_client->Gnome::Conf::Client::get_bool("/apps/gbzadmin3/options/save_password");
-	useUDP = conf_client->Gnome::Conf::Client::get_bool("/apps/gbzadmin3/options/use_udp");
-	dump_players = conf_client->Gnome::Conf::Client::get_bool("/apps/gbzadmin3/options/dump_players");
-	connect_at_startup = conf_client->Gnome::Conf::Client::get_bool("/apps/gbzadmin3/options/connect_at_startup");
-	sock.setNetStats(conf_client->Gnome::Conf::Client::get_bool("/apps/gbzadmin3/options/net_stats"));
-	
-	msg_mask["rabbit"] = conf_client->Gnome::Conf::Client::get_bool("/apps/gbzadmin3/messages/msg_new_rabbit");
-	msg_mask["pause"] = conf_client->Gnome::Conf::Client::get_bool("/apps/gbzadmin3/messages/msg_pause");
-	msg_mask["spawn"] = conf_client->Gnome::Conf::Client::get_bool("/apps/gbzadmin3/messages/msg_alive");	
-	msg_mask["ping"] = conf_client->Gnome::Conf::Client::get_bool("/apps/gbzadmin3/messages/msg_lag_ping");
-	msg_mask["bzdb"] = conf_client->Gnome::Conf::Client::get_bool("/apps/gbzadmin3/messages/msg_set_var");
-	msg_mask["join"] = conf_client->Gnome::Conf::Client::get_bool("/apps/gbzadmin3/messages/msg_add_player");
-	msg_mask["leave"] = conf_client->Gnome::Conf::Client::get_bool("/apps/gbzadmin3/messages/msg_remove_player");
-	msg_mask["admin"] = conf_client->Gnome::Conf::Client::get_bool("/apps/gbzadmin3/messages/msg_admin_info");
-	msg_mask["kill"] = conf_client->Gnome::Conf::Client::get_bool("/apps/gbzadmin3/messages/msg_killed");
-	msg_mask["score"] = conf_client->Gnome::Conf::Client::get_bool("/apps/gbzadmin3/messages/msg_score");
-	msg_mask["chat"] = conf_client->Gnome::Conf::Client::get_bool("/apps/gbzadmin3/messages/msg_message");
-	msg_mask["roger"] = conf_client->Gnome::Conf::Client::get_bool("/apps/gbzadmin3/messages/msg_roger");
-	msg_mask["flags"] = conf_client->Gnome::Conf::Client::get_bool("/apps/gbzadmin3/messages/msg_flags");
-	msg_mask["time"] = conf_client->Gnome::Conf::Client::get_bool("/apps/gbzadmin3/messages/msg_time_stamp");
-}
-#if 0
 void gbzadmin::parse_config_file(Glib::ustring filename)
 {
-	gchar variable[64];
-	gchar value[512];
-	Glib::ustring buf;
-	gint result = 0;
+	char variable[64];
+	char value[512];
+	char buf[1024];
+	int result = 0;
 	
-	ifstream is;
-	is.open(filename.c_str());
+	std::ifstream is;
+	is.open(filename.c_str(), std::ios::in);
 	if (is.is_open()) {
 		do {
+			memset(buf, 0, 1024);
 			is.getline(buf, 256);
-			buf.clear();
 			
 			result = sscanf(buf, "%32[^#=]=%256[^\n]\n", variable, value);
 			if ((result < 2) || (result == EOF))
@@ -928,202 +896,176 @@ void gbzadmin::parse_config_file(Glib::ustring filename)
 			// the value to the prefs.value
 			 
 			if (g_ascii_strcasecmp(variable, "callsign") == 0) {
-	 			g_stpcpy(_callsign, value);
+	 			_callsign = value;
 	 		} else if (g_ascii_strcasecmp(variable, "motto") == 0) {
-	 			g_stpcpy(_motto, value);
+	 			_motto = value;
 			} else if (g_ascii_strcasecmp(variable, "password") == 0) {
-				g_stpcpy(_password, value);
+				_password = value;
 	 		} else if (g_ascii_strcasecmp(variable, "server") == 0) {
-	 			g_stpcpy(_server, value);
-	 		} else if (g_ascii_strcasecmp(variable, "sort_svr_list") == 0) {
-	 			if (atoi(value) == 1)
-	 				_sort_svr_list = true;
-	 			else
-	 				_sort_svr_list = false;
-	 		} else if (g_ascii_strcasecmp(variable, "always_query") == 0) {
-	 			if (atoi(value))
-	 				prefs.always_query = true;
-	 			else
-	 				prefs.always_query = false;
+	 			_server = value;
+	 		} else if (g_ascii_strcasecmp(variable, "window_x") == 0) {
+	 			win_x = atoi(value);
+	 		} else if (g_ascii_strcasecmp(variable, "window_y") == 0) {
+	 			win_y = atoi(value);
+	 		} else if (g_ascii_strcasecmp(variable, "window_width") == 0) {
+	 			win_width = atoi(value);
+	 		} else if (g_ascii_strcasecmp(variable, "window_height") == 0) {
+	 			win_height = atoi(value);
+	 		} else if (g_ascii_strcasecmp(variable, "msg_pane") == 0) {
+	 			msg_pane = atoi(value);
+	 		} else if (g_ascii_strcasecmp(variable, "game_pane") == 0) {
+	 			game_pane = atoi(value);	
 	 		} else if (g_ascii_strcasecmp(variable, "port") == 0) {
-	 			g_stpcpy(_port_str, value);
+	 			_port_str = value;
 	 		} else if (g_ascii_strcasecmp(variable, "auto_cmd") == 0) {
-	 			if (atoi(value))
-	 				auto_cmd = true;
-	 			else
-	 				auto_cmd = false;
+	 			auto_cmd = atoi(value) ? true : false;
 	 		} else if (g_ascii_strcasecmp(variable, "echo_pings") == 0) {
-	 			if (atoi(value))
-	 				prefs.echo_pings = TRUE;
-	 			else
-	 				prefs.echo_pings = FALSE;
-	 		} else if (g_ascii_strcasecmp(variable, "sort_players") == 0) {
-	 			if (atoi(value))
-	 				prefs.sort_players = TRUE;
-	 			else
-	 				prefs.sort_players = FALSE;
+	 		echo_pings = atoi(value) ? true : false;
+	 		} else if (g_ascii_strcasecmp(variable, "save_password") == 0) {
+	 			save_password = atoi(value) ? true : false;
 	 		} else if (g_ascii_strcasecmp(variable, "msg_new_rabbit") == 0) {
-	 			if (atoi(value))
-	 				prefs.msg_mask[msg_new_rabbit] = TRUE;
-	 			else
-	 				prefs.msg_mask[msg_new_rabbit] = FALSE;
+	 			msg_mask["rabbit"] = atoi(value) ? true : false;
 	 		} else if (g_ascii_strcasecmp(variable, "msg_pause") == 0) {
-	 			if (atoi(value))
-	 				prefs.msg_mask[msg_pause] = TRUE;
-	 			else
-	 				prefs.msg_mask[msg_pause] = FALSE;
+	 			msg_mask["pause"] = atoi(value) ? true : false;
 	 		} else if (g_ascii_strcasecmp(variable, "msg_alive") == 0) {
-	 			if (atoi(value))
-	 				prefs.msg_mask[msg_alive] = TRUE;
-	 			else
-	 				prefs.msg_mask[msg_alive] = FALSE;
+	 			msg_mask["spawn"] = atoi(value) ? true : false;
 	 		} else if (g_ascii_strcasecmp(variable, "msg_lag_ping") == 0) {
-	 			if (atoi(value))
-	 				prefs.msg_mask[msg_lag_ping] = TRUE;
-	 			else
-	 				prefs.msg_mask[msg_lag_ping] = FALSE;
+	 			msg_mask["ping"] = atoi(value) ? true : false;
 	 		} else if (g_ascii_strcasecmp(variable, "msg_set_var") == 0) {
-	 			if (atoi(value))
-	 				prefs.msg_mask[msg_set_var] = TRUE;
-	 			else
-	 				prefs.msg_mask[msg_set_var] = FALSE;
+	 			msg_mask["bzdb"] = atoi(value) ? true : false;
 	 		} else if (g_ascii_strcasecmp(variable, "msg_add_player") == 0) {
-	 			if (atoi(value))
-	 				prefs.msg_mask[msg_add_player] = TRUE;
-	 			else
-	 				prefs.msg_mask[msg_add_player] = FALSE;
+	 			msg_mask["join"] = atoi(value) ? true : false;
 	 		} else if (g_ascii_strcasecmp(variable, "msg_remove_player") == 0) {
-	 			if (atoi(value))
-	 				prefs.msg_mask[msg_remove_player] = TRUE;
-	 			else
-	 				prefs.msg_mask[msg_remove_player] = FALSE;
+	 			msg_mask["leave"] = atoi(value) ? true : false;
 	 		} else if (g_ascii_strcasecmp(variable, "msg_admin_info") == 0) {
-	 			if (atoi(value))
-	 				prefs.msg_mask[msg_admin_info] = TRUE;
-	 			else
-	 				prefs.msg_mask[msg_admin_info] = FALSE;
-	 		} else if (g_ascii_strcasecmp(variable, "msg_score_over") == 0) {
-	 			if (atoi(value))
-	 				prefs.msg_mask[msg_score_over] = TRUE;
-	 			else
-	 				prefs.msg_mask[msg_score_over] = FALSE;
-	 		} else if (g_ascii_strcasecmp(variable, "msg_time_update") == 0) {
-	 			if (atoi(value))
-	 				prefs.msg_mask[msg_time_update] = TRUE;
-	 			else
-	 				prefs.msg_mask[msg_time_update] = FALSE;
-	 		} else if (g_ascii_strcasecmp(variable, "msg_killed") == 0) {
-	 			if (atoi(value))
-	 				prefs.msg_mask[msg_killed] = TRUE;
-	 			else
-	 				prefs.msg_mask[msg_killed] = FALSE;
+	 			msg_mask["admin"] = atoi(value) ? true : false;
 	 		} else if (g_ascii_strcasecmp(variable, "msg_score") == 0) {
-	 			if (atoi(value))
-	 				prefs.msg_mask[msg_score] = TRUE;
-	 			else
-	 				prefs.msg_mask[msg_score] = FALSE;
-	 		} else if (g_ascii_strcasecmp(variable, "msg_message") == 0) {
-	 			if (atoi(value))
-	 				prefs.msg_mask[msg_message] = TRUE;
-	 			else
-	 				prefs.msg_mask[msg_message] = FALSE;
-	 		} else if (g_ascii_strcasecmp(variable, "msg_captures") == 0) {
-	 			if (atoi(value))
-	 				prefs.msg_mask[msg_captures] = TRUE;
-	 			else
-	 				prefs.msg_mask[msg_captures] = FALSE;
-	 		} else if (g_ascii_strcasecmp(variable, "msg_roger") == 0) {
-	 			if (atoi(value))
-	 				prefs.msg_mask[msg_roger] = TRUE;
-	 			else
-	 				prefs.msg_mask[msg_roger] = FALSE;
-	 		} else if (g_ascii_strcasecmp(variable, "msg_flags") == 0) {
-	 			if (atoi(value))
-	 				prefs.msg_mask[msg_flags] = TRUE;
-	 			else
-	 				prefs.msg_mask[msg_flags] = FALSE;
+	 			msg_mask["score"] = atoi(value) ? true : false;
 	 		} else if (g_ascii_strcasecmp(variable, "msg_time_stamp") == 0) {
-	 			if (atoi(value))
-	 				prefs.msg_mask[msg_time_stamp] = TRUE;
-	 			else
-	 				prefs.msg_mask[msg_time_stamp] = FALSE;
-	 		}
-	#ifdef _ENABLE_PLAYER_UPDATE_
-			 else if (g_ascii_strcasecmp(variable, "msg_player_update") == 0) {
-	 			if (atoi(value))
-	 				prefs.msg_mask[msg_player_update] = TRUE;
-	 			else
-	 				prefs.msg_mask[msg_player_update] = FALSE;
-	 		}
-	#endif
-			 else if (g_ascii_strcasecmp(variable, "print_unknown") == 0) {
-	 			if (atoi(value))
-	 				print_unknown = TRUE;
-	 			else
-	 				print_unknown = FALSE;
+	 			msg_mask["time"] = atoi(value) ? true : false;
+	 		} else if (g_ascii_strcasecmp(variable, "msg_killed") == 0) {
+	 			msg_mask["kill"] = atoi(value) ? true : false;
+	 		} else if (g_ascii_strcasecmp(variable, "msg_message") == 0) {
+	 			msg_mask["chat"] = atoi(value) ? true : false;
+	 		} else if (g_ascii_strcasecmp(variable, "msg_roger") == 0) {
+	 			msg_mask["roger"] = atoi(value) ? true : false;
+	 		} else if (g_ascii_strcasecmp(variable, "msg_flags") == 0) {
+	 			msg_mask["flags"] = atoi(value) ? true : false;
 	 		} else {
 				continue;
 			}
 		} while (result != EOF);
+		is.close();
+	} else {
+		std::cerr << "File could not be opened\n";
 	}
-	is.close();
 }
 
 //
 // configuration preferences are preserved by saving to a file
 // called ".gbzadmin" in the user's home directory
 //
-void gbzadmin::save_config_file(gchar *filename)
+void gbzadmin::save_config_file(Glib::ustring filename)
 {
-	FILE *f;
+	Glib::ustring buf;
+	std::ofstream os;
 	
-	if ((f = g_fopen(filename,"w")) == NULL) {
-		g_printf("Failed to open config file %s for writing\n", filename);
-	    return;
+	os.open(filename.c_str(), std::ios::out | std::ios::trunc);
+	if (os.is_open()) {
+		if (!_callsign.empty()) {
+			buf = Glib::ustring::compose("callsign=%1\n", _callsign);
+			os.write(buf.c_str(), buf.length());
+		}
+		if (!_password.empty()) {
+			buf = Glib::ustring::compose("password=%1\n", _password);
+			os.write(buf.c_str(), buf.length());
+		}
+		if (!_motto.empty()) {
+			buf = Glib::ustring::compose("motto=%1\n", _motto);
+			os.write(buf.c_str(), buf.length());
+		}
+		if (!_server.empty()) {
+			buf = Glib::ustring::compose("server=%1\n", _server);
+			os.write(buf.c_str(), buf.length());
+		}
+		if (!_port_str.empty()) {
+			buf = Glib::ustring::compose("port=%1\n", _port_str);
+			os.write(buf.c_str(), buf.length());
+		}
+		buf = Glib::ustring::compose("window_x=%1\n", win_x);
+		os.write(buf.c_str(), buf.length());
+		
+		buf = Glib::ustring::compose("window_y=%1\n", win_y);
+		os.write(buf.c_str(), buf.length());
+		
+		buf = Glib::ustring::compose("window_height=%1\n", win_height);
+		os.write(buf.c_str(), buf.length());
+		
+		buf = Glib::ustring::compose("window_width=%1\n", win_width);
+		os.write(buf.c_str(), buf.length());
+		
+		buf = Glib::ustring::compose("msg_pane=%1\n", msg_pane);
+		os.write(buf.c_str(), buf.length());
+		
+		buf = Glib::ustring::compose("game_pane=%1\n", game_pane);
+		os.write(buf.c_str(), buf.length());
+		
+		buf = Glib::ustring::compose("auto_cmd=%1\n", auto_cmd);
+		os.write(buf.c_str(), buf.length());
+		
+		buf = Glib::ustring::compose("echo_pings=%1\n", echo_pings);
+		os.write(buf.c_str(), buf.length());
+		
+		buf = Glib::ustring::compose("save_password=%1\n", save_password);
+		os.write(buf.c_str(), buf.length());
+		
+		buf = Glib::ustring::compose("msg_new_rabbit=%1\n", msg_mask["rabbit"]);
+		os.write(buf.c_str(), buf.length());
+		
+		buf = Glib::ustring::compose("msg_pause=%1\n", msg_mask["pause"]);
+		os.write(buf.c_str(), buf.length());
+		
+		buf = Glib::ustring::compose("msg_alive=%1\n", msg_mask["spawn"]);
+		os.write(buf.c_str(), buf.length());
+		
+		buf = Glib::ustring::compose("msg_lag_ping=%1\n", msg_mask["ping"]);
+		os.write(buf.c_str(), buf.length());
+		
+		buf = Glib::ustring::compose("msg_set_var=%1\n", msg_mask["bzdb"]);
+		os.write(buf.c_str(), buf.length());
+		
+		buf = Glib::ustring::compose("msg_add_player=%1\n", msg_mask["join"]);
+		os.write(buf.c_str(), buf.length());
+		
+		buf = Glib::ustring::compose("msg_remove_player=%1\n", msg_mask["leave"]);
+		os.write(buf.c_str(), buf.length());
+		
+		buf = Glib::ustring::compose("msg_admin_info=%1\n", msg_mask["admin"]);
+		os.write(buf.c_str(), buf.length());
+		
+		buf = Glib::ustring::compose("msg_score=%1\n", msg_mask["score"]);
+		os.write(buf.c_str(), buf.length());
+		
+		buf = Glib::ustring::compose("msg_time_stamp=%1\n", msg_mask["time"]);
+		os.write(buf.c_str(), buf.length());
+		
+		buf = Glib::ustring::compose("msg_killed=%1\n", msg_mask["kill"]);
+		os.write(buf.c_str(), buf.length());
+		
+		buf = Glib::ustring::compose("msg_message=%1\n", msg_mask["chat"]);
+		os.write(buf.c_str(), buf.length());
+		
+		buf = Glib::ustring::compose("msg_roger=%1\n", msg_mask["roger"]);
+		os.write(buf.c_str(), buf.length());
+		
+		buf = Glib::ustring::compose("msg_flags=%1\n", msg_mask["flags"]);
+		os.write(buf.c_str(), buf.length());
+		
+		os.close();
+	} else {
+		std::cerr << "File could not be opened\n";
 	}
-	/* only write if string has length */
-	if (strlen(prefs.callsign))
-		fprintf(f, "callsign=%s\n", prefs.callsign);
-	if (prefs.save_password && strlen(prefs.password))
-		fprintf(f, "password=%s\n", prefs.password);
-	if (strlen(prefs.email))
-		fprintf(f, "email=%s\n", prefs.email);
-	if (strlen(prefs.server))
-		fprintf(f, "server=%s\n", prefs.server);
-	if (strlen(prefs.port))
-		fprintf(f, "port=%s\n", prefs.port);
-	
-	fprintf(f, "sort_svr_list=%d\n", prefs.sort_svr_list);
-	fprintf(f, "always_query=%d\n", prefs.always_query);
-	fprintf(f, "auto_cmd=%d\n", prefs.auto_cmd);
-	fprintf(f, "msg_new_rabbit=%d\n", prefs.msg_mask[msg_new_rabbit]);
-	fprintf(f, "msg_pause=%d\n", prefs.msg_mask[msg_pause]);
-	fprintf(f, "msg_alive=%d\n", prefs.msg_mask[msg_alive]);
-	fprintf(f, "msg_lag_ping=%d\n", prefs.msg_mask[msg_lag_ping]);
-	fprintf(f, "msg_set_var=%d\n", prefs.msg_mask[msg_set_var]);
-	fprintf(f, "msg_add_player=%d\n", prefs.msg_mask[msg_add_player]);
-	fprintf(f, "msg_remove_player=%d\n", prefs.msg_mask[msg_remove_player]);
-	fprintf(f, "msg_admin_info=%d\n", prefs.msg_mask[msg_admin_info]);
-	fprintf(f, "msg_score_over=%d\n", prefs.msg_mask[msg_score_over]);
-	fprintf(f, "msg_time_update=%d\n", prefs.msg_mask[msg_time_update]);
-	fprintf(f, "msg_killed=%d\n", prefs.msg_mask[msg_killed]);
-	fprintf(f, "msg_score=%d\n", prefs.msg_mask[msg_score]);
-	fprintf(f, "msg_message=%d\n", prefs.msg_mask[msg_message]);
-	fprintf(f, "msg_captures=%d\n", prefs.msg_mask[msg_captures]);
-	fprintf(f, "msg_roger=%d\n", prefs.msg_mask[msg_roger]);
-	fprintf(f, "msg_flags=%d\n", prefs.msg_mask[msg_flags]);
-	fprintf(f, "msg_time_stamp=%d\n", prefs.msg_mask[msg_time_stamp]);
-#ifdef _ENABLE_PLAYER_UPDATE_
-	fprintf(f, "msg_player_update=%d\n", prefs.msg_mask[msg_player_update]);
-#endif
-	fprintf(f, "echo_pings=%d\n", prefs.echo_pings);
-	fprintf(f, "sort_players=%d\n", prefs.sort_players);
-	fprintf(f, "save_password=%d\n", prefs.save_password);
-	fprintf(f, "print_unknown=%d\n", print_unknown);
-	
-	fclose(f);
 }
-#endif
 
 void gbzadmin::set_message_filter(Glib::ustring type, bool set)
 {
@@ -3035,9 +2977,9 @@ void gbzadmin::dump_player_stats(Player *player)
 {
 	std::ofstream os;
 
-	Glib::ustring statsPath(g_get_home_dir());
-	statsPath += conf_client->Gnome::Conf::Client::get_string("/apps/gbzadmin3/general/statsPath");
-	statsPath += "/playerstats.txt";
+	Glib::ustring statsPath(Glib::get_home_dir());
+//	statsPath += conf_client->Gnome::Conf::Client::get_string("/apps/gbzadmin3/general/statsPath");
+	statsPath += "Documents/playerstats.txt";
 	
 	os.open(statsPath.c_str(), std::ios_base::app);
 	
@@ -3088,6 +3030,7 @@ void gbzadmin::dump_player_stats(Player *player)
 	}
 }
 
+#if 0
 // gconf client callback
 void gbzadmin::on_client_callback(guint connection_id, Gnome::Conf::Entry entry)
 {
@@ -3267,7 +3210,7 @@ void gbzadmin::save_gconf()
 	game_view.save_gconf();
 	server_list_view.save_gconf();
 }
-
+#endif
 // param is cmd_str.substr(9)
 void gbzadmin::displayHostName(Glib::ustring param)
 {

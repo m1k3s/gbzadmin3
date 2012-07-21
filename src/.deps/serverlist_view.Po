@@ -1137,27 +1137,7 @@ serverlist_view.o: serverlist_view.cxx serverlist_view.h \
  /usr/include/curl/curl.h /usr/include/curl/curlver.h \
  /usr/include/curl/curlbuild.h /usr/include/curl/curlrules.h \
  /usr/include/curl/easy.h /usr/include/curl/multi.h \
- /usr/include/curl/curl.h common.h view.h \
- /usr/include/gconfmm-2.6/gconfmm.h \
- /usr/include/gconfmm-2.6/gconfmm/init.h \
- /usr/include/gconfmm-2.6/gconfmm/client.h \
- /usr/include/gconf/2/gconf/gconf-client.h \
- /usr/include/gconf/2/gconf/gconf.h \
- /usr/include/gconf/2/gconf/gconf-schema.h \
- /usr/include/gconf/2/gconf/gconf-value.h \
- /usr/include/gconf/2/gconf/gconf-error.h \
- /usr/include/gconf/2/gconf/gconf-engine.h \
- /usr/include/gconf/2/gconf/gconf-error.h \
- /usr/include/gconf/2/gconf/gconf-enum-types.h \
- /usr/include/gconf/2/gconf/gconf-listeners.h \
- /usr/include/gconf/2/gconf/gconf-changeset.h \
- /usr/include/gconfmm-2.6/gconfmm/value.h \
- /usr/include/gconfmm-2.6/gconfmm/value_listhelpers.h \
- /usr/include/gconfmm-2.6/gconfmm/callback.h \
- /usr/include/gconfmm-2.6/gconfmm/entry.h \
- /usr/include/gconfmm-2.6/gconfmm/schema.h \
- /usr/include/gconfmm-2.6/gconfmm/setinterface.h \
- /usr/include/gconfmm-2.6/gconfmm/changeset.h parser.h gSocket.h \
+ /usr/include/curl/curl.h common.h view.h parser.h gSocket.h \
  gListServer.h
 
 serverlist_view.h:
@@ -3689,46 +3669,6 @@ utilities.h:
 common.h:
 
 view.h:
-
-/usr/include/gconfmm-2.6/gconfmm.h:
-
-/usr/include/gconfmm-2.6/gconfmm/init.h:
-
-/usr/include/gconfmm-2.6/gconfmm/client.h:
-
-/usr/include/gconf/2/gconf/gconf-client.h:
-
-/usr/include/gconf/2/gconf/gconf.h:
-
-/usr/include/gconf/2/gconf/gconf-schema.h:
-
-/usr/include/gconf/2/gconf/gconf-value.h:
-
-/usr/include/gconf/2/gconf/gconf-error.h:
-
-/usr/include/gconf/2/gconf/gconf-engine.h:
-
-/usr/include/gconf/2/gconf/gconf-error.h:
-
-/usr/include/gconf/2/gconf/gconf-enum-types.h:
-
-/usr/include/gconf/2/gconf/gconf-listeners.h:
-
-/usr/include/gconf/2/gconf/gconf-changeset.h:
-
-/usr/include/gconfmm-2.6/gconfmm/value.h:
-
-/usr/include/gconfmm-2.6/gconfmm/value_listhelpers.h:
-
-/usr/include/gconfmm-2.6/gconfmm/callback.h:
-
-/usr/include/gconfmm-2.6/gconfmm/entry.h:
-
-/usr/include/gconfmm-2.6/gconfmm/schema.h:
-
-/usr/include/gconfmm-2.6/gconfmm/setinterface.h:
-
-/usr/include/gconfmm-2.6/gconfmm/changeset.h:
 
 parser.h:
 

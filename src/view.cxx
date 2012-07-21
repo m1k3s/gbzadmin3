@@ -69,10 +69,10 @@ view::view()
 view::~view()
 {
 	// we only want to do this once
-	if (cnxn > 0) {
-		client->notify_remove(cnxn);
-		cnxn = 0;
-	}
+//	if (cnxn > 0) {
+//		client->notify_remove(cnxn);
+//		cnxn = 0;
+//	}
 	
 	if(capture)
 		cap_os.close();
@@ -221,10 +221,10 @@ void view::initialize_tag_table()
 	tag_table->add(tag_fg);
 }
 
-void view::init(Glib::RefPtr <Gtk::Builder> _refBuilder, const gchar* which, Glib::RefPtr<Gnome::Conf::Client> _client)
+void view::init(Glib::RefPtr <Gtk::Builder> _refBuilder, const gchar* which/*, Glib::RefPtr<Gnome::Conf::Client> _client*/)
 {
 	refBuilder = _refBuilder;
-	client = _client;
+//	client = _client;
 	theView = which;
 	
 	refBuilder->get_widget(theView, me);
@@ -235,27 +235,27 @@ void view::init(Glib::RefPtr <Gtk::Builder> _refBuilder, const gchar* which, Gli
 	me->Gtk::Widget::modify_font(Pango::FontDescription(viewFont));
 	
 	// set the font from gconf
-	if (client->dir_exists("/apps/gbzadmin3/views")) {
-		Glib::ustring path("/apps/gbzadmin3/views/"), tmp_path(path);
-		tmp_path += theView;
-		tmp_path += "/font";
-		viewFont = client->Gnome::Conf::Client::get_string(tmp_path);
-		me->Gtk::Widget::modify_font(Pango::FontDescription(viewFont));
-		
-		// set the foreground/background colors from gconf
-		tmp_path = path;
-		tmp_path += theView;
-		tmp_path += "/foreground";
-		color_fg = client->Gnome::Conf::Client::get_string(tmp_path);
-		
-		tmp_path = path;
-		tmp_path += theView;
-		tmp_path += "/background";
-		color_bg = client->Gnome::Conf::Client::get_string(tmp_path);
-		
-		// line numbers are for the message view only
-		line_numbers = client->Gnome::Conf::Client::get_bool("/apps/gbzadmin3/views/msg_view/line_numbers");
-	}	
+//	if (client->dir_exists("/apps/gbzadmin3/views")) {
+//		Glib::ustring path("/apps/gbzadmin3/views/"), tmp_path(path);
+//		tmp_path += theView;
+//		tmp_path += "/font";
+//		viewFont = client->Gnome::Conf::Client::get_string(tmp_path);
+//		me->Gtk::Widget::modify_font(Pango::FontDescription(viewFont));
+//		
+//		// set the foreground/background colors from gconf
+//		tmp_path = path;
+//		tmp_path += theView;
+//		tmp_path += "/foreground";
+//		color_fg = client->Gnome::Conf::Client::get_string(tmp_path);
+//		
+//		tmp_path = path;
+//		tmp_path += theView;
+//		tmp_path += "/background";
+//		color_bg = client->Gnome::Conf::Client::get_string(tmp_path);
+//		
+//		// line numbers are for the message view only
+//		line_numbers = client->Gnome::Conf::Client::get_bool("/apps/gbzadmin3/views/msg_view/line_numbers");
+//	}	
 	view_scroll = false;
 	capture = false;
 	do_shrink = false;
@@ -264,10 +264,10 @@ void view::init(Glib::RefPtr <Gtk::Builder> _refBuilder, const gchar* which, Gli
 	me->signal_populate_popup().connect(sigc::mem_fun(*this, &view::on_view_populate_popup));
 	
 	// add the gconf client notification
-	if (client->dir_exists("/apps/gbzadmin3/views")) {
+//	if (client->dir_exists("/apps/gbzadmin3/views")) {
 		// monitor the gconf key for this class
-  	cnxn = client->notify_add("/apps/gbzadmin3/views", sigc::mem_fun(*this, &view::on_client_callback));
-	}
+//  	cnxn = client->notify_add("/apps/gbzadmin3/views", sigc::mem_fun(*this, &view::on_client_callback));
+//	}
 	
 	// set up the view colors
 	Gdk::Color color;
@@ -542,17 +542,17 @@ void view::on_set_view_prefs()
 		viewFont = fontname;
 		
 		// update gconf
-		tmp_path = path + theView;
-		tmp_path += "/font";
-		client->Gnome::Conf::Client::set(tmp_path, viewFont);
-		
-		tmp_path = path + theView;
-		tmp_path += "/foreground";
-		client->Gnome::Conf::Client::set(tmp_path, color_fg);
-		
-		tmp_path = path + theView;
-		tmp_path += "/background";
-		client->Gnome::Conf::Client::set(tmp_path, color_bg);
+//		tmp_path = path + theView;
+//		tmp_path += "/font";
+//		client->Gnome::Conf::Client::set(tmp_path, viewFont);
+//		
+//		tmp_path = path + theView;
+//		tmp_path += "/foreground";
+//		client->Gnome::Conf::Client::set(tmp_path, color_fg);
+//		
+//		tmp_path = path + theView;
+//		tmp_path += "/background";
+//		client->Gnome::Conf::Client::set(tmp_path, color_bg);
 	}
 	view_dialog->hide();
 }
@@ -571,6 +571,7 @@ void view::set_view_font(Glib::ustring font)
 	me->Gtk::Widget::modify_font(Pango::FontDescription(viewFont));
 }
 
+#if 0
 void view::on_client_callback(guint connection_id, Gnome::Conf::Entry entry)
 {
 	Glib::ustring key(entry.get_key());
@@ -620,7 +621,7 @@ void view::save_gconf()
 	
 	client->Gnome::Conf::Client::set("/apps/gbzadmin3/views/msg_view/line_numbers", line_numbers);
 }
-
+#endif
 std::vector<Glib::ustring> view::split(const Glib::ustring& in, const Glib::ustring &delims)
 {
 	std::vector<Glib::ustring> tokens;

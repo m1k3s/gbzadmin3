@@ -34,9 +34,9 @@ const char *team_str[] = {
 	NULL
 };
 
-void gameStatView::init(Glib::RefPtr <Gtk::Builder> _refBuilder, Glib::RefPtr<Gnome::Conf::Client> _client)
+void gameStatView::init(Glib::RefPtr <Gtk::Builder> _refBuilder/*, Glib::RefPtr<Gnome::Conf::Client> _client*/)
 {
-	view::init(_refBuilder, "game_view", _client);
+	view::init(_refBuilder, "game_view"/*, _client*/);
 	set_scroll(false);
 }
 

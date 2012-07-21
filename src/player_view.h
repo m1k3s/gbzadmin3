@@ -40,7 +40,7 @@ class playerView : public view
 public:
 	playerView();
 	~playerView() {}
-	void init(Glib::RefPtr <Gtk::Builder> _refBuilder, Glib::RefPtr<Gnome::Conf::Client> _client);
+	void init(Glib::RefPtr <Gtk::Builder> _refBuilder/*, Glib::RefPtr<Gnome::Conf::Client> _client*/);
 	void add(Player* player);
 	void remove(Player* player);
 	Player* get_player(gint n);

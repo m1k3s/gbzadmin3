@@ -31,9 +31,9 @@ msgView::~msgView()
 {
 }
 
-void msgView::init(Glib::RefPtr <Gtk::Builder> _refBuilder, Glib::RefPtr<Gnome::Conf::Client> _client)
+void msgView::init(Glib::RefPtr <Gtk::Builder> _refBuilder/*, Glib::RefPtr<Gnome::Conf::Client> _client*/)
 {
-	view::init(_refBuilder, "msg_view", _client);
+	view::init(_refBuilder, "msg_view"/*, _client*/);
 	
 	set_scroll(true);
 	set_shrink(true);

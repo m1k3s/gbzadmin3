@@ -39,9 +39,9 @@ serverListView::~serverListView()
 
 }
 
-void serverListView::init(Glib::RefPtr <Gtk::Builder> _refBuilder, Glib::RefPtr<Gnome::Conf::Client> _client)
+void serverListView::init(Glib::RefPtr <Gtk::Builder> _refBuilder/*, Glib::RefPtr<Gnome::Conf::Client> _client*/)
 {
-	view::init(_refBuilder, "serverlist_view", _client);
+	view::init(_refBuilder, "serverlist_view"/*, _client*/);
 	refBuilder = _refBuilder;
 	
 	// connect the close button signal handler

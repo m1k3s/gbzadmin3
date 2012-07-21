@@ -29,7 +29,6 @@ const char *xml_interface = "gbzadmin3.xml";
 
 int main(int argc, char *argv[])
 {
-	Gnome::Conf::init();
 	Gtk::Main admin(argc, argv);
 	Glib::ustring xml_file;
 	
