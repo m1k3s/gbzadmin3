@@ -42,7 +42,7 @@ public:
 	serverListView();
 	~serverListView();
 	
-	void init(Glib::RefPtr <Gtk::Builder> _refBuilder/*, Glib::RefPtr<Gnome::Conf::Client> _client*/);
+	void init(Glib::RefPtr <Gtk::Builder> _refBuilder);
 	void display(std::vector<serverInfo*> &list);
 	void accumulate_serverStats(std::vector<serverInfo*> & si, serverStats& ss);
 	void display_serverStats(serverStats & ss);

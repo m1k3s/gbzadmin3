@@ -29,6 +29,7 @@
 #include <sys/types.h>
 #include <sys/utsname.h>
 #include <cstdio>
+#include <map>
 
 #include "config.h"
 #include "utilities.h"
@@ -138,6 +139,8 @@ protected:
 	void displayHostName(Glib::ustring param);
 	void save_config_file(Glib::ustring filename);
 	void parse_config_file(Glib::ustring filename);
+	Glib::ustring colorize(Player* player);
+	void init_message_map();
 	
 	// timer functions
 	bool update_timer();
@@ -187,6 +190,7 @@ private:
 	Glib::RefPtr<Gtk::Builder> refBuilder;
 	Glib::ustring cmd_str;
 	Glib::ustring msg_str;
+	Glib::ustring defColor;
 	
 	Gtk::Dialog *connect_dialog;
 	Gtk::Dialog *pref_dialog;
@@ -251,6 +255,12 @@ private:
 	bool echo_pings;
 	bool save_password;
 	bool connect_at_startup;
+	bool line_numbers;
+	
+	Glib::ustring msg_view_fg, msg_view_bg;
+	Glib::ustring player_view_fg, player_view_bg;
+	Glib::ustring gamestat_view_fg, gamestat_view_bg;
+	Glib::ustring serverlist_view_fg, serverlist_view_bg;
 	
 	sigc::connection conn_timer;
 	sigc::connection wd_timer;
@@ -268,6 +278,9 @@ private:
 		StatusMsgLine,
 		StatusNetStats
 	};
+	
+	typedef void (gbzadmin::*messagehandler)(void*);
+    std::map<guint16, messagehandler> handler_map;
 };
 
 #endif // _gbzadmin_h_

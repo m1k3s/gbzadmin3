@@ -27,37 +27,37 @@
 // ANSI code Gtk::TextTag equivalents
 const gchar *TermColors[] = {
   // foreground colors ////
-	"rabbit",			// white, actually
-	"red", 				// red
-  "green", 			// green
-  "rogue",			// yellow
-  "blue", 			// blue
-  "purple", 		// purple
-  "observer", 	// cyan3
-  "default", 		// gainesboro
-  // custom fg colors /////
-  "hunter",  		// orange
-  "server",			// goldenrod
-  "brdcast",		// cyan4
-  "srvdirect",	// PaleGreen4
-  // background colors ////
-  "black_bg",		// black
+	"rabbit",		// white, actually
+	"red", 			// red
+	"green", 		// green
+	"rogue",		// yellow
+	"blue", 		// blue
+	"purple", 		// purple
+	"observer", 	// cyan3
+	"default", 		// gainesboro
+	// custom fg colors /////
+	"hunter",  		// orange
+	"server",		// goldenrod
+	"brdcast",		// cyan4
+	"srvdirect",	// PaleGreen4
+	// background colors ////
+	"black_bg",		// black
 	"red_bg", 		// red
-  "green_bg", 	// green
-  "yellow_bg",	// yellow
-  "blue_bg", 		// blue
-  "purple_bg", 	// purple
-  "cyan3_bg",		// cyan3
-  "white_bg", 	// gainesboro
-  // custom bg colors /////
-  "orange_bg",  // orange
-  "golden_bg",	// goldenrod
-  "cyan4_bg",		// cyan4
-  "pgreen4",		// PaleGreen4
+	"green_bg", 	// green
+	"yellow_bg",	// yellow
+	"blue_bg", 		// blue
+	"purple_bg", 	// purple
+	"cyan3_bg",		// cyan3
+	"white_bg", 	// gainesboro
+	// custom bg colors /////
+	"orange_bg",  	// orange
+	"golden_bg",	// goldenrod
+	"cyan4_bg",		// cyan4
+	"pgreen4",		// PaleGreen4
 };
 
 view::view()
-	: Gtk::TextView(), line_numbers(false), capture(false), viewFont("Monospace 9")
+	: Gtk::TextView(), capture(false), viewFont("Monospace 9")
 {
 	capture_dialog = 0;
 	view_dialog = 0;
@@ -68,12 +68,6 @@ view::view()
 
 view::~view()
 {
-	// we only want to do this once
-//	if (cnxn > 0) {
-//		client->notify_remove(cnxn);
-//		cnxn = 0;
-//	}
-	
 	if(capture)
 		cap_os.close();
 }
@@ -88,7 +82,7 @@ Glib::ustring view::Color(int c)
 void view::initialize_colors()
 {
 	AnsiCodes[BlackFg]		= Glib::ustring("\033[30m");	// black foreground
-	AnsiCodes[RedFg] 			= Glib::ustring("\033[31m");	// red foreground
+	AnsiCodes[RedFg] 		= Glib::ustring("\033[31m");	// red foreground
 	AnsiCodes[GreenFg] 		= Glib::ustring("\033[32m");	// green foreground
 	AnsiCodes[YellowFg] 	= Glib::ustring("\033[33m");	// yellow foreground
 	AnsiCodes[BlueFg] 		= Glib::ustring("\033[34m");	// blue foreground
@@ -102,7 +96,7 @@ void view::initialize_colors()
 	AnsiCodes[PGreen4Fg] 	= Glib::ustring("\033[133m");	// palegreen4 foreground
 
 	AnsiCodes[BlackBg] 		= Glib::ustring("\033[40m");	// black background
-	AnsiCodes[RedBg] 			= Glib::ustring("\033[41m");	// red background
+	AnsiCodes[RedBg] 		= Glib::ustring("\033[41m");	// red background
 	AnsiCodes[GreenBg] 		= Glib::ustring("\033[42m");	// green background
 	AnsiCodes[YellowBg] 	= Glib::ustring("\033[43m");	// yellow background
 	AnsiCodes[BlueBg] 		= Glib::ustring("\033[44m");	// blue background
@@ -138,7 +132,7 @@ void view::initialize_tag_table()
 	tag_table->add(tag_fg);
 	
  	tag_fg = Gtk::TextTag::create("blue");
-	tag_fg->property_foreground() = "blue"; // Color(BlueFg)
+	tag_fg->property_foreground() = "DodgerBlue3"; // Color(BlueFg)
  	tag_table->add(tag_fg);
  	
  	tag_fg = Gtk::TextTag::create("purple");
@@ -221,10 +215,9 @@ void view::initialize_tag_table()
 	tag_table->add(tag_fg);
 }
 
-void view::init(Glib::RefPtr <Gtk::Builder> _refBuilder, const gchar* which/*, Glib::RefPtr<Gnome::Conf::Client> _client*/)
+void view::init(Glib::RefPtr <Gtk::Builder> _refBuilder, const gchar* which)
 {
 	refBuilder = _refBuilder;
-//	client = _client;
 	theView = which;
 	
 	refBuilder->get_widget(theView, me);
@@ -234,7 +227,7 @@ void view::init(Glib::RefPtr <Gtk::Builder> _refBuilder, const gchar* which/*, G
 	// set default font
 	me->Gtk::Widget::modify_font(Pango::FontDescription(viewFont));
 	
-	// set the font from gconf
+	// set the font from the config file
 //	if (client->dir_exists("/apps/gbzadmin3/views")) {
 //		Glib::ustring path("/apps/gbzadmin3/views/"), tmp_path(path);
 //		tmp_path += theView;
@@ -252,9 +245,6 @@ void view::init(Glib::RefPtr <Gtk::Builder> _refBuilder, const gchar* which/*, G
 //		tmp_path += theView;
 //		tmp_path += "/background";
 //		color_bg = client->Gnome::Conf::Client::get_string(tmp_path);
-//		
-//		// line numbers are for the message view only
-//		line_numbers = client->Gnome::Conf::Client::get_bool("/apps/gbzadmin3/views/msg_view/line_numbers");
 //	}	
 	view_scroll = false;
 	capture = false;
@@ -262,12 +252,6 @@ void view::init(Glib::RefPtr <Gtk::Builder> _refBuilder, const gchar* which/*, G
 
 	// intercept the popup menu and add font selection item	
 	me->signal_populate_popup().connect(sigc::mem_fun(*this, &view::on_view_populate_popup));
-	
-	// add the gconf client notification
-//	if (client->dir_exists("/apps/gbzadmin3/views")) {
-		// monitor the gconf key for this class
-//  	cnxn = client->notify_add("/apps/gbzadmin3/views", sigc::mem_fun(*this, &view::on_client_callback));
-//	}
 	
 	// set up the view colors
 	Gdk::Color color;
@@ -279,6 +263,22 @@ void view::init(Glib::RefPtr <Gtk::Builder> _refBuilder, const gchar* which/*, G
 	initialize_colors();
 	initialize_tag_table();
 	add_buffer();
+}
+
+void view::set_fg(Glib::ustring fg)
+{
+	color_fg = fg;
+	Gdk::Color color;
+	color.parse(color_fg);
+	me->Gtk::Widget::modify_text(Gtk::STATE_NORMAL, color);
+}
+
+void view::set_bg(Glib::ustring bg)
+{
+	color_bg = bg;
+	Gdk::Color color;
+	color.parse(color_bg);
+	me->Gtk::Widget::modify_base(Gtk::STATE_NORMAL, color);
 }
 
 void view::add_buffer()
@@ -570,40 +570,7 @@ void view::set_view_font(Glib::ustring font)
 	viewFont = font;
 	me->Gtk::Widget::modify_font(Pango::FontDescription(viewFont));
 }
-
 #if 0
-void view::on_client_callback(guint connection_id, Gnome::Conf::Entry entry)
-{
-	Glib::ustring key(entry.get_key());
-	Gnome::Conf::Value value = entry.get_value();
-	
-	std::vector<Glib::ustring> tokens = this->split(key, Glib::ustring("/"));
-	Gdk::Color color;
-	Glib::ustring font;
-	
-	if (tokens[2] == "views") {
-		if (tokens[3] == theView) {
-			if (tokens[4] == "background") {
-				color_bg = value.get_string();
-				color.parse(color_bg);
-				me->Gtk::Widget::modify_base(Gtk::STATE_NORMAL, color);
-			} else if (tokens[4] == "foreground") {
-				color_fg = value.get_string();
-				color.parse(color_fg);
-				me->Gtk::Widget::modify_text(Gtk::STATE_NORMAL, color);
-			} else if (tokens[4] == "font") {
-				font = value.get_string();
-				me->Gtk::Widget::modify_font(Pango::FontDescription(font));
-				viewFont = font;
-			} else if (tokens[4] == "line_numbers") {
-				line_numbers = value.get_bool();
-			} else {
-				return;
-			}
-		}
-	}
-}
-
 void view::save_gconf()
 {
 	Glib::ustring path("/apps/gbzadmin3/views/"), tmp_path(path);

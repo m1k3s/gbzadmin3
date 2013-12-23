@@ -31,12 +31,13 @@ msgView::~msgView()
 {
 }
 
-void msgView::init(Glib::RefPtr <Gtk::Builder> _refBuilder/*, Glib::RefPtr<Gnome::Conf::Client> _client*/)
+void msgView::init(Glib::RefPtr <Gtk::Builder> _refBuilder)
 {
-	view::init(_refBuilder, "msg_view"/*, _client*/);
+	view::init(_refBuilder, "msg_view");
 	
 	set_scroll(true);
 	set_shrink(true);
+	line_numbers = false;
 }
 
 Glib::ustring msgView::colorBullet()

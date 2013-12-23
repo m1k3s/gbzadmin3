@@ -21,6 +21,7 @@ gbzadmin3_SOURCES = \
 	game_stat_view.cxx game_stat_view.h \
 	players.cxx players.h \
 	parser.cxx parser.h \
-	serverlist_view.cxx serverlist_view.h
+	serverlist_view.cxx serverlist_view.h \
+	configfile.cxx configfile.h
 
 gbzadmin3_LDADD = @PACKAGE_LIBS@ $(INTLLIBS) -lcurl

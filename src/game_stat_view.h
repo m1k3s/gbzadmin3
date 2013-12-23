@@ -38,7 +38,7 @@ class gameStatView : public view
 public:
 	gameStatView() {}
 	~gameStatView() {}
-	void init(Glib::RefPtr <Gtk::Builder> _refBuilder/*, Glib::RefPtr<Gnome::Conf::Client> _client*/);
+	void init(Glib::RefPtr <Gtk::Builder> _refBuilder);
 	void update();
 	void setType(guint16 tmp) { type = tmp; }
 	void setOptions(guint16 tmp) { options = tmp; }

@@ -48,7 +48,7 @@ class view : public Gtk::TextView
 public:
 	view();
 	~view();
-	void init(Glib::RefPtr <Gtk::Builder> _refBuilder, const gchar* which/*, Glib::RefPtr<Gnome::Conf::Client> _client*/);
+	void init(Glib::RefPtr <Gtk::Builder> _refBuilder, const gchar* which);
 	Glib::ustring get_buffer_text() { return buffer->get_text(); }
 	gint get_buffer_size() { return buffer->get_char_count(); }
 	gint get_buffer_line() { return buffer->get_line_count(); }
@@ -66,9 +66,10 @@ public:
 	void stop_capture();
 	void set_view_font(Glib::ustring font);
 	Glib::ustring get_view_font() { return viewFont; }
-//	void save_gconf();
 	Glib::ustring Color(int c);
 	void initialize_colors();
+	void set_bg(Glib::ustring bg);
+	void set_fg(Glib::ustring fg);
 	
 protected:
 	Glib::RefPtr<Gtk::TextTagTable> get_tag_table() { return tag_table; }
@@ -83,16 +84,13 @@ protected:
 	void on_view_populate_popup(Gtk::Menu* menu);
 	void on_set_view_prefs();
 	std::vector<Glib::ustring> split(const Glib::ustring& in, const Glib::ustring &delims);
-	// gconf client callback
-//	void on_client_callback(guint connection_id, Gnome::Conf::Entry entry);
 	
-	bool line_numbers;
+//	bool line_numbers;
 	Glib::RefPtr <Gtk::TextBuffer> buffer;
 		
 private:
 	Glib::RefPtr <Gtk::TextTagTable> tag_table;
 	Glib::RefPtr <Gtk::Builder> refBuilder;
-//	Glib::RefPtr<Gnome::Conf::Client> client;
 	Gtk::TextView *me;
 	bool view_scroll;
 	bool capture;

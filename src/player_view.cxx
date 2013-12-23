@@ -23,25 +23,25 @@
 #include "player_view.h"
 
 // score compare function to sort the player list
-bool score_cmp(Player* a, Player* b)
+bool score_cmp(Player * a, Player * b)
 {
 	return (a->get_score() > b->get_score());
 }
 
 playerView::playerView()
-	: rabbitMode(false)
+:	rabbitMode(false)
 {
-	
+
 }
 
-void playerView::init(Glib::RefPtr <Gtk::Builder> _refBuilder/*, Glib::RefPtr<Gnome::Conf::Client> _client*/)
+void playerView::init(Glib::RefPtr < Gtk::Builder > _refBuilder)
 {
-	view::init(_refBuilder, "player_view"/*, _client*/);
+	view::init(_refBuilder, "player_view");
 	set_scroll(false);
 }
 
 // add a player to the view
-void playerView::add(Player* player)
+void playerView::add(Player * player)
 {
 	guint16 team = player->get_team();
 	if (team == ObserverTeam) {
@@ -52,10 +52,10 @@ void playerView::add(Player* player)
 }
 
 // remove a player from the view
-void playerView::remove(Player* player)
+void playerView::remove(Player * player)
 {
-	std::vector<Player*>::iterator it;
-	
+	std::vector < Player * >::iterator it;
+
 	guint16 team = player->get_team();
 	if (team == ObserverTeam) {
 		it = observers.begin();
@@ -66,7 +66,7 @@ void playerView::remove(Player* player)
 			}
 			it++;
 		}
-	}	else {
+	} else {
 		it = players.begin();
 		while (it != players.end()) {
 			if ((*it)->get_callsign() == player->get_callsign()) {
@@ -78,12 +78,12 @@ void playerView::remove(Player* player)
 	}
 }
 
-Player* playerView::find_player(int id)
+Player *playerView::find_player(int id)
 {
-	Player* p = 0;
-	std::vector<Player*>::iterator it;
+	Player *p = 0;
+	std::vector < Player * >::iterator it;
 	bool found = false;
-	
+
 	// search the players first
 	it = players.begin();
 	while (it != players.end()) {
@@ -109,12 +109,12 @@ Player* playerView::find_player(int id)
 	return p;
 }
 
-Player* playerView::find_player(Glib::ustring callsign)
+Player *playerView::find_player(Glib::ustring callsign)
 {
-	Player* p = 0;
-	std::vector<Player*>::iterator it;
+	Player *p = 0;
+	std::vector < Player * >::iterator it;
 	bool found = false;
-	
+
 	// search the players first
 	it = players.begin();
 	while (it != players.end()) {
@@ -142,10 +142,10 @@ Player* playerView::find_player(Glib::ustring callsign)
 
 Glib::ustring playerView::get_IP(Glib::ustring callsign)
 {
-	std::vector<Player*>::iterator it;
+	std::vector < Player * >::iterator it;
 	bool found = false;
 	Glib::ustring ip;
-	
+
 	// search the players first
 	it = players.begin();
 	while (it != players.end()) {
@@ -176,11 +176,11 @@ void playerView::update()
 {
 	Glib::ustring tanks;
 	Glib::ustring obs;
-	std::vector<Player*>::iterator it;
-	
+	std::vector < Player * >::iterator it;
+
 	// clear the text_view
 	clear();
-	
+
 	// sort the players in descending order by score
 	sort(players.begin(), players.end(), score_cmp);
 	for (it = players.begin(); it != players.end(); it++) {
@@ -189,15 +189,16 @@ void playerView::update()
 	}
 	// separate the observers from the players
 	add_text("\n\n", NULL);
-	
-	for (it = observers.begin(); it != observers.end(); it++ ) {
+
+	for (it = observers.begin(); it != observers.end(); it++) {
 		obs = format_observer(*it);
 		add_text(obs);
 	}
 }
 
 // format a player in the view
-Glib::ustring playerView::format_player(Player *player)
+// FIXME no need to add a '/' if there is only one attribute for the player
+Glib::ustring playerView::format_player(Player * player)
 {
 	gint rabbit_score = 0;
 	if (rabbitMode)
@@ -205,32 +206,37 @@ Glib::ustring playerView::format_player(Player *player)
 
 	gint16 score = player->get_score();
 	gfloat si = player->get_strength_index();
-	
+
 	Glib::ustring attrib("(");
-	if (player->get_registered())
-   	attrib += "Reg";
-  if (player->get_verified())
-   	attrib += "/Ver";
-  if (player->get_admin())
-   	attrib += "/Adm";
-  if (attrib.size() == 1)
-   	attrib += "Anon)";
-  else
-   	attrib += ")";
-   	
-	Glib::ustring playerflag = player->get_flag();
 	
+	if (player->get_registered()) {
+		attrib += "Reg";
+	}
+	if (player->get_verified()) {
+		attrib += "/Ver";
+	}
+	if (player->get_admin()) {
+		attrib += "/Adm";
+	}
+	if (attrib.size() == 1) {
+		attrib += "Anon)";
+	} else {
+		attrib += ")";
+	}
+
+	Glib::ustring playerflag = player->get_flag();
+
 	// set the player and team flag colors
 	Glib::ustring tag;
-  tag = get_color(player->get_team());
-	  
+	tag = get_color(player->get_team());
+
 	Glib::ustring flagtag;
-	
+
 	if (player->has_flag()) {
-		if (playerflag[1] == '*') { // it's a team flag
+		if (playerflag[1] == '*') {	// it's a team flag
 			flagtag = get_color(get_team_from_team_flag(playerflag.c_str()));
-		} else if (playerflag == "SW" || playerflag ==  "G" || playerflag ==  "L" || playerflag == "GM" ||
-			   			 playerflag == "ST" || playerflag == "CL" || playerflag == "WG" || playerflag == "SB") {
+		} else if (playerflag == "SW" || playerflag == "G" || playerflag == "L" || playerflag == "GM" ||
+				   playerflag == "ST" || playerflag == "CL" || playerflag == "WG" || playerflag == "SB") {
 			flagtag = Color(YellowFg);
 		} else {
 			flagtag = Color(CyanFg);
@@ -239,7 +245,7 @@ Glib::ustring playerView::format_player(Player *player)
 	// player's accoutrements
 	Glib::ustring flag("/");
 	if (player->has_flag()) {	// player has a flag
-		if (playerflag[1] == '*') {		// team flag
+		if (playerflag[1] == '*') {	// team flag
 			flag += get_team_flag_desc(playerflag);
 		} else {
 			flag += playerflag;
@@ -264,13 +270,13 @@ Glib::ustring playerView::format_player(Player *player)
 	Glib::ustring dead;
 	if (player->get_alive()) {
 		dead.clear();
-	} else {	// player is dead
-		dead =  "[dead]";
+	} else {					// player is dead
+		dead = "[dead]";
 	}
 	// limit callsign to MAX_CALLSIGN_LEN
 	Glib::ustring callsign;
 	callsign.assign(player->get_callsign(), 0, MAX_CALLSIGN_LEN);
-	
+
 	int wins = player->get_wins();
 	int losses = player->get_losses();
 	int tks = player->get_tks();
@@ -280,13 +286,13 @@ Glib::ustring playerView::format_player(Player *player)
 	// score (wins - losses) [tks] strength index, player id), callsign
 	char tmp_buf[256];
 	if (rabbitMode) {
-		::snprintf(tmp_buf, sizeof(tmp_buf), "%2d%% %5d (%3d - %3d) [%2d] % 10.3f %3d) %s",
-				rabbit_score, score, wins, losses, tks,	si, id, callsign.c_str());
+		::snprintf(tmp_buf, sizeof(tmp_buf), "%2d%% %5d (%4d - %4d) [%2d] % 10.3f %3d) %s",
+				   rabbit_score, score, wins, losses, tks, si, id, callsign.c_str());
 	} else {
-		::snprintf(tmp_buf, sizeof(tmp_buf), "    %5d (%3d - %3d) [%2d] % 10.3f %3d) %s",
-				score, wins, losses, tks,	si, id, callsign.c_str());
+		::snprintf(tmp_buf, sizeof(tmp_buf), "    %5d (%4d - %4d) [%2d] % 10.3f %3d) %s",
+				   score, wins, losses, tks, si, id, callsign.c_str());
 	}
-	
+
 	Glib::ustring text;
 	text = tag + Glib::ustring(tmp_buf);
 	// render the flag string in its own color if its a team flag
@@ -298,25 +304,25 @@ Glib::ustring playerView::format_player(Player *player)
 	// player attributes (reg, ver, adm) and IP address
 	::snprintf(tmp_buf, sizeof(tmp_buf), "%-15s%-15s\n", attrib.c_str(), player->get_IP().c_str());
 	text += tag + Glib::ustring(tmp_buf);
-	
+
 	return text;
 }
 
 // format an observer in the view
-Glib::ustring playerView::format_observer(Player *player)
+Glib::ustring playerView::format_observer(Player * player)
 {
 	Glib::ustring attrib("(");
 	if (player->get_registered())
-   	attrib += "Reg";
-  if (player->get_verified())
-   	attrib += "/Ver";
-  if (player->get_admin())
-   	attrib += "/Adm";
-  if (attrib.size() == 1)
-   	attrib += "Anon)";
-  else
-   	attrib += ")";
-	
+		attrib += "Reg";
+	if (player->get_verified())
+		attrib += "/Ver";
+	if (player->get_admin())
+		attrib += "/Adm";
+	if (attrib.size() == 1)
+		attrib += "Anon)";
+	else
+		attrib += ")";
+
 	Glib::ustring paused;
 	if (player->get_paused()) {
 		paused = "[paused]";
@@ -326,10 +332,10 @@ Glib::ustring playerView::format_observer(Player *player)
 	// limit callsign to MAX_CALLSIGN_LEN
 	Glib::ustring callsign;
 	callsign.assign(player->get_callsign(), 0, MAX_CALLSIGN_LEN);
-	
+
 	// FIXME: using C style formatting
 	// whitespace padding + player id) callsign
-	gint tmpl_len = Glib::ustring("XXX XXXXX (XXX - XXX) [XX] -XXXXX.XXX").length();
+	gint tmpl_len = Glib::ustring("XXX XXXXX (XXXX - XXXX) [XX] -XXXXX.XXX").length();
 	char tmp_buf[256];
 	::snprintf(tmp_buf, sizeof(tmp_buf), "%*s %3d) %s", tmpl_len, "", player->get_id(), callsign.c_str());
 	Glib::ustring text;
@@ -341,14 +347,14 @@ Glib::ustring playerView::format_observer(Player *player)
 	// player attributes (reg, adm, etc.) and IP address
 	::snprintf(tmp_buf, sizeof(tmp_buf), "%-15s%-15s\n", attrib.c_str(), player->get_IP().c_str());
 	text += Color(CyanFg) + Glib::ustring(tmp_buf);
-	
+
 	return text;
 }
 
 gint playerView::get_team_from_team_flag(Glib::ustring abbrv)
 {
 	gint team;
-	
+
 	if ((abbrv[0] == 'R' || abbrv[0] == 'r') && abbrv[1] == '*')
 		team = RedTeam;
 	else if ((abbrv[0] == 'G' || abbrv[0] == 'g') && abbrv[1] == '*')
@@ -359,14 +365,14 @@ gint playerView::get_team_from_team_flag(Glib::ustring abbrv)
 		team = PurpleTeam;
 	else
 		team = NoTeam;
-	
+
 	return team;
 }
 
 Glib::ustring playerView::get_team_flag_desc(Glib::ustring abbrv)
 {
 	Glib::ustring desc;
-	
+
 	switch (abbrv[0]) {
 	case 'R':
 	case 'r':
@@ -393,8 +399,8 @@ Glib::ustring playerView::get_team_flag_desc(Glib::ustring abbrv)
 
 void playerView::change_all_to_hunter_except(guint8 id)
 {
-	std::vector<Player*>::iterator it;
-	
+	std::vector < Player * >::iterator it;
+
 	it = players.begin();
 	while (it != players.end()) {
 		if ((*it)->get_id() != id)
@@ -403,7 +409,7 @@ void playerView::change_all_to_hunter_except(guint8 id)
 	}
 }
 
-Player* playerView::get_observer(gint n)
+Player *playerView::get_observer(gint n)
 {
 	return observers[n];
 }
@@ -413,7 +419,7 @@ gint playerView::get_n_observers()
 	return observers.size();
 }
 
-Player* playerView::get_player(gint n)
+Player *playerView::get_player(gint n)
 {
 	return players[n];
 }
@@ -428,5 +434,3 @@ void playerView::clear_players()
 	players.clear();
 	observers.clear();
 }
-
-

@@ -35,15 +35,20 @@ class msgView : public view
 public:
 	msgView();
 	~msgView();
-	void init(Glib::RefPtr <Gtk::Builder> _refBuilder/*, Glib::RefPtr<Gnome::Conf::Client> _client*/);
+	void init(Glib::RefPtr <Gtk::Builder> _refBuilder);
 	void format(Glib::ustring& formatted, Glib::ustring msg, guint8 src, guint8 dst,
 						guint16 dstTeam, guint8 me, Glib::ustring src_callsign, Glib::ustring dst_callsign);
 	Glib::ustring colorBullet();
+	void set_line_numbers(bool set) { line_numbers = set; }
+	bool get_line_numbers() { return line_numbers; }
 	
 	// overrides
 	void add_text(const gchar *str, const gchar *tag); // TextTag based versions
 	void add_text(Glib::ustring str, Glib::ustring tag);
 	void add_text(Glib::ustring &str); // ANSI color code version
+	
+private:
+	bool line_numbers;
 };
 
 #endif // _msg_view_h_
