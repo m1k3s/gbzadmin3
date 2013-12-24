@@ -1,20 +1,20 @@
 // gbzadmin version 2.4.x
 // GTKmm bzadmin
 // Copyright (c) 2005 - 2012 Michael Sheppard
-//  
+//
 // Code based on BZFlag-2.0.x and SVN 2.4.x
 // Portions Copyright (c) 1993 - 2009 Tim Riker
-// 
+//
 //  =====GPL=============================================================
 //  This program is free software; you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
 //  the Free Software Foundation; version 2 dated June, 1991.
-// 
-//  This program is distributed in the hope that it will be useful, 
+//
+//  This program is distributed in the hope that it will be useful,
 //  but WITHOUT ANY WARRANTY; without even the implied warranty of
 //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //  GNU General Public License for more details.
-// 
+//
 //  You should have received a copy of the GNU General Public License
 //  along with this program;  if not, write to the Free Software
 //  Foundation, Inc., 675 Mass Ave., Cambridge, MA 02139, USA.
@@ -28,903 +28,931 @@ const char *configFileName = "/.gbzadmin";
 
 // message mask/prefs dialog widget names
 const gchar *msg_names[] = {
-	"rabbit",	// new rabbit
-	"pause",	// player paused
-	"spawn",	// player spawned
-	"ping",		// server ping
-	"bzdb",		// variables updated
-	"join",		// player joined
-	"leave",	// player left
-	"admin",	// admin info
-	"kill",		// player killed
-	"score",	// score update
-	"chat",		// p2p messages
-	"roger",	// auto pilot
-	"flags",	// flag update
-	"time",		// timestamp join/part
+    "rabbit",	// new rabbit
+    "pause",	// player paused
+    "spawn",	// player spawned
+    "ping",		// server ping
+    "bzdb",		// variables updated
+    "join",		// player joined
+    "leave",	// player left
+    "admin",	// admin info
+    "kill",		// player killed
+    "score",	// score update
+    "chat",		// p2p messages
+    "roger",	// auto pilot
+    "flags",	// flag update
+    "time",		// timestamp join/part
+    "teleport", // player teleported
 };
 
 const int n_msg_masks = (sizeof(msg_names) / sizeof(msg_names[0]));
 
 gbzadmin::gbzadmin() : Gtk::Window()
 {
-	connect_dialog = 0;
-	pref_dialog = 0;
-	input_dialog = 0;
-	save_dialog = 0;
-	flag_reset_dialog = 0;
-	lagwarn_dialog = 0;
-	
-	count = prev_count = 0;
-	line = prev_line = 0;
-	wd_counter = MaxWdTime;
+    connect_dialog = 0;
+    pref_dialog = 0;
+    input_dialog = 0;
+    save_dialog = 0;
+    flag_reset_dialog = 0;
+    lagwarn_dialog = 0;
+
+    count = prev_count = 0;
+    line = prev_line = 0;
+    wd_counter = MaxWdTime;
 }
 
 bool gbzadmin::isConnected()
 {
-	return (sock.getState() == gSocket::Okay);
+    return (sock.getState() == gSocket::Okay);
 }
 
 void gbzadmin::power_down()
 {
-	Gtk::Window *app;
-	refBuilder->get_widget("app", app);
-	
-	// save window position and size to conf file
-	app->get_size(win_width, win_height);
-	app->get_position(win_x, win_y);
-	
-	// save pane positions
-	Gtk::Paned *pane;
-	refBuilder->get_widget("vpaned1", pane);
-	msg_pane = pane->get_position();
-	
-	refBuilder->get_widget("hpaned1", pane);
-	game_pane = pane->get_position();
+    Gtk::Window *app;
+    refBuilder->get_widget("app", app);
 
-	Glib::ustring configPath(Glib::get_home_dir());
-	configPath += configFileName;
-	
-	save_config_file(configPath);
+    // save window position and size to conf file
+    app->get_size(win_width, win_height);
+    app->get_position(win_x, win_y);
 
-	if (app)
-		app->hide(); // hide() will cause main::run() to end.
+    // save pane positions
+    Gtk::Paned *pane;
+    refBuilder->get_widget("vpaned1", pane);
+    msg_pane = pane->get_position();
+
+    refBuilder->get_widget("hpaned1", pane);
+    game_pane = pane->get_position();
+
+    Glib::ustring configPath(Glib::get_home_dir());
+    configPath += configFileName;
+
+    save_config_file(configPath);
+
+    if (app)
+        app->hide(); // hide() will cause main::run() to end.
 }
 
-// in case the user clicks the close button on the 
+// in case the user clicks the close button on the
 // top level window.
 bool gbzadmin::on_delete_event (GdkEventAny *event)
 {
-	// if we're connected, shutdown here, otherwise just quit
-	if (isConnected()) {
-		cmd_str = "/quit";
-		process_command();
-	}	else {
-		power_down();
-	}
-	return true;
+    // if we're connected, shutdown here, otherwise just quit
+    if (isConnected()) {
+        cmd_str = "/quit";
+        process_command();
+    }	else {
+        power_down();
+    }
+    return true;
 }
 
 void gbzadmin::shut_down()
-{	
-	sock.sendExit();
-	sock.disconnect();
-	
-	power_down();
+{
+    sock.sendExit();
+    sock.disconnect();
+
+    power_down();
 }
 
 void gbzadmin::on_quit_activate()
 {
-	if (isConnected()) {
-		if (confirm_quit_and_save()) {
-			shut_down();
-		}
-	} else {
-		shut_down();
-	}
+    if (isConnected()) {
+        if (confirm_quit_and_save()) {
+            shut_down();
+        }
+    } else {
+        shut_down();
+    }
 }
 
 void gbzadmin::on_connect_activate()
 {
-	connect_dialog_setup();
+    connect_dialog_setup();
 }
 
 void gbzadmin::on_connect_clicked()
 {
-	connect_dialog_setup();
+    connect_dialog_setup();
 }
 
 void gbzadmin::on_disconnect_activate()
 {
-	logoff();
+    logoff();
 }
 
 void gbzadmin::on_disconnect_clicked()
 {
-	logoff();
+    logoff();
 }
 
 void gbzadmin::logoff()
 {
-	if (confirm("Do you really want to disconnect?", false) == GTK_RESPONSE_YES) {
-		conn_timer.disconnect();
-		wd_timer.disconnect();
-		tcp_data_pending.disconnect();
-		if (useUDP)
-			udp_data_pending.disconnect();
-		sock.sendExit();
-		sock.disconnect();
-	} else {
-		return;
-	}
-	clean_up(true);
+    if (confirm("Do you really want to disconnect?", false) == GTK_RESPONSE_YES) {
+        conn_timer.disconnect();
+        wd_timer.disconnect();
+        tcp_data_pending.disconnect();
+        if (useUDP)
+            udp_data_pending.disconnect();
+        sock.sendExit();
+        sock.disconnect();
+    } else {
+        return;
+    }
+    clean_up(true);
 }
 
 void gbzadmin::clean_up(bool clear_msg_view)
 {
-	set_status_message(StatusConnTime, "Disconnected");
-	
-	if (clear_msg_view)
-		msg_view.clear();
-		
-	player_view.clear();
-	cmd.clear_targets();
-	player_view.clear_players();
-	player_combo.clear_items();
-	flag_store.clear();
-	
-	enable_admin_items(false);
-	
-	count = prev_count = 0;
-	line = prev_line = 0;
+    set_status_message(StatusConnTime, "Disconnected");
 
-	conn_timer.disconnect();
-	wd_timer.disconnect();
+    if (clear_msg_view)
+        msg_view.clear();
 
-	wd_counter = MaxWdTime;
-	
-	leaving = false;
-	
-	// disable the connected-only items
-	enable_connected_items(false);
+    player_view.clear();
+    cmd.clear_targets();
+    player_view.clear_players();
+    player_combo.clear_items();
+    flag_store.clear();
+
+    enable_admin_items(false);
+
+    count = prev_count = 0;
+    line = prev_line = 0;
+
+    conn_timer.disconnect();
+    wd_timer.disconnect();
+
+    wd_counter = MaxWdTime;
+
+    leaving = false;
+
+    // disable the connected-only items
+    enable_connected_items(false);
 }
 
 void gbzadmin::on_save_activate()
 {
-	if (!save_dialog)
-		refBuilder->get_widget("save_dialog", save_dialog);
-		
-	save_dialog->show();
+    if (!save_dialog)
+        refBuilder->get_widget("save_dialog", save_dialog);
+
+    save_dialog->show();
 }
 
 void gbzadmin::on_save_config_activate()
 {
-	Glib::ustring configPath(Glib::get_home_dir());
-	configPath += configFileName;
-	
-	save_config_file(configPath);
+    Glib::ustring configPath(Glib::get_home_dir());
+    configPath += configFileName;
+
+    save_config_file(configPath);
 }
 
 void gbzadmin::on_prefs_activate()
 {
-	pref_dialog_setup();
+    pref_dialog_setup();
 }
 
 void gbzadmin::on_capture_activate()
 {
-	toggle_capture_file();
+    toggle_capture_file();
 }
 
 void gbzadmin::on_lagwarn_activate()
 {
-	refBuilder->get_widget("lagwarn_dialog", lagwarn_dialog);
-	if (lagwarn_dialog) {
-		lagwarn_dialog->show();
-	}
+    refBuilder->get_widget("lagwarn_dialog", lagwarn_dialog);
+    if (lagwarn_dialog) {
+        lagwarn_dialog->show();
+    }
 }
 
 void gbzadmin::on_lagwarn_dialog_response(gint response_id)
 {
-	if (response_id == Gtk::RESPONSE_OK) {
-		Glib::ustring command("/lagwarn ");
-		Gtk::Entry *entry;
-		refBuilder->get_widget("lagwarn_entry", entry);
-		Glib::ustring warn = entry->get_text();
-		if (warn.size()) {
-			command += warn;
-		}
-		cmd_str = command;
-		process_command();
-	}
-	lagwarn_dialog->hide();
+    if (response_id == Gtk::RESPONSE_OK) {
+        Glib::ustring command("/lagwarn ");
+        Gtk::Entry *entry;
+        refBuilder->get_widget("lagwarn_entry", entry);
+        Glib::ustring warn = entry->get_text();
+        if (warn.size()) {
+            command += warn;
+        }
+        cmd_str = command;
+        process_command();
+    }
+    lagwarn_dialog->hide();
 }
 
 void gbzadmin::on_uptime_activate()
 {
-	do_command_send(ServerUptime);
+    do_command_send(ServerUptime);
 }
 
 void gbzadmin::on_flag_reset_activate()
 {
-	refBuilder->get_widget("flag_reset_dialog", flag_reset_dialog);
-	if (flag_reset_dialog) {
-		flag_reset_dialog->show();
-	}
+    refBuilder->get_widget("flag_reset_dialog", flag_reset_dialog);
+    if (flag_reset_dialog) {
+        flag_reset_dialog->show();
+    }
 }
 
 void gbzadmin::on_flag_reset_dialog_response(gint response_id)
 {
-	if ((response_id == Gtk::RESPONSE_OK) || (response_id == Gtk::RESPONSE_APPLY)) {
-		Glib::ustring command;
-		Gtk::RadioButton *unused, * all;
-		refBuilder->get_widget("unused_button", unused);
-		refBuilder->get_widget("all_button", all);
-		if (unused->get_active()) {
-			command = "/flag reset unused";
-		} else if (all->get_active()) {
-			command = "/flag reset all";
-		} else {
-			command = "/flag reset team";
-		}
-		cmd_str = command;
-		
-		if (response_id == Gtk::RESPONSE_OK)
-			flag_reset_dialog->hide();
-			
-		process_command();
-	} else {
-		flag_reset_dialog->hide();
-	}
+    if ((response_id == Gtk::RESPONSE_OK) || (response_id == Gtk::RESPONSE_APPLY)) {
+        Glib::ustring command;
+        Gtk::RadioButton *unused, * all;
+        refBuilder->get_widget("unused_button", unused);
+        refBuilder->get_widget("all_button", all);
+        if (unused->get_active()) {
+            command = "/flag reset unused";
+        } else if (all->get_active()) {
+            command = "/flag reset all";
+        } else {
+            command = "/flag reset team";
+        }
+        cmd_str = command;
+
+        if (response_id == Gtk::RESPONSE_OK)
+            flag_reset_dialog->hide();
+
+        process_command();
+    } else {
+        flag_reset_dialog->hide();
+    }
 }
 
 void gbzadmin::on_flag_up_activate()
 {
-	if (confirm("You are about to remove ALL flags\nDo you really want to do this?", false) == GTK_RESPONSE_YES)
-		do_command_send(FlagUp);
+    if (confirm("You are about to remove ALL flags\nDo you really want to do this?", false) == GTK_RESPONSE_YES)
+        do_command_send(FlagUp);
 }
-	
+
 void gbzadmin::connect_dialog_setup()
 {
-	refBuilder->get_widget("connect_dialog", connect_dialog);
-	if (connect_dialog) {
-		Gtk::Entry *w_callsign, *w_password, *w_server, *w_port;
-		refBuilder->get_widget("callsign_entry", w_callsign);
-		refBuilder->get_widget("password_entry", w_password);
-		refBuilder->get_widget("server_entry", w_server);
-		refBuilder->get_widget("port_entry", w_port);
+    refBuilder->get_widget("connect_dialog", connect_dialog);
+    if (connect_dialog) {
+        Gtk::Entry *w_callsign, *w_password, *w_server, *w_port;
+        refBuilder->get_widget("callsign_entry", w_callsign);
+        refBuilder->get_widget("password_entry", w_password);
+        refBuilder->get_widget("server_entry", w_server);
+        refBuilder->get_widget("port_entry", w_port);
 
-		w_callsign->set_text(_callsign);
-		w_password->set_text(_password);
-		// TODO: add MRU server/port
-		w_server->set_text(_server);
-		w_port->set_text(_port_str);
-		
-		connect_dialog->show();
-	}
+        w_callsign->set_text(_callsign);
+        w_password->set_text(_password);
+        // TODO: add MRU server/port
+        w_server->set_text(_server);
+        w_port->set_text(_port_str);
+
+        connect_dialog->show();
+    }
 }
 
 void gbzadmin::on_connect_dialog_response(gint response_id)
 {
-	Gtk::Entry *w_name, *w_port, *w_callsign, *w_password;
-	Glib::ustring port_str;
-	
-	if (response_id == Gtk::RESPONSE_OK) {
-		refBuilder->get_widget("callsign_entry", w_callsign);
-		refBuilder->get_widget("password_entry", w_password);
-		refBuilder->get_widget("server_entry", w_name);
-		refBuilder->get_widget("port_entry", w_port);
+    Gtk::Entry *w_name, *w_port, *w_callsign, *w_password;
+    Glib::ustring port_str;
 
-		_port_str = w_port->get_text();
-		_port = atoi(_port_str.c_str());
-		_server = w_name->get_text();
-		_callsign.assign(w_callsign->get_text(), 0, CallSignLen);
-		_password.assign(w_password->get_text(), 0, PasswordLen);
-		
-		logon();		
-	} else {
-		// only hide the connect dialog if canceled.
-		// the logon routine will hide it.
-		connect_dialog->hide();
-	}
+    if (response_id == Gtk::RESPONSE_OK) {
+        refBuilder->get_widget("callsign_entry", w_callsign);
+        refBuilder->get_widget("password_entry", w_password);
+        refBuilder->get_widget("server_entry", w_name);
+        refBuilder->get_widget("port_entry", w_port);
+
+        _port_str = w_port->get_text();
+        _port = atoi(_port_str.c_str());
+        _server = w_name->get_text();
+        _callsign.assign(w_callsign->get_text(), 0, CallSignLen);
+        _password.assign(w_password->get_text(), 0, PasswordLen);
+
+        logon();
+    } else {
+        // only hide the connect dialog if canceled.
+        // the logon routine will hide it.
+        connect_dialog->hide();
+    }
 }
 
 void gbzadmin::pref_dialog_setup()
 {
-	Gtk::Dialog *dlg;
-	refBuilder->get_widget("pref_dialog", dlg);
-	if (dlg) {
-		Gtk::CheckButton *check;
-		// set checkbuttons to current msg mask values
-		for (int k = 0; k < n_msg_masks; k++) {
-			refBuilder->get_widget(msg_names[k], check);
-			check->set_active(msg_mask[msg_names[k]]);
-		}
-		refBuilder->get_widget("pref_auto_cmd", check);
-		check->set_active(auto_cmd);
-	
-		refBuilder->get_widget("pref_pings", check);
-		check->set_active(echo_pings);
-	
-		refBuilder->get_widget("pref_save_password", check);
-		check->set_active(save_password);
+    Gtk::Dialog *dlg;
+    refBuilder->get_widget("pref_dialog", dlg);
+    if (dlg) {
+        Gtk::CheckButton *check;
+        // set checkbuttons to current msg mask values
+        for (int k = 0; k < n_msg_masks; k++) {
+            refBuilder->get_widget(msg_names[k], check);
+            check->set_active(msg_mask[msg_names[k]]);
+        }
+        refBuilder->get_widget("pref_auto_cmd", check);
+        check->set_active(auto_cmd);
 
-		refBuilder->get_widget("connect_at_startup", check);
-		check->set_active(connect_at_startup);
-		
-		refBuilder->get_widget("use_udp", check);
-		check->set_active(useUDP);
-		
-		refBuilder->get_widget("line_numbers", check);
-		check->set_active(line_numbers);
-		
-		Glib::ustring sp = "";
-		refBuilder->get_widget("pref_dump_players", check);
-		if (sp.empty())
-			check->set_sensitive(false);
-		else
-			check->set_active(dump_players);
-		
-		refBuilder->get_widget("net_stats", check);
-		check->set_active(sock.netStatsEnabled());
-		
-		Gtk::Entry *entry;
-		refBuilder->get_widget("pref_callsign_entry", entry);
-		entry->set_text(_callsign);
-		
-		refBuilder->get_widget("pref_server_entry", entry);
-		entry->set_text(_server);
-		
-		refBuilder->get_widget("pref_port_entry", entry);		
-		entry->set_text(_port_str);
-		
-		dlg->show();
-	}
+        refBuilder->get_widget("pref_pings", check);
+        check->set_active(echo_pings);
+
+        refBuilder->get_widget("pref_save_password", check);
+        check->set_active(save_password);
+
+        refBuilder->get_widget("connect_at_startup", check);
+        check->set_active(connect_at_startup);
+
+        refBuilder->get_widget("use_udp", check);
+        check->set_active(useUDP);
+
+        refBuilder->get_widget("line_numbers", check);
+        check->set_active(line_numbers);
+
+        Glib::ustring sp = "";
+        refBuilder->get_widget("pref_dump_players", check);
+        if (sp.empty())
+            check->set_sensitive(false);
+        else
+            check->set_active(dump_players);
+
+        refBuilder->get_widget("net_stats", check);
+        check->set_active(sock.netStatsEnabled());
+
+        Gtk::Entry *entry;
+        refBuilder->get_widget("pref_callsign_entry", entry);
+        entry->set_text(_callsign);
+
+        refBuilder->get_widget("pref_server_entry", entry);
+        entry->set_text(_server);
+
+        refBuilder->get_widget("pref_port_entry", entry);
+        entry->set_text(_port_str);
+
+        dlg->show();
+    }
 }
 
 void gbzadmin::on_pref_dialog_response(gint response_id)
 {
-	if ((response_id == Gtk::RESPONSE_OK) || (response_id == Gtk::RESPONSE_APPLY)) {
-		Gtk::CheckButton *w;
-		bool checked;
-		for (int k = 0; k < n_msg_masks; k++) {
-			refBuilder->get_widget(msg_names[k], w);
-			checked = w->get_active();
-			set_message_filter(msg_names[k], checked);
-		}
-	
-		refBuilder->get_widget("pref_auto_cmd", w);
-		checked = w->get_active();
-		auto_cmd = checked;
-		
-		refBuilder->get_widget("pref_pings", w);
-		checked = w->get_active();
-		echo_pings = checked;
-		
-		refBuilder->get_widget("pref_save_password", w);
-		checked = w->get_active();
-		save_password = checked;
-		
-		refBuilder->get_widget("connect_at_startup", w);
-		checked = w->get_active();
-		connect_at_startup = checked;
-		
-		refBuilder->get_widget("use_udp", w);
-		checked = w->get_active();
-		useUDP = checked;
-		
-		refBuilder->get_widget("net_stats", w);
-		checked = w->get_active();
-		sock.setNetStats(checked);
-		
-		refBuilder->get_widget("pref_dump_players", w);
-		checked = w->get_active();
-		dump_players = checked;
-		
-		refBuilder->get_widget("line_numbers", w);
-		checked = w->get_active();
-		line_numbers = checked;
-		msg_view.set_line_numbers(line_numbers);
+    if ((response_id == Gtk::RESPONSE_OK) || (response_id == Gtk::RESPONSE_APPLY)) {
+        Gtk::CheckButton *w;
+        bool checked;
+        for (int k = 0; k < n_msg_masks; k++) {
+            refBuilder->get_widget(msg_names[k], w);
+            checked = w->get_active();
+            set_message_filter(msg_names[k], checked);
+        }
 
-		Gtk::Entry *e;
-		refBuilder->get_widget("pref_callsign_entry", e);
-		_callsign = e->get_text();
-		
-		refBuilder->get_widget("pref_server_entry", e);
-		_server = e->get_text();
-		
-		refBuilder->get_widget("pref_port_entry", e);
-		_port_str = e->get_text();
-		_port = atoi(_port_str.c_str());
-		
-		if (response_id == Gtk::RESPONSE_OK)
-			pref_dialog->hide();
-	} else {
-		pref_dialog->hide();
-	}
+        refBuilder->get_widget("pref_auto_cmd", w);
+        checked = w->get_active();
+        auto_cmd = checked;
+
+        refBuilder->get_widget("pref_pings", w);
+        checked = w->get_active();
+        echo_pings = checked;
+
+        refBuilder->get_widget("pref_save_password", w);
+        checked = w->get_active();
+        save_password = checked;
+
+        refBuilder->get_widget("connect_at_startup", w);
+        checked = w->get_active();
+        connect_at_startup = checked;
+
+        refBuilder->get_widget("use_udp", w);
+        checked = w->get_active();
+        useUDP = checked;
+
+        refBuilder->get_widget("net_stats", w);
+        checked = w->get_active();
+        sock.setNetStats(checked);
+
+        refBuilder->get_widget("pref_dump_players", w);
+        checked = w->get_active();
+        dump_players = checked;
+
+        refBuilder->get_widget("line_numbers", w);
+        checked = w->get_active();
+        line_numbers = checked;
+        msg_view.set_line_numbers(line_numbers);
+
+        Gtk::Entry *e;
+        refBuilder->get_widget("pref_callsign_entry", e);
+        _callsign = e->get_text();
+
+        refBuilder->get_widget("pref_server_entry", e);
+        _server = e->get_text();
+
+        refBuilder->get_widget("pref_port_entry", e);
+        _port_str = e->get_text();
+        _port = atoi(_port_str.c_str());
+
+        if (response_id == Gtk::RESPONSE_OK)
+            pref_dialog->hide();
+    } else {
+        pref_dialog->hide();
+    }
 }
 
 Gtk::Window *gbzadmin::init_gbzadmin(Glib::RefPtr<Gtk::Builder> _refBuilder)
 {
-	refBuilder = _refBuilder;
-	
-	// some defaults
-	capturing = false;
-	useUDP = false;
-	leaving = false;
-	dump_players = false;
-	auto_cmd = false;
-	echo_pings = false;
-	save_password = true;
-	connect_at_startup = false;
-	line_numbers = false;
-	
-	win_x = 0;
-	win_y = 0;
-	win_width = 800;
-	win_height = 600;
-	msg_pane = 300;
-	game_pane = 400;
-	
-	current_cmd_type = NoCommand;
-		
-	refBuilder->get_widget("app", app);
-	if (!app) {
-		return 0;
-	}
-	
-	Glib::ustring configPath(Glib::get_home_dir());
-	configPath += configFileName;
-	
-	// check for the config file first
-	if (Glib::file_test(configPath, Glib::FILE_TEST_EXISTS)) {
-		parse_config_file(configPath);
-	} else {
-		// no config file, run preferences dialog for initial setup
-		pref_dialog_setup();
-	}
-	
-	// set window size and position
-	app->move(win_x, win_y);
-	app->resize(win_width, win_height);
-	
-	// set pane positions
-	Gtk::Paned *pane;
-	refBuilder->get_widget("vpaned1", pane);
-	pane->set_position(msg_pane);
-	
-	refBuilder->get_widget("hpaned1", pane);
-	pane->set_position(game_pane);
-	
-	// init the views
-	player_view.init(refBuilder);
-	msg_view.init(refBuilder);
-	server_vars_view.init(refBuilder);
-	game_view.init(refBuilder);
-	server_list_view.init(refBuilder);
-	cmd.init(refBuilder);
-	
-	// misc view initializations
-	msg_view.set_line_numbers(line_numbers);
+    refBuilder = _refBuilder;
+
+    // some defaults
+    capturing = false;
+    useUDP = false;
+    leaving = false;
+    dump_players = false;
+    auto_cmd = false;
+    echo_pings = false;
+    save_password = true;
+    connect_at_startup = false;
+    line_numbers = false;
+
+    win_x = 0;
+    win_y = 0;
+    win_width = 800;
+    win_height = 600;
+    msg_pane = 300;
+    game_pane = 400;
+
+    current_cmd_type = NoCommand;
+
+    refBuilder->get_widget("app", app);
+    if (!app) {
+        return 0;
+    }
+
+    Glib::ustring configPath(Glib::get_home_dir());
+    configPath += configFileName;
+
+    // check for the config file first
+    if (Glib::file_test(configPath, Glib::FILE_TEST_EXISTS)) {
+        parse_config_file(configPath);
+    } else {
+        // no config file, run preferences dialog for initial setup
+        pref_dialog_setup();
+    }
+
+    // set window size and position
+    app->move(win_x, win_y);
+    app->resize(win_width, win_height);
+
+    // set pane positions
+    Gtk::Paned *pane;
+    refBuilder->get_widget("vpaned1", pane);
+    pane->set_position(msg_pane);
+
+    refBuilder->get_widget("hpaned1", pane);
+    pane->set_position(game_pane);
+
+    // init the views
+    player_view.init(refBuilder);
+    msg_view.init(refBuilder);
+    server_vars_view.init(refBuilder);
+    game_view.init(refBuilder);
+    server_list_view.init(refBuilder);
+    cmd.init(refBuilder);
+
+    // misc view initializations
+    msg_view.set_line_numbers(line_numbers);
 //	msg_view.set_view_font(msg_view_font);
-	msg_view.set_bg(msg_view_bg);
-	msg_view.set_fg(msg_view_fg);
-	defColor = msg_view.Color(WhiteFg);
-	player_view.set_bg(player_view_bg);
-	player_view.set_bg(player_view_bg);
-	game_view.set_bg(gamestat_view_bg);
-	game_view.set_bg(gamestat_view_bg);
-	server_list_view.set_bg(serverlist_view_bg);
-	server_list_view.set_bg(serverlist_view_bg);
-	
-	add_callbacks();
-	
-	// initialize the message handler map
-	init_message_map();
-	
-	set_status_message(StatusConnTime, "Disconnected");
-		
-	// replace the input dialog comboboxes with combotextboxes
-	replace_input_placeholders();
-	
-	if (auto_cmd)
-		cmd.set_auto_cmd();
-	
-	// disable the connected-only items
-	enable_connected_items(false);
-	
-	if (connect_at_startup)
-		logon();
-	
-	return app;
+    msg_view.set_bg(msg_view_bg);
+    msg_view.set_fg(msg_view_fg);
+    defColor = msg_view.Color(WhiteFg);
+    player_view.set_bg(player_view_bg);
+    player_view.set_bg(player_view_bg);
+    game_view.set_bg(gamestat_view_bg);
+    game_view.set_bg(gamestat_view_bg);
+    server_list_view.set_bg(serverlist_view_bg);
+    server_list_view.set_bg(serverlist_view_bg);
+
+    add_callbacks();
+
+    // initialize the message handler map
+    init_message_handler_map();
+
+    set_status_message(StatusConnTime, "Disconnected");
+
+    // replace the input dialog comboboxes with combotextboxes
+    replace_input_placeholders();
+
+    if (auto_cmd)
+        cmd.set_auto_cmd();
+
+    // disable the connected-only items
+    enable_connected_items(false);
+
+    if (connect_at_startup)
+        logon();
+
+    return app;
 }
 
-void gbzadmin::init_message_map()
+// message code to handler function map initialization
+void gbzadmin::init_message_handler_map()
 {
-	handler_map[MsgJoinServer]			= &gbzadmin::handle_joinserver_message;
-	handler_map[MsgPause]				= &gbzadmin::handle_pause_message;
-	handler_map[MsgAutoPilot]			= &gbzadmin::handle_autopilot_message;
-	handler_map[MsgAddPlayer]			= &gbzadmin::handle_add_player_message;
-	handler_map[MsgNewRabbit]			= &gbzadmin::handle_rabbit_message;
-	handler_map[MsgRemovePlayer]		= &gbzadmin::handle_remove_player_message;
-	handler_map[MsgPlayerInfo]			= &gbzadmin::handle_playerinfo_message;
-	handler_map[MsgAdminInfo]			= &gbzadmin::handle_admininfo_message;
-	handler_map[MsgKilled]				= &gbzadmin::handle_killed_message;
-	handler_map[MsgScore]				= &gbzadmin::handle_score_message;
-	handler_map[MsgScoreOver]			= &gbzadmin::handle_score_over_message;
-	handler_map[MsgAlive]				= &gbzadmin::handle_alive_message;
-	handler_map[MsgUDPLinkEstablished]	= &gbzadmin::handle_udplinkestablished_message;
-	handler_map[MsgUDPLinkRequest]		= &gbzadmin::handle_udplinkrequest_message;
-	handler_map[MsgSetVar]				= &gbzadmin::handle_setvar_message;
-	handler_map[MsgGrabFlag]			= &gbzadmin::handle_grabflag_message;
-	handler_map[MsgDropFlag]			= &gbzadmin::handle_dropflag_message;
-	handler_map[MsgFlagUpdate]			= &gbzadmin::handle_flagupdate_message;
-	handler_map[MsgTransferFlag]		= &gbzadmin::handle_transferflag_message;
-	handler_map[MsgLagPing]				= &gbzadmin::handle_ping_message;
-	handler_map[MsgQueryGame]			= &gbzadmin::handle_game_query_message;
-	handler_map[MsgTeamUpdate]			= &gbzadmin::handle_teamupdate_message;
-	handler_map[MsgMessage]				= &gbzadmin::handle_message_message;
-	
+    // TODO: decide on initialization method...
+
+//	handler_map.insert(std::make_pair(MsgJoinServer, 			&gbzadmin::handle_joinserver_message));
+//	handler_map.insert(std::make_pair(MsgPause, 				&gbzadmin::handle_pause_message));
+//	handler_map.insert(std::make_pair(MsgAutoPilot, 			&gbzadmin::handle_autopilot_message));
+//	handler_map.insert(std::make_pair(MsgAddPlayer,				&gbzadmin::handle_add_player_message));
+//	handler_map.insert(std::make_pair(MsgNewRabbit, 			&gbzadmin::handle_rabbit_message));
+//	handler_map.insert(std::make_pair(MsgRemovePlayer, 			&gbzadmin::handle_remove_player_message));
+//	handler_map.insert(std::make_pair(MsgPlayerInfo, 			&gbzadmin::handle_playerinfo_message));
+//	handler_map.insert(std::make_pair(MsgAdminInfo, 			&gbzadmin::handle_admininfo_message));
+//	handler_map.insert(std::make_pair(MsgKilled, 				&gbzadmin::handle_killed_message));
+//	handler_map.insert(std::make_pair(MsgScore, 				&gbzadmin::handle_score_message));
+//	handler_map.insert(std::make_pair(MsgAlive, 				&gbzadmin::handle_alive_message));
+//	handler_map.insert(std::make_pair(MsgUDPLinkEstablished,	&gbzadmin::handle_udplinkestablished_message));
+//	handler_map.insert(std::make_pair(MsgUDPLinkRequest, 		&gbzadmin::handle_udplinkrequest_message));
+//	handler_map.insert(std::make_pair(MsgSetVar, 				&gbzadmin::handle_setvar_message));
+//	handler_map.insert(std::make_pair(MsgGrabFlag, 				&gbzadmin::handle_grabflag_message));
+//	handler_map.insert(std::make_pair(MsgDropFlag, 				&gbzadmin::handle_dropflag_message));
+//	handler_map.insert(std::make_pair(MsgFlagUpdate, 			&gbzadmin::handle_flagupdate_message));
+//	handler_map.insert(std::make_pair(MsgTransferFlag, 			&gbzadmin::handle_transferflag_message));
+//	handler_map.insert(std::make_pair(MsgLagPing,				&gbzadmin::handle_ping_message));
+//	handler_map.insert(std::make_pair(MsgQueryGame,	 			&gbzadmin::handle_game_query_message));
+//	handler_map.insert(std::make_pair(MsgTeamUpdate, 			&gbzadmin::handle_teamupdate_message));
+//	handler_map.insert(std::make_pair(MsgMessage, 				&gbzadmin::handle_message_message));
+
+    //    - OR -
+
+    handler_map[MsgJoinServer]			= &gbzadmin::handle_joinserver_message;
+    handler_map[MsgPause]				= &gbzadmin::handle_pause_message;
+    handler_map[MsgAutoPilot]			= &gbzadmin::handle_autopilot_message;
+    handler_map[MsgAddPlayer]			= &gbzadmin::handle_add_player_message;
+    handler_map[MsgNewRabbit]			= &gbzadmin::handle_rabbit_message;
+    handler_map[MsgRemovePlayer]		= &gbzadmin::handle_remove_player_message;
+    handler_map[MsgPlayerInfo]			= &gbzadmin::handle_playerinfo_message;
+    handler_map[MsgAdminInfo]			= &gbzadmin::handle_admininfo_message;
+    handler_map[MsgKilled]				= &gbzadmin::handle_killed_message;
+    handler_map[MsgScore]				= &gbzadmin::handle_score_message;
+    handler_map[MsgAlive]				= &gbzadmin::handle_alive_message;
+    handler_map[MsgUDPLinkEstablished]	= &gbzadmin::handle_udplinkestablished_message;
+    handler_map[MsgUDPLinkRequest]		= &gbzadmin::handle_udplinkrequest_message;
+    handler_map[MsgSetVar]				= &gbzadmin::handle_setvar_message;
+    handler_map[MsgGrabFlag]			= &gbzadmin::handle_grabflag_message;
+    handler_map[MsgDropFlag]			= &gbzadmin::handle_dropflag_message;
+    handler_map[MsgFlagUpdate]			= &gbzadmin::handle_flagupdate_message;
+    handler_map[MsgTransferFlag]		= &gbzadmin::handle_transferflag_message;
+    handler_map[MsgLagPing]				= &gbzadmin::handle_ping_message;
+    handler_map[MsgQueryGame]			= &gbzadmin::handle_game_query_message;
+    handler_map[MsgTeamUpdate]			= &gbzadmin::handle_teamupdate_message;
+    handler_map[MsgMessage]				= &gbzadmin::handle_message_message;
+    handler_map[MsgTeleport]			= &gbzadmin::handle_teleport_message;
 }
 
 void gbzadmin::on_about_activate()
 {
-	const gchar *license =
-		"    This program is free software; you can redistribute it and/or modify\n"
-		"it under the terms of the GNU General Public License as published by\n"
-		"the Free Software Foundation; either version 2 of the License, or\n"
-		"(at your option) any later version.\n\n"
-		"    This program is distributed in the hope that it will be useful,\n"
-		"but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
-		"MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
-		"GNU General Public License for more details.\n\n"
-		"    You should have received a copy of the GNU General Public License\n"
-		"along with this program; if not, write to the Free Software\n"
-		"Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA";
+    const gchar *license =
+        "    This program is free software; you can redistribute it and/or modify\n"
+        "it under the terms of the GNU General Public License as published by\n"
+        "the Free Software Foundation; either version 2 of the License, or\n"
+        "(at your option) any later version.\n\n"
+        "    This program is distributed in the hope that it will be useful,\n"
+        "but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+        "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
+        "GNU General Public License for more details.\n\n"
+        "    You should have received a copy of the GNU General Public License\n"
+        "along with this program; if not, write to the Free Software\n"
+        "Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA";
 
-	Glib::ustring comment("Gtkmm powered BZFlag server administration\nBased on BZFlag's bzadmin\n");
-	comment += "GtkBuilder Version\n\n";
-	comment += getAppVersion();
-	comment += "-";
-	comment += getServerVersion();
+    Glib::ustring comment("Gtkmm powered BZFlag server administration\nBased on BZFlag's bzadmin\n");
+    comment += "GtkBuilder Version\n\n";
+    comment += getAppVersion();
+    comment += "-";
+    comment += getServerVersion();
 
-	Glib::ustring path(PACKAGE_DATA_DIR);
-	path += "/";
-	path += PACKAGE;
-	path += "/pixmaps";
-	
-	Glib::ustring pathname("");
-	pathname = Glib::build_filename(path, "background.png");
-	
-	Glib::RefPtr<Gdk::Pixbuf> background = Gdk::Pixbuf::create_from_file (pathname);
-	if (!(background)) {
-		std::cerr << "Failed to load pixbuf file: %s: " << pathname << std::endl;
-  }
-	
-	const gchar *authors[] = {
-		"Michael Sheppard (gBZAdmin)",
-		"BZFlag Development Team (BZFlag source)",
-		0
-	};
-	
-	Gtk::AboutDialog dlg;
+    Glib::ustring path(PACKAGE_DATA_DIR);
+    path += "/";
+    path += PACKAGE;
+    path += "/pixmaps";
 
-	dlg.set_name("gBZAdmin");
-	dlg.set_version(VERSION);
-	dlg.set_copyright("Copyright (c) 2005 - 2012 Michael Sheppard\nPortions Copyright (c) 1993 - 2009 Tim Riker");
-	dlg.set_license(license);
-	dlg.set_comments(comment);
-	dlg.set_authors(authors);
-	dlg.set_logo(background);
-	
-	dlg.run();
+    Glib::ustring pathname("");
+    pathname = Glib::build_filename(path, "background.png");
+
+    Glib::RefPtr<Gdk::Pixbuf> background = Gdk::Pixbuf::create_from_file (pathname);
+    if (!(background)) {
+        std::cerr << "Failed to load pixbuf file: %s: " << pathname << std::endl;
+    }
+
+    const gchar *authors[] = {
+        "Michael Sheppard (gBZAdmin)",
+        "BZFlag Development Team (BZFlag source)",
+        0
+    };
+
+    Gtk::AboutDialog dlg;
+
+    dlg.set_name("gBZAdmin");
+    dlg.set_version(VERSION);
+    dlg.set_copyright("Copyright (c) 2005 - 2012 Michael Sheppard\nPortions Copyright (c) 1993 - 2009 Tim Riker");
+    dlg.set_license(license);
+    dlg.set_comments(comment);
+    dlg.set_authors(authors);
+    dlg.set_logo(background);
+
+    dlg.run();
 }
 
 void gbzadmin::add_callbacks()
 {
-	// Tool Button handlers
-	connect_clicked("connect_button", sigc::mem_fun(*this, &gbzadmin::on_connect_clicked));
-	connect_clicked("disconnect_button", sigc::mem_fun(*this, &gbzadmin::on_disconnect_clicked));
-	connect_clicked("mute_button", sigc::mem_fun(*this, &gbzadmin::on_mute_button_clicked));
-	connect_clicked("kick_button", sigc::mem_fun(*this, &gbzadmin::on_kick_button_clicked));
-	connect_clicked("ban_button", sigc::mem_fun(*this, &gbzadmin::on_ban_button_clicked));
-	connect_clicked("playerlist_button", sigc::mem_fun(*this, &gbzadmin::on_playerlist_button_clicked));
-	connect_clicked("clientquery_button", sigc::mem_fun(*this, &gbzadmin::on_clientquery_button_clicked));
-	connect_clicked("lagstats_button", sigc::mem_fun(*this, &gbzadmin::on_lagstats_button_clicked));
+    // Tool Button handlers
+    connect_clicked("connect_button", sigc::mem_fun(*this, &gbzadmin::on_connect_clicked));
+    connect_clicked("disconnect_button", sigc::mem_fun(*this, &gbzadmin::on_disconnect_clicked));
+    connect_clicked("mute_button", sigc::mem_fun(*this, &gbzadmin::on_mute_button_clicked));
+    connect_clicked("kick_button", sigc::mem_fun(*this, &gbzadmin::on_kick_button_clicked));
+    connect_clicked("ban_button", sigc::mem_fun(*this, &gbzadmin::on_ban_button_clicked));
+    connect_clicked("playerlist_button", sigc::mem_fun(*this, &gbzadmin::on_playerlist_button_clicked));
+    connect_clicked("clientquery_button", sigc::mem_fun(*this, &gbzadmin::on_clientquery_button_clicked));
+    connect_clicked("lagstats_button", sigc::mem_fun(*this, &gbzadmin::on_lagstats_button_clicked));
 
-	// Menu Item handlers
-	connect_clicked("quit", sigc::mem_fun(*this, &gbzadmin::on_quit_activate));
-	connect_clicked("about", sigc::mem_fun(*this, &gbzadmin::on_about_activate));
-	connect_clicked("connect", sigc::mem_fun(*this, &gbzadmin::on_connect_activate));
-	connect_clicked("disconnect", sigc::mem_fun(*this, &gbzadmin::on_disconnect_activate));
-	connect_clicked("save", sigc::mem_fun(*this, &gbzadmin::on_save_activate));
-	connect_clicked("save_config", sigc::mem_fun(*this, &gbzadmin::on_save_config_activate));
-	connect_clicked("preferences", sigc::mem_fun(*this, &gbzadmin::on_prefs_activate));
-	connect_clicked("message_view_scrolling", sigc::mem_fun(*this, &gbzadmin::on_message_view_scrolling_activate));
-	connect_clicked("mute", sigc::mem_fun(*this, &gbzadmin::on_mute_activate));
-	connect_clicked("kick", sigc::mem_fun(*this, &gbzadmin::on_kick_activate));
-	connect_clicked("ban", sigc::mem_fun(*this, &gbzadmin::on_ban_activate));
-	connect_clicked("playerlist", sigc::mem_fun(*this, &gbzadmin::on_playerlist_activate));
-	connect_clicked("clientquery", sigc::mem_fun(*this, &gbzadmin::on_clientquery_activate));
-	connect_clicked("lagwarn", sigc::mem_fun(*this, &gbzadmin::on_lagwarn_activate));
-	connect_clicked("query_listserver", sigc::mem_fun(*this, &gbzadmin::on_query_listserver_activate));
-	connect_clicked("lagstats", sigc::mem_fun(*this, &gbzadmin::on_lagstats_activate));
-	connect_clicked("uptime", sigc::mem_fun(*this, &gbzadmin::on_uptime_activate));
-	connect_clicked("flag_reset", sigc::mem_fun(*this, &gbzadmin::on_flag_reset_activate));
-	connect_clicked("remove_flags", sigc::mem_fun(*this, &gbzadmin::on_flag_up_activate));
-	connect_clicked("shutdown_server", sigc::mem_fun(*this, &gbzadmin::on_shutdown_server_activate));
-	connect_clicked("super_kill", sigc::mem_fun(*this, &gbzadmin::on_super_kill_activate));
-	connect_clicked("player_list_window", sigc::mem_fun(*this, &gbzadmin::on_player_window_activate));
-	connect_clicked("server_variables_window", sigc::mem_fun(*this, &gbzadmin::on_server_window_activate));
-	connect_clicked("server_list_window", sigc::mem_fun(*this, &gbzadmin::on_server_list_window_activate));
+    // Menu Item handlers
+    connect_clicked("quit", sigc::mem_fun(*this, &gbzadmin::on_quit_activate));
+    connect_clicked("about", sigc::mem_fun(*this, &gbzadmin::on_about_activate));
+    connect_clicked("connect", sigc::mem_fun(*this, &gbzadmin::on_connect_activate));
+    connect_clicked("disconnect", sigc::mem_fun(*this, &gbzadmin::on_disconnect_activate));
+    connect_clicked("save", sigc::mem_fun(*this, &gbzadmin::on_save_activate));
+    connect_clicked("save_config", sigc::mem_fun(*this, &gbzadmin::on_save_config_activate));
+    connect_clicked("preferences", sigc::mem_fun(*this, &gbzadmin::on_prefs_activate));
+    connect_clicked("message_view_scrolling", sigc::mem_fun(*this, &gbzadmin::on_message_view_scrolling_activate));
+    connect_clicked("mute", sigc::mem_fun(*this, &gbzadmin::on_mute_activate));
+    connect_clicked("kick", sigc::mem_fun(*this, &gbzadmin::on_kick_activate));
+    connect_clicked("ban", sigc::mem_fun(*this, &gbzadmin::on_ban_activate));
+    connect_clicked("playerlist", sigc::mem_fun(*this, &gbzadmin::on_playerlist_activate));
+    connect_clicked("clientquery", sigc::mem_fun(*this, &gbzadmin::on_clientquery_activate));
+    connect_clicked("lagwarn", sigc::mem_fun(*this, &gbzadmin::on_lagwarn_activate));
+    connect_clicked("query_listserver", sigc::mem_fun(*this, &gbzadmin::on_query_listserver_activate));
+    connect_clicked("lagstats", sigc::mem_fun(*this, &gbzadmin::on_lagstats_activate));
+    connect_clicked("uptime", sigc::mem_fun(*this, &gbzadmin::on_uptime_activate));
+    connect_clicked("flag_reset", sigc::mem_fun(*this, &gbzadmin::on_flag_reset_activate));
+    connect_clicked("remove_flags", sigc::mem_fun(*this, &gbzadmin::on_flag_up_activate));
+    connect_clicked("shutdown_server", sigc::mem_fun(*this, &gbzadmin::on_shutdown_server_activate));
+    connect_clicked("super_kill", sigc::mem_fun(*this, &gbzadmin::on_super_kill_activate));
+    connect_clicked("player_list_window", sigc::mem_fun(*this, &gbzadmin::on_player_window_activate));
+    connect_clicked("server_variables_window", sigc::mem_fun(*this, &gbzadmin::on_server_window_activate));
+    connect_clicked("server_list_window", sigc::mem_fun(*this, &gbzadmin::on_server_list_window_activate));
 
-	Gtk::CheckMenuItem *check;
-	refBuilder->get_widget("capture", check);
-	capture_signal = check->signal_activate().connect(sigc::mem_fun(*this, &gbzadmin::on_capture_activate));
+    Gtk::CheckMenuItem *check;
+    refBuilder->get_widget("capture", check);
+    capture_signal = check->signal_activate().connect(sigc::mem_fun(*this, &gbzadmin::on_capture_activate));
 
-	// Application events
-	app->signal_key_press_event().connect(sigc::mem_fun(*this, &gbzadmin::on_key_press_event), false);
-	app->signal_delete_event().connect(sigc::mem_fun(*this, &gbzadmin::on_delete_event));
+    // Application events
+    app->signal_key_press_event().connect(sigc::mem_fun(*this, &gbzadmin::on_key_press_event), false);
+    app->signal_delete_event().connect(sigc::mem_fun(*this, &gbzadmin::on_delete_event));
 
-	Gtk::Button *button;
-	refBuilder->get_widget("send_button", button);
-	button->signal_clicked().connect((sigc::mem_fun(*this, &gbzadmin::on_send_button_pressed)));
+    Gtk::Button *button;
+    refBuilder->get_widget("send_button", button);
+    button->signal_clicked().connect((sigc::mem_fun(*this, &gbzadmin::on_send_button_pressed)));
 
-	// dialog response handlers
-	refBuilder->get_widget("connect_dialog", connect_dialog);
-	if (connect_dialog)
-		connect_dialog->signal_response().connect(sigc::mem_fun(*this, &gbzadmin::on_connect_dialog_response));
-		
-	refBuilder->get_widget("pref_dialog", pref_dialog);
-	if (pref_dialog)
-		pref_dialog->signal_response().connect(sigc::mem_fun(*this, &gbzadmin::on_pref_dialog_response));
-		
-	refBuilder->get_widget("input_dialog", input_dialog);
-	if (input_dialog)
-		input_dialog->signal_response().connect(sigc::mem_fun(*this, &gbzadmin::on_input_dialog_response));
-		
-	refBuilder->get_widget("save_dialog", save_dialog);
-	if (save_dialog)
-		save_dialog->signal_response().connect(sigc::mem_fun(*this, &gbzadmin::on_save_dialog_response));
-		
-	refBuilder->get_widget("flag_reset_dialog", flag_reset_dialog);
-	if (flag_reset_dialog)
-		flag_reset_dialog->signal_response().connect(sigc::mem_fun(*this, &gbzadmin::on_flag_reset_dialog_response));
-		
-	refBuilder->get_widget("lagwarn_dialog", lagwarn_dialog);
-	if (lagwarn_dialog)
-		lagwarn_dialog->signal_response().connect(sigc::mem_fun(*this, &gbzadmin::on_lagwarn_dialog_response));
-		
-	// connect the server variable changed signal
-	server_vars_view.on_variable_changed.connect(sigc::mem_fun(*this, &gbzadmin::on_variable_changed));
+    // dialog response handlers
+    refBuilder->get_widget("connect_dialog", connect_dialog);
+    if (connect_dialog)
+        connect_dialog->signal_response().connect(sigc::mem_fun(*this, &gbzadmin::on_connect_dialog_response));
+
+    refBuilder->get_widget("pref_dialog", pref_dialog);
+    if (pref_dialog)
+        pref_dialog->signal_response().connect(sigc::mem_fun(*this, &gbzadmin::on_pref_dialog_response));
+
+    refBuilder->get_widget("input_dialog", input_dialog);
+    if (input_dialog)
+        input_dialog->signal_response().connect(sigc::mem_fun(*this, &gbzadmin::on_input_dialog_response));
+
+    refBuilder->get_widget("save_dialog", save_dialog);
+    if (save_dialog)
+        save_dialog->signal_response().connect(sigc::mem_fun(*this, &gbzadmin::on_save_dialog_response));
+
+    refBuilder->get_widget("flag_reset_dialog", flag_reset_dialog);
+    if (flag_reset_dialog)
+        flag_reset_dialog->signal_response().connect(sigc::mem_fun(*this, &gbzadmin::on_flag_reset_dialog_response));
+
+    refBuilder->get_widget("lagwarn_dialog", lagwarn_dialog);
+    if (lagwarn_dialog)
+        lagwarn_dialog->signal_response().connect(sigc::mem_fun(*this, &gbzadmin::on_lagwarn_dialog_response));
+
+    // connect the server variable changed signal
+    server_vars_view.on_variable_changed.connect(sigc::mem_fun(*this, &gbzadmin::on_variable_changed));
 }
 
 void gbzadmin::on_player_window_activate()
 {
-	Gtk::Notebook *notebook;
-	refBuilder->get_widget("notebook", notebook);
-	notebook->set_current_page(0);
+    Gtk::Notebook *notebook;
+    refBuilder->get_widget("notebook", notebook);
+    notebook->set_current_page(0);
 }
 
 void gbzadmin::on_server_window_activate()
 {
-	Gtk::Notebook *notebook;
-	refBuilder->get_widget("notebook", notebook);
-	
-	Gtk::Widget *page = notebook->get_nth_page(Page_ServerVars);
-	
-	if (!page->is_visible()) {
-		page->show();
-		notebook->set_current_page(Page_ServerVars);
-	} else {
-		notebook->set_current_page(Page_ServerVars);
-	}
+    Gtk::Notebook *notebook;
+    refBuilder->get_widget("notebook", notebook);
+
+    Gtk::Widget *page = notebook->get_nth_page(Page_ServerVars);
+
+    if (!page->is_visible()) {
+        page->show();
+        notebook->set_current_page(Page_ServerVars);
+    } else {
+        notebook->set_current_page(Page_ServerVars);
+    }
 }
 
 void gbzadmin::on_server_list_window_activate()
 {
-	Gtk::Notebook *notebook;
-	refBuilder->get_widget("notebook", notebook);
-	
-	Gtk::Widget *page = notebook->get_nth_page(Page_ServerList);
-	
-	if (!page->is_visible()) {
-		page->show();
-		notebook->set_current_page(Page_ServerList);
-	} else {
-		notebook->set_current_page(Page_ServerList);
-	}
+    Gtk::Notebook *notebook;
+    refBuilder->get_widget("notebook", notebook);
+
+    Gtk::Widget *page = notebook->get_nth_page(Page_ServerList);
+
+    if (!page->is_visible()) {
+        page->show();
+        notebook->set_current_page(Page_ServerList);
+    } else {
+        notebook->set_current_page(Page_ServerList);
+    }
 }
 
 bool gbzadmin::on_key_press_event (GdkEventKey *event)
 {
-	switch (event->keyval) {
-	default:
-		return false;
-		
-	case GDK_F6:
-	case GDK_slash:
-		// grab focus for command widget if not currently focused
-		if (!server_vars_view.is_focus()) {
-			if (!cmd.get_focus()) {
-				cmd.grab_focus();
-			}
-		}
-		break;
-		
-	case GDK_Escape:
-		// clear the command entry if it has the focus
-		if (cmd.get_focus()) {
-			cmd_str.clear();
-			cmd.clear();
-		}
-		break;
-		
-	case GDK_F7:
-		if (!cmd.get_focus()) {
-			cmd.set_target_admin();
-		}
-		break;
-		
-	case GDK_F8:
-		if (!cmd.get_focus()) {
-			cmd.set_target_team();
-		}
-		break;
-		
-	case GDK_F9:
-		if (!cmd.get_focus()) {
-			cmd.set_target_all();
-		}
-		break;
-		
-	case GDK_Up:
-		{	// command history
-			if (!cmd.get_focus()) {
-				cmd.grab_focus();
-			}
-			Gtk::Entry *entry;
-			refBuilder->get_widget("command_entry", entry);
-			entry->set_text(cmd.historyUp());
-			// do not pass on to the default handler
-			return true;
-		}
-		
-	case GDK_Down:
-		{	// command history
-			if (!cmd.get_focus()) {
-				cmd.grab_focus();
-			}
-			Gtk::Entry *entry;
-			refBuilder->get_widget("command_entry", entry);
-			entry->set_text(cmd.historyDown());
-			// do not pass on to the default handler
-			return true;
-		}
-	}
-	// return 'false' to allow default handler to handle key press events
-	return false;
+    switch (event->keyval) {
+        default:
+            return false;
+
+        case GDK_F6:
+        case GDK_slash:
+            // grab focus for command widget if not currently focused
+            if (!server_vars_view.is_focus()) {
+                if (!cmd.get_focus()) {
+                    cmd.grab_focus();
+                }
+            }
+            break;
+
+        case GDK_Escape:
+            // clear the command entry if it has the focus
+            if (cmd.get_focus()) {
+                cmd_str.clear();
+                cmd.clear();
+            }
+            break;
+
+        case GDK_F7:
+            if (!cmd.get_focus()) {
+                cmd.set_target_admin();
+            }
+            break;
+
+        case GDK_F8:
+            if (!cmd.get_focus()) {
+                cmd.set_target_team();
+            }
+            break;
+
+        case GDK_F9:
+            if (!cmd.get_focus()) {
+                cmd.set_target_all();
+            }
+            break;
+
+        case GDK_Up: {
+            // command history
+            if (!cmd.get_focus()) {
+                cmd.grab_focus();
+            }
+            Gtk::Entry *entry;
+            refBuilder->get_widget("command_entry", entry);
+            entry->set_text(cmd.historyUp());
+            // do not pass on to the default handler
+            return true;
+        }
+
+        case GDK_Down: {
+            // command history
+            if (!cmd.get_focus()) {
+                cmd.grab_focus();
+            }
+            Gtk::Entry *entry;
+            refBuilder->get_widget("command_entry", entry);
+            entry->set_text(cmd.historyDown());
+            // do not pass on to the default handler
+            return true;
+        }
+    }
+    // return 'false' to allow default handler to handle key press events
+    return false;
 }
 
 void gbzadmin::set_status_message(gint statusbar, const gchar *msg)
 {
-	push_pop_status(statusbar, msg, true);
-	Gdk::flush();
+    push_pop_status(statusbar, msg, true);
+    Gdk::flush();
 }
 
 void gbzadmin::clear_status_message(gint statusbar)
 {
-	push_pop_status(statusbar, 0, false);
-	Gdk::flush();
+    push_pop_status(statusbar, 0, false);
+    Gdk::flush();
 }
 
 void gbzadmin::push_pop_status(gint statusbar, const gchar *msg, bool push)
 {
-	Gtk::Statusbar *status;
-	gint id;
-	gchar bar[16];
-	
-	switch (statusbar) {
-		case StatusConnTime:
-			g_stpcpy(bar, "statusbar1");
-			break;
+    Gtk::Statusbar *status;
+    gint id;
+    gchar bar[16];
 
-		case StatusMsgLine:
-			g_stpcpy(bar, "statusbar2");
-			break;
+    switch (statusbar) {
+        case StatusConnTime:
+            g_stpcpy(bar, "statusbar1");
+            break;
 
-		case StatusNetStats:
-			g_stpcpy(bar, "statusbar3");
-			break;
+        case StatusMsgLine:
+            g_stpcpy(bar, "statusbar2");
+            break;
 
-		default:
-			break;
-	}
-	
-	refBuilder->get_widget(bar, status);
-	id = status->get_context_id("msg");
-	if (push) {
-		status->push(msg, id);
-	} else {
-		status->pop(id);
-	}
+        case StatusNetStats:
+            g_stpcpy(bar, "statusbar3");
+            break;
+
+        default:
+            break;
+    }
+
+    refBuilder->get_widget(bar, status);
+    id = status->get_context_id("msg");
+    if (push) {
+        status->push(msg, id);
+    } else {
+        status->pop(id);
+    }
 }
 
 void gbzadmin::toggle_capture_file()
 {
-	if (capturing) {	// close the capture file
-		msg_view.stop_capture();
-		capturing = false;
-	} else {
-		if (!msg_view.start_capture()) {
-			// if the user cancels the capture dialog
-			// the menu item is still checked. Un-checking the item
-			// causes this function to be called again and the 
-			// capture dialog reappears. Need to block the signal
-			// before unchecking and unblock afterward.
-			capture_signal.block();
-			
-			Gtk::CheckMenuItem *check;
-			refBuilder->get_widget("capture", check);
-			check->set_active(false);
-			
-			capture_signal.unblock();
-			capturing = false;
-		}
-		capturing = true;
-	}
+    if (capturing) {	// close the capture file
+        msg_view.stop_capture();
+        capturing = false;
+    } else {
+        if (!msg_view.start_capture()) {
+            // if the user cancels the capture dialog
+            // the menu item is still checked. Un-checking the item
+            // causes this function to be called again and the
+            // capture dialog reappears. Need to block the signal
+            // before unchecking and unblock afterward.
+            capture_signal.block();
+
+            Gtk::CheckMenuItem *check;
+            refBuilder->get_widget("capture", check);
+            check->set_active(false);
+
+            capture_signal.unblock();
+            capturing = false;
+        }
+        capturing = true;
+    }
 }
 
 void gbzadmin::parse_config_file(Glib::ustring filename)
 {
-	char variable[64];
-	char value[512];
-	char buf[1024];
-	int result = 0;
-	
-	std::ifstream is;
-	is.open(filename.c_str(), std::ios::in);
-	if (is.is_open()) {
-		do {
-			memset(buf, 0, 1024);
-			is.getline(buf, 256);
-			
-			result = sscanf(buf, "%32[^#=]=%256[^\n]\n", variable, value);
-			if ((result < 2) || (result == EOF))
-				break;
+    char variable[64];
+    char value[512];
+    char buf[1024];
+    int result = 0;
 
-			// now that we have the variable,value pair we need to assign
-			// the value to the prefs.value
-			 
-			if (g_ascii_strcasecmp(variable, "callsign") == 0) {
-	 			_callsign = value;
-	 		} else if (g_ascii_strcasecmp(variable, "motto") == 0) {
-	 			_motto = value;
-			} else if (g_ascii_strcasecmp(variable, "password") == 0) {
-				_password = value;
-	 		} else if (g_ascii_strcasecmp(variable, "server") == 0) {
-	 			_server = value;
-	 		} else if (g_ascii_strcasecmp(variable, "window_x") == 0) {
-	 			win_x = atoi(value);
-	 		} else if (g_ascii_strcasecmp(variable, "window_y") == 0) {
-	 			win_y = atoi(value);
-	 		} else if (g_ascii_strcasecmp(variable, "window_width") == 0) {
-	 			win_width = atoi(value);
-	 		} else if (g_ascii_strcasecmp(variable, "window_height") == 0) {
-	 			win_height = atoi(value);
-	 		} else if (g_ascii_strcasecmp(variable, "msg_pane") == 0) {
-	 			msg_pane = atoi(value);
-	 		} else if (g_ascii_strcasecmp(variable, "game_pane") == 0) {
-	 			game_pane = atoi(value);	
-	 		} else if (g_ascii_strcasecmp(variable, "port") == 0) {
-	 			_port_str = value;
-	 		} else if (g_ascii_strcasecmp(variable, "auto_cmd") == 0) {
-	 			auto_cmd = atoi(value) ? true : false;
-	 		} else if (g_ascii_strcasecmp(variable, "echo_pings") == 0) {
-	 			echo_pings = atoi(value) ? true : false;
-	 		} else if (g_ascii_strcasecmp(variable, "dump_players") == 0) {
-	 			dump_players = atoi(value) ? true : false;
-	 		} else if (g_ascii_strcasecmp(variable, "line_numbers") == 0) {
-	 			line_numbers = atoi(value) ? true : false;
+    std::ifstream is;
+    is.open(filename.c_str(), std::ios::in);
+    if (is.is_open()) {
+        do {
+            memset(buf, 0, 1024);
+            is.getline(buf, 256);
+
+            result = sscanf(buf, "%32[^#=]=%256[^\n]\n", variable, value);
+            if ((result < 2) || (result == EOF))
+                break;
+
+            // now that we have the variable,value pair we need to assign
+            // the value to the prefs.value
+
+            if (g_ascii_strcasecmp(variable, "callsign") == 0) {
+                _callsign = value;
+            } else if (g_ascii_strcasecmp(variable, "motto") == 0) {
+                _motto = value;
+            } else if (g_ascii_strcasecmp(variable, "password") == 0) {
+                _password = value;
+            } else if (g_ascii_strcasecmp(variable, "server") == 0) {
+                _server = value;
+            } else if (g_ascii_strcasecmp(variable, "window_x") == 0) {
+                win_x = atoi(value);
+            } else if (g_ascii_strcasecmp(variable, "window_y") == 0) {
+                win_y = atoi(value);
+            } else if (g_ascii_strcasecmp(variable, "window_width") == 0) {
+                win_width = atoi(value);
+            } else if (g_ascii_strcasecmp(variable, "window_height") == 0) {
+                win_height = atoi(value);
+            } else if (g_ascii_strcasecmp(variable, "msg_pane") == 0) {
+                msg_pane = atoi(value);
+            } else if (g_ascii_strcasecmp(variable, "game_pane") == 0) {
+                game_pane = atoi(value);
+            } else if (g_ascii_strcasecmp(variable, "port") == 0) {
+                _port_str = value;
+            } else if (g_ascii_strcasecmp(variable, "auto_cmd") == 0) {
+                auto_cmd = atoi(value) ? true : false;
+            } else if (g_ascii_strcasecmp(variable, "echo_pings") == 0) {
+                echo_pings = atoi(value) ? true : false;
+            } else if (g_ascii_strcasecmp(variable, "dump_players") == 0) {
+                dump_players = atoi(value) ? true : false;
+            } else if (g_ascii_strcasecmp(variable, "line_numbers") == 0) {
+                line_numbers = atoi(value) ? true : false;
 //	 		} else if (g_ascii_strcasecmp(variable, "msg_view_fg") == 0) {
 //	 			msg_view_fg = value;
 //	 		} else if (g_ascii_strcasecmp(variable, "msg_view_bg") == 0) {
@@ -941,44 +969,46 @@ void gbzadmin::parse_config_file(Glib::ustring filename)
 //	 			serverlist_view_fg = value;
 //	 		} else if (g_ascii_strcasecmp(variable, "serverlist_view_bg") == 0) {
 //	 			serverlist_view_bg = value;
-	 		} else if (g_ascii_strcasecmp(variable, "save_password") == 0) {
-	 			save_password = atoi(value) ? true : false;
-	 		} else if (g_ascii_strcasecmp(variable, "msg_new_rabbit") == 0) {
-	 			msg_mask["rabbit"] = atoi(value) ? true : false;
-	 		} else if (g_ascii_strcasecmp(variable, "msg_pause") == 0) {
-	 			msg_mask["pause"] = atoi(value) ? true : false;
-	 		} else if (g_ascii_strcasecmp(variable, "msg_alive") == 0) {
-	 			msg_mask["spawn"] = atoi(value) ? true : false;
-	 		} else if (g_ascii_strcasecmp(variable, "msg_lag_ping") == 0) {
-	 			msg_mask["ping"] = atoi(value) ? true : false;
-	 		} else if (g_ascii_strcasecmp(variable, "msg_set_var") == 0) {
-	 			msg_mask["bzdb"] = atoi(value) ? true : false;
-	 		} else if (g_ascii_strcasecmp(variable, "msg_add_player") == 0) {
-	 			msg_mask["join"] = atoi(value) ? true : false;
-	 		} else if (g_ascii_strcasecmp(variable, "msg_remove_player") == 0) {
-	 			msg_mask["leave"] = atoi(value) ? true : false;
-	 		} else if (g_ascii_strcasecmp(variable, "msg_admin_info") == 0) {
-	 			msg_mask["admin"] = atoi(value) ? true : false;
-	 		} else if (g_ascii_strcasecmp(variable, "msg_score") == 0) {
-	 			msg_mask["score"] = atoi(value) ? true : false;
-	 		} else if (g_ascii_strcasecmp(variable, "msg_time_stamp") == 0) {
-	 			msg_mask["time"] = atoi(value) ? true : false;
-	 		} else if (g_ascii_strcasecmp(variable, "msg_killed") == 0) {
-	 			msg_mask["kill"] = atoi(value) ? true : false;
-	 		} else if (g_ascii_strcasecmp(variable, "msg_message") == 0) {
-	 			msg_mask["chat"] = atoi(value) ? true : false;
-	 		} else if (g_ascii_strcasecmp(variable, "msg_roger") == 0) {
-	 			msg_mask["roger"] = atoi(value) ? true : false;
-	 		} else if (g_ascii_strcasecmp(variable, "msg_flags") == 0) {
-	 			msg_mask["flags"] = atoi(value) ? true : false;
-	 		} else {
-				continue;
-			}
-		} while (result != EOF);
-		is.close();
-	} else {
-		std::cerr << "File could not be opened\n";
-	}
+            } else if (g_ascii_strcasecmp(variable, "save_password") == 0) {
+                save_password = atoi(value) ? true : false;
+            } else if (g_ascii_strcasecmp(variable, "msg_new_rabbit") == 0) {
+                msg_mask["rabbit"] = atoi(value) ? true : false;
+            } else if (g_ascii_strcasecmp(variable, "msg_pause") == 0) {
+                msg_mask["pause"] = atoi(value) ? true : false;
+            } else if (g_ascii_strcasecmp(variable, "msg_alive") == 0) {
+                msg_mask["spawn"] = atoi(value) ? true : false;
+            } else if (g_ascii_strcasecmp(variable, "msg_lag_ping") == 0) {
+                msg_mask["ping"] = atoi(value) ? true : false;
+            } else if (g_ascii_strcasecmp(variable, "msg_set_var") == 0) {
+                msg_mask["bzdb"] = atoi(value) ? true : false;
+            } else if (g_ascii_strcasecmp(variable, "msg_add_player") == 0) {
+                msg_mask["join"] = atoi(value) ? true : false;
+            } else if (g_ascii_strcasecmp(variable, "msg_remove_player") == 0) {
+                msg_mask["leave"] = atoi(value) ? true : false;
+            } else if (g_ascii_strcasecmp(variable, "msg_admin_info") == 0) {
+                msg_mask["admin"] = atoi(value) ? true : false;
+            } else if (g_ascii_strcasecmp(variable, "msg_score") == 0) {
+                msg_mask["score"] = atoi(value) ? true : false;
+            } else if (g_ascii_strcasecmp(variable, "msg_time_stamp") == 0) {
+                msg_mask["time"] = atoi(value) ? true : false;
+            } else if (g_ascii_strcasecmp(variable, "msg_killed") == 0) {
+                msg_mask["kill"] = atoi(value) ? true : false;
+            } else if (g_ascii_strcasecmp(variable, "msg_message") == 0) {
+                msg_mask["chat"] = atoi(value) ? true : false;
+            } else if (g_ascii_strcasecmp(variable, "msg_roger") == 0) {
+                msg_mask["roger"] = atoi(value) ? true : false;
+            } else if (g_ascii_strcasecmp(variable, "msg_flags") == 0) {
+                msg_mask["flags"] = atoi(value) ? true : false;
+            } else if (g_ascii_strcasecmp(variable, "msg_teleport") == 0) {
+                msg_mask["teleport"] = atoi(value) ? true : false;
+            } else {
+                continue;
+            }
+        } while (result != EOF);
+        is.close();
+    } else {
+        std::cerr << "File could not be opened\n";
+    }
 }
 
 //
@@ -987,171 +1017,174 @@ void gbzadmin::parse_config_file(Glib::ustring filename)
 //
 void gbzadmin::save_config_file(Glib::ustring filename)
 {
-	Glib::ustring buf;
-	std::ofstream os;
-	
-	os.open(filename.c_str(), std::ios::out | std::ios::trunc);
-	if (os.is_open()) {
-		if (!_callsign.empty()) {
-			buf = Glib::ustring::compose("callsign=%1\n", _callsign);
-			os.write(buf.c_str(), buf.length());
-		}
-		if (!_password.empty()) {
-			buf = Glib::ustring::compose("password=%1\n", _password);
-			os.write(buf.c_str(), buf.length());
-		}
-		if (!_motto.empty()) {
-			buf = Glib::ustring::compose("motto=%1\n", _motto);
-			os.write(buf.c_str(), buf.length());
-		}
-		if (!_server.empty()) {
-			buf = Glib::ustring::compose("server=%1\n", _server);
-			os.write(buf.c_str(), buf.length());
-		}
-		if (!_port_str.empty()) {
-			buf = Glib::ustring::compose("port=%1\n", _port_str);
-			os.write(buf.c_str(), buf.length());
-		}
-		buf = Glib::ustring::compose("window_x=%1\n", win_x);
-		os.write(buf.c_str(), buf.length());
-		
-		buf = Glib::ustring::compose("window_y=%1\n", win_y);
-		os.write(buf.c_str(), buf.length());
-		
-		buf = Glib::ustring::compose("window_height=%1\n", win_height);
-		os.write(buf.c_str(), buf.length());
-		
-		buf = Glib::ustring::compose("window_width=%1\n", win_width);
-		os.write(buf.c_str(), buf.length());
-		
-		buf = Glib::ustring::compose("msg_pane=%1\n", msg_pane);
-		os.write(buf.c_str(), buf.length());
-		
-		buf = Glib::ustring::compose("game_pane=%1\n", game_pane);
-		os.write(buf.c_str(), buf.length());
-		
-		buf = Glib::ustring::compose("auto_cmd=%1\n", auto_cmd);
-		os.write(buf.c_str(), buf.length());
-		
-		buf = Glib::ustring::compose("echo_pings=%1\n", echo_pings);
-		os.write(buf.c_str(), buf.length());
-		
-		buf = Glib::ustring::compose("dump_players=%1\n", dump_players);
-		os.write(buf.c_str(), buf.length());
-		
-		buf = Glib::ustring::compose("line_numbers=%1\n", line_numbers);
-		os.write(buf.c_str(), buf.length());
-		
+    Glib::ustring buf;
+    std::ofstream os;
+
+    os.open(filename.c_str(), std::ios::out | std::ios::trunc);
+    if (os.is_open()) {
+        if (!_callsign.empty()) {
+            buf = Glib::ustring::compose("callsign=%1\n", _callsign);
+            os.write(buf.c_str(), buf.length());
+        }
+        if (!_password.empty()) {
+            buf = Glib::ustring::compose("password=%1\n", _password);
+            os.write(buf.c_str(), buf.length());
+        }
+        if (!_motto.empty()) {
+            buf = Glib::ustring::compose("motto=%1\n", _motto);
+            os.write(buf.c_str(), buf.length());
+        }
+        if (!_server.empty()) {
+            buf = Glib::ustring::compose("server=%1\n", _server);
+            os.write(buf.c_str(), buf.length());
+        }
+        if (!_port_str.empty()) {
+            buf = Glib::ustring::compose("port=%1\n", _port_str);
+            os.write(buf.c_str(), buf.length());
+        }
+        buf = Glib::ustring::compose("window_x=%1\n", win_x);
+        os.write(buf.c_str(), buf.length());
+
+        buf = Glib::ustring::compose("window_y=%1\n", win_y);
+        os.write(buf.c_str(), buf.length());
+
+        buf = Glib::ustring::compose("window_height=%1\n", win_height);
+        os.write(buf.c_str(), buf.length());
+
+        buf = Glib::ustring::compose("window_width=%1\n", win_width);
+        os.write(buf.c_str(), buf.length());
+
+        buf = Glib::ustring::compose("msg_pane=%1\n", msg_pane);
+        os.write(buf.c_str(), buf.length());
+
+        buf = Glib::ustring::compose("game_pane=%1\n", game_pane);
+        os.write(buf.c_str(), buf.length());
+
+        buf = Glib::ustring::compose("auto_cmd=%1\n", auto_cmd);
+        os.write(buf.c_str(), buf.length());
+
+        buf = Glib::ustring::compose("echo_pings=%1\n", echo_pings);
+        os.write(buf.c_str(), buf.length());
+
+        buf = Glib::ustring::compose("dump_players=%1\n", dump_players);
+        os.write(buf.c_str(), buf.length());
+
+        buf = Glib::ustring::compose("line_numbers=%1\n", line_numbers);
+        os.write(buf.c_str(), buf.length());
+
 //		buf = Glib::ustring::compose("msg_view_fg=%1\n", msg_view_fg);
 //		os.write(buf.c_str(), buf.length());
-//		
+//
 //		buf = Glib::ustring::compose("msg_view_bg=%1\n", msg_view_bg);
 //		os.write(buf.c_str(), buf.length());
-//		
+//
 //		buf = Glib::ustring::compose("player_view_fg=%1\n", player_view_fg);
 //		os.write(buf.c_str(), buf.length());
-//		
+//
 //		buf = Glib::ustring::compose("player_view_bg=%1\n", player_view_bg);
 //		os.write(buf.c_str(), buf.length());
-//		
+//
 //		buf = Glib::ustring::compose("serverlist_view_fg=%1\n", serverlist_view_fg);
 //		os.write(buf.c_str(), buf.length());
-//		
+//
 //		buf = Glib::ustring::compose("serverlist_view_bg=%1\n", serverlist_view_bg);
 //		os.write(buf.c_str(), buf.length());
-//		
+//
 //		buf = Glib::ustring::compose("gamestat_view_fg=%1\n", gamestat_view_fg);
 //		os.write(buf.c_str(), buf.length());
-//		
+//
 //		buf = Glib::ustring::compose("gamestat_view_bg=%1\n", gamestat_view_bg);
 //		os.write(buf.c_str(), buf.length());
-		
-		buf = Glib::ustring::compose("save_password=%1\n", save_password);
-		os.write(buf.c_str(), buf.length());
-		
-		buf = Glib::ustring::compose("msg_new_rabbit=%1\n", msg_mask["rabbit"]);
-		os.write(buf.c_str(), buf.length());
-		
-		buf = Glib::ustring::compose("msg_pause=%1\n", msg_mask["pause"]);
-		os.write(buf.c_str(), buf.length());
-		
-		buf = Glib::ustring::compose("msg_alive=%1\n", msg_mask["spawn"]);
-		os.write(buf.c_str(), buf.length());
-		
-		buf = Glib::ustring::compose("msg_lag_ping=%1\n", msg_mask["ping"]);
-		os.write(buf.c_str(), buf.length());
-		
-		buf = Glib::ustring::compose("msg_set_var=%1\n", msg_mask["bzdb"]);
-		os.write(buf.c_str(), buf.length());
-		
-		buf = Glib::ustring::compose("msg_add_player=%1\n", msg_mask["join"]);
-		os.write(buf.c_str(), buf.length());
-		
-		buf = Glib::ustring::compose("msg_remove_player=%1\n", msg_mask["leave"]);
-		os.write(buf.c_str(), buf.length());
-		
-		buf = Glib::ustring::compose("msg_admin_info=%1\n", msg_mask["admin"]);
-		os.write(buf.c_str(), buf.length());
-		
-		buf = Glib::ustring::compose("msg_score=%1\n", msg_mask["score"]);
-		os.write(buf.c_str(), buf.length());
-		
-		buf = Glib::ustring::compose("msg_time_stamp=%1\n", msg_mask["time"]);
-		os.write(buf.c_str(), buf.length());
-		
-		buf = Glib::ustring::compose("msg_killed=%1\n", msg_mask["kill"]);
-		os.write(buf.c_str(), buf.length());
-		
-		buf = Glib::ustring::compose("msg_message=%1\n", msg_mask["chat"]);
-		os.write(buf.c_str(), buf.length());
-		
-		buf = Glib::ustring::compose("msg_roger=%1\n", msg_mask["roger"]);
-		os.write(buf.c_str(), buf.length());
-		
-		buf = Glib::ustring::compose("msg_flags=%1\n", msg_mask["flags"]);
-		os.write(buf.c_str(), buf.length());
-		
-		os.close();
-	} else {
-		std::cerr << "File could not be opened\n";
-	}
+
+        buf = Glib::ustring::compose("save_password=%1\n", save_password);
+        os.write(buf.c_str(), buf.length());
+
+        buf = Glib::ustring::compose("msg_new_rabbit=%1\n", msg_mask["rabbit"]);
+        os.write(buf.c_str(), buf.length());
+
+        buf = Glib::ustring::compose("msg_pause=%1\n", msg_mask["pause"]);
+        os.write(buf.c_str(), buf.length());
+
+        buf = Glib::ustring::compose("msg_alive=%1\n", msg_mask["spawn"]);
+        os.write(buf.c_str(), buf.length());
+
+        buf = Glib::ustring::compose("msg_lag_ping=%1\n", msg_mask["ping"]);
+        os.write(buf.c_str(), buf.length());
+
+        buf = Glib::ustring::compose("msg_set_var=%1\n", msg_mask["bzdb"]);
+        os.write(buf.c_str(), buf.length());
+
+        buf = Glib::ustring::compose("msg_add_player=%1\n", msg_mask["join"]);
+        os.write(buf.c_str(), buf.length());
+
+        buf = Glib::ustring::compose("msg_remove_player=%1\n", msg_mask["leave"]);
+        os.write(buf.c_str(), buf.length());
+
+        buf = Glib::ustring::compose("msg_admin_info=%1\n", msg_mask["admin"]);
+        os.write(buf.c_str(), buf.length());
+
+        buf = Glib::ustring::compose("msg_score=%1\n", msg_mask["score"]);
+        os.write(buf.c_str(), buf.length());
+
+        buf = Glib::ustring::compose("msg_time_stamp=%1\n", msg_mask["time"]);
+        os.write(buf.c_str(), buf.length());
+
+        buf = Glib::ustring::compose("msg_killed=%1\n", msg_mask["kill"]);
+        os.write(buf.c_str(), buf.length());
+
+        buf = Glib::ustring::compose("msg_message=%1\n", msg_mask["chat"]);
+        os.write(buf.c_str(), buf.length());
+
+        buf = Glib::ustring::compose("msg_roger=%1\n", msg_mask["roger"]);
+        os.write(buf.c_str(), buf.length());
+
+        buf = Glib::ustring::compose("msg_flags=%1\n", msg_mask["flags"]);
+        os.write(buf.c_str(), buf.length());
+        
+        buf = Glib::ustring::compose("msg_teleport=%1\n", msg_mask["teleport"]);
+        os.write(buf.c_str(), buf.length());
+
+        os.close();
+    } else {
+        std::cerr << "File could not be opened\n";
+    }
 }
 
 void gbzadmin::set_message_filter(Glib::ustring type, bool set)
 {
-	bool tmp = msg_mask[type];
-	if (set) {
-		msg_mask[type] = true;
-		if (tmp != msg_mask[type]) {
-			cmd_str = "/show " + type;
-		}
-	} else {
-		msg_mask[type] = false;
-		if (tmp != msg_mask[type]) {
-			cmd_str = "/hide " + type;
-		}
-	}
+    bool tmp = msg_mask[type];
+    if (set) {
+        msg_mask[type] = true;
+        if (tmp != msg_mask[type]) {
+            cmd_str = "/show " + type;
+        }
+    } else {
+        msg_mask[type] = false;
+        if (tmp != msg_mask[type]) {
+            cmd_str = "/hide " + type;
+        }
+    }
 }
 
 Glib::ustring gbzadmin::get_team_str(int t)
 {
-	if (t < 0 || t > 5) 
-		return Glib::ustring("unknown");
+    if (t < 0 || t > 5)
+        return Glib::ustring("unknown");
 
-	const char* teams[] = {
-		"Rogue",
-		"Red",
-		"Green",
-		"Blue",
-		"Purple",
-		"Observer"
-	};
-	
-	Glib::ustring str;
-	str = teams[t];
-	str += " Team ";
-	
-	return str;
+    const char* teams[] = {
+        "Rogue",
+        "Red",
+        "Green",
+        "Blue",
+        "Purple",
+        "Observer"
+    };
+
+    Glib::ustring str;
+    str = teams[t];
+    str += " Team ";
+
+    return str;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1159,726 +1192,729 @@ Glib::ustring gbzadmin::get_team_str(int t)
 //
 void gbzadmin::handle_joinserver_message(void *vbuf)
 {
-	Glib::ustring addr;
-	gint32 port;
-	gint32 team;
-	//  Glib::ustring referrer;
-	Glib::ustring message;
+    Glib::ustring addr;
+    gint32 port;
+    gint32 team;
+    //  Glib::ustring referrer;
+    Glib::ustring message;
 
-	vbuf = parser.nboUnpackStdString(vbuf, addr);
-	vbuf = parser.nboUnpackInt(vbuf, &port);
-	vbuf = parser.nboUnpackInt(vbuf, &team);
-	vbuf = parser.nboUnpackStdString(vbuf, referrer);
-	vbuf = parser.nboUnpackStdString(vbuf, message);
+    vbuf = parser.nboUnpackStdString(vbuf, addr);
+    vbuf = parser.nboUnpackInt(vbuf, &port);
+    vbuf = parser.nboUnpackInt(vbuf, &team);
+    vbuf = parser.nboUnpackStdString(vbuf, referrer);
+    vbuf = parser.nboUnpackStdString(vbuf, message);
 
-	if (addr.empty()) {
-		return;
-	}
-	if ((_port < 0) || (_port > 65535)) {
-		return;
-	}
-	serverName = addr.c_str();
+    if (addr.empty()) {
+        return;
+    }
+    if ((_port < 0) || (_port > 65535)) {
+        return;
+    }
+    serverName = addr.c_str();
 
-	_port = port;
-	if (team == NoTeam) {
-		// leave it alone, player can select using the menu
-	} else {
-		_team = team;
-	}
+    _port = port;
+    if (team == NoTeam) {
+        // leave it alone, player can select using the menu
+    } else {
+        _team = team;
+    }
 }
 
 void gbzadmin::handle_rabbit_message(void *vbuf)
 {
-	guint8 p;
-	vbuf = parser.nboUnpackUByte(vbuf, &p);
+    guint8 p;
+    vbuf = parser.nboUnpackUByte(vbuf, &p);
 
-	Player* player = player_view.find_player(p);
-	
-	if (player) {
-		player->set_team(RabbitTeam);
-		// FIXME: should just change the previous rabbit to hunter instead
-		// of changing all the other players too
-		player_view.change_all_to_hunter_except(p);
-		if (msg_mask["rabbit"]) {
-			Glib::ustring str("*** ");
-			str += colorize(player) + player->get_callsign() + defColor + " is now the rabbit\n";
-			msg_view.add_text(str, Glib::ustring("default"));
-		}
-		player_view.update();
-	}
+    Player* player = player_view.find_player(p);
+
+    if (player) {
+        player->set_team(RabbitTeam);
+        // FIXME: should just change the previous rabbit to hunter instead
+        // of changing all the other players too
+        player_view.change_all_to_hunter_except(p);
+        if (msg_mask["rabbit"]) {
+            Glib::ustring str("*** ");
+            str += colorize(player) + player->get_callsign() + defColor + " is now the rabbit\n";
+            msg_view.add_text(str, Glib::ustring("default"));
+        }
+        player_view.update();
+    }
 }
 
 void gbzadmin::handle_pause_message(void *vbuf)
 {
-	guint8 p;
-	guint8 paused;
-	
-	vbuf = parser.nboUnpackUByte(vbuf, &p);
-	vbuf = parser.nboUnpackUByte(vbuf, &paused);
-	
-	Player* player = player_view.find_player(p);
-	if (player) {
-		player->set_paused(paused);
+    guint8 p;
+    guint8 paused;
 
-		if (msg_mask["pause"]) {
-			Glib::ustring str("*** ");
-			str += colorize(player) + player->get_callsign() + defColor + " is " + (paused ? "paused" : "resumed") + "\n";
-			msg_view.add_text(str, Glib::ustring("default"));
-		}
-		player_view.update();
-	}
+    vbuf = parser.nboUnpackUByte(vbuf, &p);
+    vbuf = parser.nboUnpackUByte(vbuf, &paused);
+
+    Player* player = player_view.find_player(p);
+    if (player) {
+        player->set_paused(paused);
+
+        if (msg_mask["pause"]) {
+            Glib::ustring str("*** ");
+            str += colorize(player) + player->get_callsign() + defColor + " is " + (paused ? "paused" : "resumed") + "\n";
+            msg_view.add_text(str, Glib::ustring("default"));
+        }
+        player_view.update();
+    }
 }
 
 void gbzadmin::handle_alive_message(void *vbuf)
 {
-	guint8 p;
-	vbuf = parser.nboUnpackUByte(vbuf, &p);
-	
-	Player *player = player_view.find_player(p);
-	if (player) {
-		player->set_alive(true);
+    guint8 p;
+    vbuf = parser.nboUnpackUByte(vbuf, &p);
 
-		if (msg_mask["spawn"]) {
-			float pos[3], forward;
-			vbuf = parser.nboUnpackVector(vbuf, &pos[0]);
-			vbuf = parser.nboUnpackFloat(vbuf, &forward);
-			Glib::ustring str("*** ");
-			str += colorize(player) + player->get_callsign() + defColor;
-			str += Glib::ustring::compose(" has spawned at [%1:%2:%3] (%4)\n", pos[0], pos[1], pos[2], forward);
-			msg_view.add_text(str, Glib::ustring("default"));
-		}
-	}
-	player_view.update();
+    Player *player = player_view.find_player(p);
+    if (player) {
+        player->set_alive(true);
+
+        if (msg_mask["spawn"]) {
+            float pos[3], forward;
+            vbuf = parser.nboUnpackVector(vbuf, &pos[0]);
+            vbuf = parser.nboUnpackFloat(vbuf, &forward);
+            Glib::ustring str("*** ");
+            str += colorize(player) + player->get_callsign() + defColor;
+            str += Glib::ustring::compose(" has spawned at [%1:%2:%3] (%4)\n", pos[0], pos[1], pos[2], forward);
+            msg_view.add_text(str, Glib::ustring("default"));
+        }
+    }
+    player_view.update();
 }
 
 void gbzadmin::handle_add_player_message(void *vbuf)
 {
-	guint8 p;
-	guint16 team, type, wins, losses, tks;
-	gchar callsign[MaxPacketLen];
-	gchar motto[MaxPacketLen];
-	
-	vbuf = parser.nboUnpackUByte(vbuf, &p);
-	vbuf = parser.nboUnpackUShort(vbuf, &type);
-	vbuf = parser.nboUnpackUShort(vbuf, &team);
-	vbuf = parser.nboUnpackUShort(vbuf, &wins);
-	vbuf = parser.nboUnpackUShort(vbuf, &losses);
-	vbuf = parser.nboUnpackUShort(vbuf, &tks);
-	vbuf = parser.nboUnpackString(vbuf, callsign, CallSignLen);
-	vbuf = parser.nboUnpackString(vbuf, motto, MottoLen);
-	
-	callsign[CallSignLen] = '\0';
-	motto[MottoLen] = '\0';
-	
-	// timestamp the arrival
-	time_t now;
-	now = time(0);
-	struct tm *ts = localtime(&now);
-	char time_str[128];
-	strftime(time_str, 128, " (%T)", ts);
-	
-	if (player_view.get_rabbit_mode() && (team == RogueTeam))
-		team = HunterTeam;
-	
-	// check for duplicate MsgAddPlayer
-	if (player_view.find_player(p))
-		return;
-		
-	// add the player to the list
-	Player *player = new Player;
-	player->add(p, type, team, wins, losses, tks, Glib::ustring(callsign), Glib::ustring(motto));
-	player_view.add(player);
-	cmd.add_target(p, Glib::ustring(callsign));
-	
-	// checking all known flags for owners
-	Glib::ustring flag = flag_has_owner(p);
-	if (flag.size())
-		player->set_flag(flag);
+    guint8 p;
+    guint16 team, type, wins, losses, tks;
+    gchar callsign[MaxPacketLen];
+    gchar motto[MaxPacketLen];
 
-	// If you are an admin, then MsgAdminInfo will output the message
-	me = sock.getId();
-	player = player_view.find_player(me);
-	if (player) {
-		bool i_am_admin = player->get_admin();
-		if (msg_mask["joined"] && !i_am_admin && (player->get_id() != me)) {
-			Glib::ustring str(msg_view.Color(GreenFg));
-			str += "*** " + msg_view.Color(WhiteFg);
-			str += colorize(player) + Glib::ustring(callsign) + defColor + " joined the " + get_team_str(team);
-			str += (msg_mask["time"] ? Glib::ustring(time_str) : "");
-			str += "\n";
-			msg_view.add_text(str);
-		}
-	}
-	player_view.update();
-	sock.send(MsgQueryGame, 2, vbuf);
+    vbuf = parser.nboUnpackUByte(vbuf, &p);
+    vbuf = parser.nboUnpackUShort(vbuf, &type);
+    vbuf = parser.nboUnpackUShort(vbuf, &team);
+    vbuf = parser.nboUnpackUShort(vbuf, &wins);
+    vbuf = parser.nboUnpackUShort(vbuf, &losses);
+    vbuf = parser.nboUnpackUShort(vbuf, &tks);
+    vbuf = parser.nboUnpackString(vbuf, callsign, CallSignLen);
+    vbuf = parser.nboUnpackString(vbuf, motto, MottoLen);
+
+    callsign[CallSignLen] = '\0';
+    motto[MottoLen] = '\0';
+
+    // timestamp the arrival
+    time_t now;
+    now = time(0);
+    struct tm *ts = localtime(&now);
+    char time_str[128];
+    strftime(time_str, 128, " (%T)", ts);
+
+    if (player_view.get_rabbit_mode() && (team == RogueTeam))
+        team = HunterTeam;
+
+    // check for duplicate MsgAddPlayer
+    if (player_view.find_player(p))
+        return;
+
+    // add the player to the list
+    Player *player = new Player;
+    player->add(p, type, team, wins, losses, tks, Glib::ustring(callsign), Glib::ustring(motto));
+    player_view.add(player);
+    cmd.add_target(p, Glib::ustring(callsign));
+
+    // checking all known flags for owners
+    Glib::ustring flag = flag_has_owner(p);
+    if (flag.size())
+        player->set_flag(flag);
+
+    // If you are an admin, then MsgAdminInfo will output the message
+    me = sock.getId();
+    player = player_view.find_player(me);
+    if (player) {
+        bool i_am_admin = player->get_admin();
+        if (msg_mask["joined"] && !i_am_admin && (player->get_id() != me)) {
+            Glib::ustring str(msg_view.Color(GreenFg));
+            str += "*** " + msg_view.Color(WhiteFg);
+            str += colorize(player) + Glib::ustring(callsign) + defColor + " joined the " + get_team_str(team);
+            str += (msg_mask["time"] ? Glib::ustring(time_str) : "");
+            str += "\n";
+            msg_view.add_text(str);
+        }
+    }
+    player_view.update();
+    sock.send(MsgQueryGame, 2, vbuf);
 }
 
 void gbzadmin::handle_remove_player_message(void *vbuf)
 {
-	guint8 p;
-	
-	vbuf = parser.nboUnpackUByte(vbuf, &p);
-	Player *player = player_view.find_player(p);
-	
-	if(dump_players) {
-		if (player) {
-			dump_player_stats(player);
-		}	
-	}
-		
-	if (msg_mask["leave"]) {
-		if (player) {
-			// get current time
-			time_t now;
-			now = time(0);
-			struct tm *ts0 = localtime(&now);
-			gchar time_str[128];
-			strftime(time_str, 64, "(%T)", ts0);
-			// estimate time on the server
-			double diff = player->duration(now);
-			unsigned long ldiff = (unsigned long)diff;
-			guint hours = (ldiff / 3600);
-			guint minutes = (ldiff / 60) - (hours * 60);
-			guint seconds = ldiff % 60;
-			gchar dt[64];
-			::snprintf(dt, sizeof(dt), " duration: %02d:%02d:%02d", hours, minutes, seconds);
-			g_strlcat(time_str, dt, sizeof(time_str));
-			Glib::ustring str(msg_view.Color(RedFg));
-			str += "*** " + msg_view.Color(WhiteFg);
-			if (player->get_team() != ObserverTeam) {
-				str += colorize(player) + player->get_callsign() + defColor + " left the game, final score: ";
-				str += Glib::ustring::compose("%1 ", player->get_score());
-				str += (msg_mask["time"] ? Glib::ustring(time_str) : "");
-				str += "\n";
-			} else {
-				str += colorize(player) + player->get_callsign() + defColor + " left the game ";
-				str += (msg_mask["time"] ? Glib::ustring(time_str) : "");
-				str += "\n";
-			}
-			msg_view.add_text(str);
-		}
-	}
-	cmd.remove_target(p, player->get_callsign());
-	player_view.remove(player);
-	player_view.update();
-	sock.send(MsgQueryGame, 2, vbuf);
+    guint8 p;
+
+    vbuf = parser.nboUnpackUByte(vbuf, &p);
+    Player *player = player_view.find_player(p);
+
+    if(dump_players) {
+        if (player) {
+            dump_player_stats(player);
+        }
+    }
+
+    if (msg_mask["leave"]) {
+        if (player) {
+            // get current time
+            time_t now;
+            now = time(0);
+            struct tm *ts0 = localtime(&now);
+            gchar time_str[128];
+            strftime(time_str, 64, "(%T)", ts0);
+            // estimate time on the server
+            double diff = player->duration(now);
+            unsigned long ldiff = (unsigned long)diff;
+            guint hours = (ldiff / 3600);
+            guint minutes = (ldiff / 60) - (hours * 60);
+            guint seconds = ldiff % 60;
+            gchar dt[64];
+            ::snprintf(dt, sizeof(dt), " duration: %02d:%02d:%02d", hours, minutes, seconds);
+            g_strlcat(time_str, dt, sizeof(time_str));
+            Glib::ustring str(msg_view.Color(RedFg));
+            str += "*** " + msg_view.Color(WhiteFg);
+            if (player->get_team() != ObserverTeam) {
+                str += colorize(player) + player->get_callsign() + defColor + " left the game, final score: ";
+                str += Glib::ustring::compose("%1 ", player->get_score());
+                str += (msg_mask["time"] ? Glib::ustring(time_str) : "");
+                str += "\n";
+            } else {
+                str += colorize(player) + player->get_callsign() + defColor + " left the game ";
+                str += (msg_mask["time"] ? Glib::ustring(time_str) : "");
+                str += "\n";
+            }
+            msg_view.add_text(str);
+        }
+    }
+    cmd.remove_target(p, player->get_callsign());
+    player_view.remove(player);
+    player_view.update();
+    sock.send(MsgQueryGame, 2, vbuf);
 }
 
 void gbzadmin::handle_playerinfo_message(void *vbuf)
 {
-	guint8 numPlayers;
-	guint8 p;
-	
-	vbuf = parser.nboUnpackUByte(vbuf, &numPlayers);
+    guint8 numPlayers;
+    guint8 p;
 
-	for (int k = 0; k < numPlayers; ++k) {
-		vbuf = parser.nboUnpackUByte(vbuf, &p);
-		guint8 info;
-		
-		vbuf = parser.nboUnpackUByte(vbuf, &info);
-		Player *player = player_view.find_player(p);
-		if (player) {
-			player->set_status(info);
-		}
-	}
-	player_view.update();
+    vbuf = parser.nboUnpackUByte(vbuf, &numPlayers);
+
+    for (int k = 0; k < numPlayers; ++k) {
+        vbuf = parser.nboUnpackUByte(vbuf, &p);
+        guint8 info;
+
+        vbuf = parser.nboUnpackUByte(vbuf, &info);
+        Player *player = player_view.find_player(p);
+        if (player) {
+            player->set_status(info);
+        }
+    }
+    player_view.update();
 }
 
 void gbzadmin::handle_admininfo_message(void* vbuf)
 {
-	guint8 p;
-	guint8 numIPs, ipsize;
-	struct in_addr addr;
-	addr.s_addr = htonl(INADDR_ANY);
-	Player *player = 0;
-	
-	// if you get this you are an admin
-	enable_admin_items(true);
-	
-	vbuf = parser.nboUnpackUByte(vbuf, &numIPs);
-	// Alternative to MsgAddPlayer
-	if (numIPs == 1) {
-		void *tmpbuf = vbuf;
-		tmpbuf = parser.nboUnpackUByte(tmpbuf, &ipsize);
-		tmpbuf = parser.nboUnpackUByte(tmpbuf, &p);
-		tmpbuf = parser.unpack_address(tmpbuf, &addr);
-		player = player_view.find_player(p);
-		if (player) {
-			player->set_IP(addr);
-			if (msg_mask["admin"] && (player->get_id() != sock.getId())) {
-				time_t tm;
-				tm = time(0);
-				struct tm *tim = localtime(&tm);
-				char time_str[128];
-				strftime(time_str, sizeof(time_str), " (%H:%M:%S)", tim);
-			
-				Glib::ustring str(msg_view.Color(GreenFg));
-				str += "*** " + msg_view.Color(WhiteFg);
-				str += player->get_callsign() + " joined the " + get_team_str(player->get_team());
-				str += "from " + player->get_IP();
-				str += (msg_mask["time"] ? Glib::ustring(time_str) : "");
-				str += "\n";
-				msg_view.add_text(str);
-			}
-		}
-	}
-	if (numIPs != 1) {
-		for (int k = 0; k < numIPs; k++) {
-			vbuf = parser.nboUnpackUByte(vbuf, &ipsize);
-			vbuf = parser.nboUnpackUByte(vbuf, &p);
-			vbuf = parser.unpack_address(vbuf, &addr);
-			player = player_view.find_player(p);
-			if (player) {
-				player->set_IP(addr);
-				if (msg_mask["admin"] && (player->get_id() != sock.getId())) {
-					Glib::ustring str(msg_view.Color(YellowFg));
-					Glib::ustring ipstr = player->get_IP();
-					Glib::ustring color = msg_view.get_color(player->get_team());
-					str += "*** IPINFO: " + color + player->get_callsign() + msg_view.Color(CyanFg) + "\tFrom: " + color + ipstr;
-					for (int i = 0; i < (17 - (int)ipstr.size()); i++) {
-    				str += " ";
-  				}
-					str += msg_view.Color(WhiteFg) + "(join)\n";
-					msg_view.add_text(str);
-				}
-			}
-		}
-	}
-	player_view.update();
+    guint8 p;
+    guint8 numIPs, ipsize;
+    struct in_addr addr;
+    addr.s_addr = htonl(INADDR_ANY);
+    Player *player = 0;
+
+    // if you get this you are an admin
+    enable_admin_items(true);
+
+    vbuf = parser.nboUnpackUByte(vbuf, &numIPs);
+    // Alternative to MsgAddPlayer
+    if (numIPs == 1) {
+        void *tmpbuf = vbuf;
+        tmpbuf = parser.nboUnpackUByte(tmpbuf, &ipsize);
+        tmpbuf = parser.nboUnpackUByte(tmpbuf, &p);
+        tmpbuf = parser.unpack_address(tmpbuf, &addr);
+        player = player_view.find_player(p);
+        if (player) {
+            player->set_IP(addr);
+            if (msg_mask["admin"] && (player->get_id() != sock.getId())) {
+                time_t tm;
+                tm = time(0);
+                struct tm *tim = localtime(&tm);
+                char time_str[128];
+                strftime(time_str, sizeof(time_str), " (%H:%M:%S)", tim);
+
+                Glib::ustring str(msg_view.Color(GreenFg));
+                str += "*** " + msg_view.Color(WhiteFg);
+                str += player->get_callsign() + " joined the " + get_team_str(player->get_team());
+                str += "from " + player->get_IP();
+                str += (msg_mask["time"] ? Glib::ustring(time_str) : "");
+                str += "\n";
+                msg_view.add_text(str);
+            }
+        }
+    }
+    if (numIPs != 1) {
+        for (int k = 0; k < numIPs; k++) {
+            vbuf = parser.nboUnpackUByte(vbuf, &ipsize);
+            vbuf = parser.nboUnpackUByte(vbuf, &p);
+            vbuf = parser.unpack_address(vbuf, &addr);
+            player = player_view.find_player(p);
+            if (player) {
+                player->set_IP(addr);
+                if (msg_mask["admin"] && (player->get_id() != sock.getId())) {
+                    Glib::ustring str(msg_view.Color(YellowFg));
+                    Glib::ustring ipstr = player->get_IP();
+                    Glib::ustring color = msg_view.get_color(player->get_team());
+                    str += "*** IPINFO: " + color + player->get_callsign() + msg_view.Color(CyanFg) + "\tFrom: " + color + ipstr;
+                    for (int i = 0; i < (17 - (int)ipstr.size()); i++) {
+                        str += " ";
+                    }
+                    str += msg_view.Color(WhiteFg) + "(join)\n";
+                    msg_view.add_text(str);
+                }
+            }
+        }
+    }
+    player_view.update();
 }
 
 void gbzadmin::handle_killed_message(void *vbuf)
 {
-	guchar victim, killer;
-	gint16 shotId, reason;
-	gchar flag_abbrv[3];
-	gint k_team, v_team;
-	
-	vbuf = parser.nboUnpackUByte(vbuf, &victim);
-	vbuf = parser.nboUnpackUByte(vbuf, &killer);
-	vbuf = parser.nboUnpackShort(vbuf, &reason);
-	vbuf = parser.nboUnpackShort(vbuf, &shotId);
-	vbuf = parser.unpack_flag(vbuf, (guchar*)flag_abbrv);
-	Glib::ustring flag(flag_abbrv);
-	
-	Player *player = 0;
-	
-	Glib::ustring killerName("the server (phydrv)");
-	Glib::ustring killerColor;
-	if (reason == PhysicsDriverDeath) {
-		// killed by a physics driver (server)
-		k_team = NoTeam;
-	} else {
-		// find the player names and build a kill message string
-		// killer first...
-		player = player_view.find_player(killer);
-		k_team = player ? player->get_team() : NoTeam;
-		killerName = (player ? player->get_callsign() : "destroyed by the server");
-		killerColor = colorize(player); //msg_view.get_color(player->get_team());
-	}
-	// now the victim
-	player = player_view.find_player(victim);
-	player->set_alive(false);
-	player->clear_flag();
-	if (msg_mask["kill"]) {
-		v_team = player ? player->get_team() : NoTeam;
-		Glib::ustring victimName;
-		victimName = (player ? player->get_callsign() : "<unknown victim>");
-		
-		Glib::ustring str(msg_view.Color(YellowFg));
+    guchar victim, killer;
+    gint16 shotId, reason;
+    gchar flag_abbrv[3];
+    gint k_team, v_team;
+
+    vbuf = parser.nboUnpackUByte(vbuf, &victim);
+    vbuf = parser.nboUnpackUByte(vbuf, &killer);
+    vbuf = parser.nboUnpackShort(vbuf, &reason);
+    vbuf = parser.nboUnpackShort(vbuf, &shotId);
+    vbuf = parser.unpack_flag(vbuf, (guchar*)flag_abbrv);
+    Glib::ustring flag(flag_abbrv);
+
+    Player *player = 0;
+
+    Glib::ustring killerName("the server (phydrv)");
+    Glib::ustring killerColor;
+    if (reason == PhysicsDriverDeath) {
+        // killed by a physics driver (server)
+        k_team = NoTeam;
+    } else {
+        // find the player names and build a kill message string
+        // killer first...
+        player = player_view.find_player(killer);
+        k_team = player ? player->get_team() : NoTeam;
+        killerName = (player ? player->get_callsign() : "destroyed by the server");
+        killerColor = colorize(player); //msg_view.get_color(player->get_team());
+    }
+    // now the victim
+    player = player_view.find_player(victim);
+    player->set_alive(false);
+    player->clear_flag();
+    if (msg_mask["kill"]) {
+        v_team = player ? player->get_team() : NoTeam;
+        Glib::ustring victimName;
+        victimName = (player ? player->get_callsign() : "<unknown victim>");
+
+        Glib::ustring str(msg_view.Color(YellowFg));
 //		str += "*** " + msg_view.Color(WhiteFg) + victimName + " ";
-		str += "*** " + colorize(player) + victimName + " " + defColor;
-		
-		Glib::ustring killer_str;
-		if ((k_team == v_team) && (k_team != RogueTeam)) {
-			killer_str = "teammate ";
-			killer_str += killerColor + killerName + msg_view.Color(WhiteFg);
-		} else if (killer != victim) {
-			killer_str = killerColor + killerName + msg_view.Color(WhiteFg);
-		}
-		if ((killer == victim) && (k_team != NoTeam)) {
-			str += "committed suicide!\n";
-			msg_view.add_text(str);
-			return;
-		} else { // informative death message
-			if (flag == "L") {
-				str += "was fried by " + killer_str + "'s laser";
-			} else if (flag == "GM") {
-				str += "destroyed by " + killer_str + "'s guided missile";
-			} else if (flag == "SW") {
-				str += "felt the effects of " + killer_str + "'s shock wave";
-			} else if (flag == "IB") {
-				str += "didn't see " + killer_str + "'s bullet";
-			} else if (flag == "MG") {
-				str += "was turned into swiss cheese by " + killer_str + "'s machine gun";
-			} else if (flag == "SB") {
-				str += "got skewered by " + killer_str + "'s super bullet";
-			} else {
-				str += "destroyed by " + killer_str;
-			}
-		}
-		str += "\n";
-		msg_view.add_text(str);
-	}
-	player_view.update();
+        str += msg_view.colorBullet() + colorize(player) + victimName + " " + defColor;
+
+        Glib::ustring killer_str;
+        if ((k_team == v_team) && (k_team != RogueTeam)) {
+            killer_str = "teammate ";
+            killer_str += killerColor + killerName + msg_view.Color(WhiteFg);
+        } else if (killer != victim) {
+            killer_str = killerColor + killerName + msg_view.Color(WhiteFg);
+        }
+        if ((killer == victim) && (k_team != NoTeam)) {
+            str += "committed suicide!\n";
+            msg_view.add_text(str);
+            return;
+        } else { // informative death message
+            if (flag == "L") {
+                str += "was fried by " + killer_str + "'s laser";
+            } else if (flag == "GM") {
+                str += "destroyed by " + killer_str + "'s guided missile";
+            } else if (flag == "SW") {
+                str += "felt the effects of " + killer_str + "'s shock wave";
+            } else if (flag == "IB") {
+                str += "didn't see " + killer_str + "'s bullet";
+            } else if (flag == "MG") {
+                str += "was turned into swiss cheese by " + killer_str + "'s machine gun";
+            } else if (flag == "SB") {
+                str += "got skewered by " + killer_str + "'s super bullet";
+            } else {
+                str += "destroyed by " + killer_str;
+            }
+        }
+        str += "\n";
+        msg_view.add_text(str);
+    }
+    player_view.update();
 }
 
 void gbzadmin::handle_score_message(void *vbuf)
 {
-	guint8 numScores;
-	guint8 p;
-	Player *player = 0;
-	
-	vbuf = parser.nboUnpackUByte(vbuf, &numScores);
-	for (int k = 0; k < numScores; k++) {
-		guint16 wins, losses, tks;
-		vbuf = parser.nboUnpackUByte(vbuf, &p);
-		vbuf = parser.nboUnpackUShort(vbuf, &wins);
-		vbuf = parser.nboUnpackUShort(vbuf, &losses);
-		vbuf = parser.nboUnpackUShort(vbuf, &tks);
-		player = player_view.find_player(p);
-		if (player) {
-			player->set_score(wins, losses);
-			player->set_tks(tks);
-		}
-	}
-	if (msg_mask["score"]) {
-		Glib::ustring str = Glib::ustring::compose("*** Received %1 score update(s)\n", numScores);
-		msg_view.add_text(str, Glib::ustring("default"));
-	}
-	player_view.update();
+    guint8 numScores;
+    guint8 p;
+    Player *player = 0;
+
+    vbuf = parser.nboUnpackUByte(vbuf, &numScores);
+    for (int k = 0; k < numScores; k++) {
+        guint16 wins, losses, tks;
+        vbuf = parser.nboUnpackUByte(vbuf, &p);
+        vbuf = parser.nboUnpackUShort(vbuf, &wins);
+        vbuf = parser.nboUnpackUShort(vbuf, &losses);
+        vbuf = parser.nboUnpackUShort(vbuf, &tks);
+        player = player_view.find_player(p);
+        if (player) {
+            player->set_score(wins, losses);
+            player->set_tks(tks);
+        }
+    }
+    if (msg_mask["score"]) {
+        Glib::ustring str = Glib::ustring::compose("*** Received %1 score update(s)\n", numScores);
+        msg_view.add_text(str, Glib::ustring("default"));
+    }
+    player_view.update();
 }
 
 void gbzadmin::handle_autopilot_message(void *vbuf)
 {
-	guchar p;
-	guint8 autopilot;
-	Player *player = 0;
-	
-	vbuf = parser.nboUnpackUByte(vbuf, &p);
-	vbuf = parser.nboUnpackUByte(vbuf, &autopilot);
-	player = player_view.find_player(p);
-	if (player) {
-		player->set_autoPilot(autopilot);
-		player_view.update();
-		if (msg_mask["roger"]) {
-			Glib::ustring str("*** Roger is ");
-			str += (autopilot ? "taking the controls for " : "releasing the controls back to " + colorize(player) + player->get_callsign());
-			str += "\n";
-			msg_view.add_text(str, Glib::ustring("default"));
-		}
-	}
+    guchar p;
+    guint8 autopilot;
+    Player *player = 0;
+
+    vbuf = parser.nboUnpackUByte(vbuf, &p);
+    vbuf = parser.nboUnpackUByte(vbuf, &autopilot);
+    player = player_view.find_player(p);
+    if (player) {
+        player->set_autoPilot(autopilot);
+        player_view.update();
+        if (msg_mask["roger"]) {
+            Glib::ustring str("*** Roger is ");
+            str += (autopilot ? "taking the controls for " : "releasing the controls back to "
+                     + colorize(player) + player->get_callsign());
+            str += "\n";
+            msg_view.add_text(str, Glib::ustring("default"));
+        }
+    }
 }
 void gbzadmin::handle_grabflag_message(void *vbuf)
 {
-	guint8 p;
-	guint16 flag_idx;
-	Player *player = 0;
-	flag_info fi;
-	
-	vbuf = parser.nboUnpackUByte(vbuf, &p);
-	vbuf = parser.nboUnpackUShort(vbuf, &flag_idx);
-	vbuf = parser.unpack_flag_info(vbuf, &fi);
-	player = player_view.find_player(fi.owner);
-	Glib::ustring flag((gchar*)fi.type);
-	if (player) {
-		player->set_flag(flag);
-		player_view.update();
-		if (msg_mask["flags"]) {
-			Glib::ustring buffer("*** ");
-			buffer += Glib::ustring::compose("%1 has picked up the %2 flag\n",
-					player->get_callsign(), flag.size() ? flag : "<unknown>");
-								
-			msg_view.add_text(buffer, Glib::ustring("default"));
-		}
-	}
+    guint8 p;
+    guint16 flag_idx;
+    Player *player = 0;
+    flag_info fi;
+
+    vbuf = parser.nboUnpackUByte(vbuf, &p);
+    vbuf = parser.nboUnpackUShort(vbuf, &flag_idx);
+    vbuf = parser.unpack_flag_info(vbuf, &fi);
+    player = player_view.find_player(fi.owner);
+    Glib::ustring flag((gchar*)fi.type);
+    if (player) {
+        player->set_flag(flag);
+        player_view.update();
+        if (msg_mask["flags"]) {
+            Glib::ustring buffer("*** ");
+            buffer += Glib::ustring::compose("%1 has picked up the %2 flag\n",
+                                              player->get_callsign(), flag.size() ? flag : "<unknown>");
+
+            msg_view.add_text(buffer, Glib::ustring("default"));
+        }
+    }
 }
 
 void gbzadmin::handle_dropflag_message(void *vbuf)
 {
-	guint8 p;
-	guint16 flag_idx;
-	Player *player = 0;
-	flag_info fi;
-	
-	vbuf = parser.nboUnpackUByte(vbuf, &p);
-	vbuf = parser.nboUnpackUShort(vbuf, &flag_idx);
-	vbuf = parser.unpack_flag_info(vbuf, &fi);
-	fi.idx = flag_idx;
-	player = player_view.find_player(fi.owner);
-	Glib::ustring flag((gchar*)fi.type);
-	if (player) {
-		player->clear_flag();
-		player_view.update();
-		if (msg_mask["flags"]) {
-			Glib::ustring buffer("*** ");
-			buffer += Glib::ustring::compose("%1 has dropped the %2 flag\n", 
-					player->get_callsign(), flag.size() ? flag : "<unknown>");
-					
-			msg_view.add_text(buffer, Glib::ustring("default"));
-		}
-	}
+    guint8 p;
+    guint16 flag_idx;
+    Player *player = 0;
+    flag_info fi;
+
+    vbuf = parser.nboUnpackUByte(vbuf, &p);
+    vbuf = parser.nboUnpackUShort(vbuf, &flag_idx);
+    vbuf = parser.unpack_flag_info(vbuf, &fi);
+    fi.idx = flag_idx;
+    player = player_view.find_player(fi.owner);
+    Glib::ustring flag((gchar*)fi.type);
+    if (player) {
+        player->clear_flag();
+        player_view.update();
+        if (msg_mask["flags"]) {
+            Glib::ustring buffer("*** ");
+            buffer += Glib::ustring::compose("%1 has dropped the %2 flag\n",
+                                              player->get_callsign(), flag.size() ? flag : "<unknown>");
+
+            msg_view.add_text(buffer, Glib::ustring("default"));
+        }
+    }
 }
 
 void gbzadmin::handle_flagupdate_message(void *vbuf)
 {
-	guint16 numFlags;
-	guint16 flag_idx;
-	flag_info *fi;
-	Player *player = 0;
-	
-	vbuf = parser.nboUnpackUShort(vbuf, &numFlags);
-	for (int k = 0; k < numFlags; k++) {
-		vbuf = parser.nboUnpackUShort(vbuf, &flag_idx);
-		fi = g_new0(flag_info, 1);
-		vbuf = parser.unpack_flag_info(vbuf, fi);
-		fi->idx = flag_idx;
-		if (fi->status != Parser::FlagNoExist && fi->status != Parser::FlagGoing) {
-			add_flag(fi);
-		} else if (fi->status == Parser::FlagNoExist || fi->status == Parser::FlagGoing) {
-			remove_flag(fi);
-		}
-		player = player_view.find_player(fi->owner);
-		if (player && fi->status == Parser::FlagOnTank) {
-			player->set_flag(Glib::ustring((gchar*)fi->type));
-			player_view.update();
-		}
-		player = 0;
-	}
+    guint16 numFlags;
+    guint16 flag_idx;
+    flag_info *fi;
+    Player *player = 0;
+
+    vbuf = parser.nboUnpackUShort(vbuf, &numFlags);
+    for (int k = 0; k < numFlags; k++) {
+        vbuf = parser.nboUnpackUShort(vbuf, &flag_idx);
+        fi = g_new0(flag_info, 1);
+        vbuf = parser.unpack_flag_info(vbuf, fi);
+        fi->idx = flag_idx;
+        if (fi->status != Parser::FlagNoExist && fi->status != Parser::FlagGoing) {
+            add_flag(fi);
+        } else if (fi->status == Parser::FlagNoExist || fi->status == Parser::FlagGoing) {
+            remove_flag(fi);
+        }
+        player = player_view.find_player(fi->owner);
+        if (player && fi->status == Parser::FlagOnTank) {
+            player->set_flag(Glib::ustring((gchar*)fi->type));
+            player_view.update();
+        }
+        player = 0;
+    }
 }
 
 void gbzadmin::handle_transferflag_message(void *vbuf)
 {
-	guint8 from_id, to_id;
-	guint16 flag_idx;
-	flag_info fi;
-	
-	vbuf = parser.nboUnpackUByte(vbuf, &from_id);
-	vbuf = parser.nboUnpackUByte(vbuf, &to_id);
-	vbuf = parser.nboUnpackUShort(vbuf, &flag_idx);
-	vbuf = parser.unpack_flag_info(vbuf, &fi);
-	
-	fi.idx = flag_idx;
-	if (msg_mask["flags"]) {
-		Glib::ustring flag((gchar*)fi.type);
-		Player *from = player_view.find_player(from_id);
-		Player *to = player_view.find_player(to_id);
-		from->clear_flag();
-		to->set_flag(flag);
-		Glib::ustring buffer("*** ");
-		Glib::ustring callsign_from(from->get_callsign());
-		Glib::ustring callsign_to(to->get_callsign());
-		
-		buffer += Glib::ustring::compose("%1 stole %2's flag\n",	callsign_to, callsign_from);
-		msg_view.add_text(buffer, Glib::ustring("default"));
-	}
-}
+    guint8 from_id, to_id;
+    guint16 flag_idx;
+    flag_info fi;
 
-void gbzadmin::handle_score_over_message(void *vbuf)
-{
-//	if (messageMask[MsgScoreOver]) {
-//		PlayerId id;
-//		guint16 _team;
-//		vbuf = nboUnpackUByte(vbuf, id);
-//		vbuf = nboUnpackUShort(vbuf, _team);
-//		it = players.find(id);
-//		victimName = (it != players.end() ? it->second.name : "<unknown>");
-//		if (_team != (guint16)NoTeam) {
-//			Team temp;
-//			victimName = temp.getName((TeamColor)_team);
-//		}
-//		Glib::ustring buffer("*** ");
-//		buffer += Glib::ustring::compose("%1 has done won the game!\n", player->get_callsign());
-//		msg_view.add_text(, Glib::ustring("default"));
-//	}
+    vbuf = parser.nboUnpackUByte(vbuf, &from_id);
+    vbuf = parser.nboUnpackUByte(vbuf, &to_id);
+    vbuf = parser.nboUnpackUShort(vbuf, &flag_idx);
+    vbuf = parser.unpack_flag_info(vbuf, &fi);
+
+    fi.idx = flag_idx;
+    if (msg_mask["flags"]) {
+        Glib::ustring flag((gchar*)fi.type);
+        Player *from = player_view.find_player(from_id);
+        Player *to = player_view.find_player(to_id);
+        from->clear_flag();
+        to->set_flag(flag);
+        Glib::ustring buffer("*** ");
+        Glib::ustring callsign_from(from->get_callsign());
+        Glib::ustring callsign_to(to->get_callsign());
+
+        buffer += Glib::ustring::compose("%1 stole %2's flag\n",	callsign_to, callsign_from);
+        msg_view.add_text(buffer, Glib::ustring("default"));
+    }
 }
 
 void gbzadmin::handle_message_message(void *vbuf)
 {
-	guint8 src, dst, type;
-	Player *src_player, *dst_player;
-	gint16 src_team = NoTeam;
-	
-	vbuf = parser.nboUnpackUByte(vbuf, &src);
-	vbuf = parser.nboUnpackUByte(vbuf, &dst);
-	vbuf = parser.nboUnpackUByte(vbuf, &type);
+    guint8 src, dst, type;
+    Player *src_player, *dst_player;
+    gint16 src_team = NoTeam;
 
-	// format the message depending on source and destination
-	
-	gint16 dstTeam = (LastRealPlayer < dst && dst <= FirstTeam ? TeamColor(FirstTeam - dst) : NoTeam);
-	
-	if (msg_mask["chat"]) {
-		src_player = player_view.find_player(src);
-		dst_player = player_view.find_player(dst);
-		Glib::ustring src_callsign("");
-		Glib::ustring dst_callsign("");
-		if (src_player) {
-			src_callsign = src_player->get_callsign();
-			src_team = src_player->get_team();
-		}
-		if (dst_player)
-			dst_callsign = dst_player->get_callsign();
+    vbuf = parser.nboUnpackUByte(vbuf, &src);
+    vbuf = parser.nboUnpackUByte(vbuf, &dst);
+    vbuf = parser.nboUnpackUByte(vbuf, &type);
 
-		Glib::ustring str(msg_view.Color(OrangeFg));
-		Glib::ustring formatted;
-		str += ">>> ";
-		str += (src_team == NoTeam) ? msg_view.Color(GoldenFg) : msg_view.get_color(src_team);
-		msg_view.format(formatted, Glib::ustring((gchar*)vbuf), src, dst, (guint16)dstTeam, me, src_callsign, dst_callsign);
-		str += formatted;
-		
-		str = Glib::convert_with_fallback(str.c_str(), "UTF-8", "ISO-8859-1");
-		msg_view.add_text(str);
-	}
+    // format the message depending on source and destination
+
+    gint16 dstTeam = (LastRealPlayer < dst && dst <= FirstTeam ? TeamColor(FirstTeam - dst) : NoTeam);
+
+    if (msg_mask["chat"]) {
+        src_player = player_view.find_player(src);
+        dst_player = player_view.find_player(dst);
+        Glib::ustring src_callsign("");
+        Glib::ustring dst_callsign("");
+        if (src_player) {
+            src_callsign = src_player->get_callsign();
+            src_team = src_player->get_team();
+        }
+        if (dst_player)
+            dst_callsign = dst_player->get_callsign();
+
+        Glib::ustring str(msg_view.Color(OrangeFg));
+        Glib::ustring formatted;
+        str += ">>> ";
+        str += (src_team == NoTeam) ? msg_view.Color(GoldenFg) : msg_view.get_color(src_team);
+        msg_view.format(formatted, Glib::ustring((gchar*)vbuf), src, dst, (guint16)dstTeam, me, src_callsign, dst_callsign);
+        str += formatted;
+
+        str = Glib::convert_with_fallback(str.c_str(), "UTF-8", "ISO-8859-1");
+        msg_view.add_text(str);
+    }
 }
 
 void gbzadmin::handle_udplinkestablished_message(void *vbuf)
 {
-	// server got our initial UDP packet
-	sock.enableOutboundUDP();
-	// connect the UDP signal handler
-	udp_data_pending = sock.on_udp_data_pending.connect(sigc::mem_fun(*this, &gbzadmin::on_read_data));
-	
-	msg_view.add_text("--- Enabled outbound UDP\n", Glib::ustring("rogue"));
+    // server got our initial UDP packet
+    sock.enableOutboundUDP();
+    // connect the UDP signal handler
+    udp_data_pending = sock.on_udp_data_pending.connect(sigc::mem_fun(*this, &gbzadmin::on_read_data));
+
+    msg_view.add_text("--- Enabled outbound UDP\n", Glib::ustring("rogue"));
 }
 
 void gbzadmin::handle_udplinkrequest_message(void *vbuf)
 {
-	// we got server's initial UDP packet
-	// the UDP signal handler should be installed now
-	sock.confirmIncomingUDP();
-	msg_view.add_text("--- Confirmed incoming UDP\n", Glib::ustring("rogue"));
+    // we got server's initial UDP packet
+    // the UDP signal handler should be installed now
+    sock.confirmIncomingUDP();
+    msg_view.add_text("--- Confirmed incoming UDP\n", Glib::ustring("rogue"));
 }
 
 void gbzadmin::handle_setvar_message(void *vbuf)
 {
-	guint16 numVars;
-	guint8 nameLen, valueLen;
-	char name[MaxPacketLen];
-	char value[MaxPacketLen];
-	
-	vbuf = parser.nboUnpackUShort(vbuf, &numVars);
-	
-	for (int k = 0; k < numVars; k++) {
-		vbuf = parser.nboUnpackUByte(vbuf, &nameLen);
-		vbuf = parser.nboUnpackString(vbuf, name, nameLen);
-		name[nameLen] = '\0';
+    guint16 numVars;
+    guint8 nameLen, valueLen;
+    char name[MaxPacketLen];
+    char value[MaxPacketLen];
 
-		vbuf = parser.nboUnpackUByte(vbuf, &valueLen);
-		vbuf = parser.nboUnpackString(vbuf, value, valueLen);
-		value[valueLen] = '\0';
-		
-		server_vars_view.update(Glib::ustring(name), Glib::ustring(value));
-	}
-	if (msg_mask["bzdb"]) {
-		Glib::ustring str = Glib::ustring::compose("*** Received %1 BZDB update(s)\n", numVars);
-		msg_view.add_text(str, Glib::ustring("default"));
-	}
+    vbuf = parser.nboUnpackUShort(vbuf, &numVars);
+
+    for (int k = 0; k < numVars; k++) {
+        vbuf = parser.nboUnpackUByte(vbuf, &nameLen);
+        vbuf = parser.nboUnpackString(vbuf, name, nameLen);
+        name[nameLen] = '\0';
+
+        vbuf = parser.nboUnpackUByte(vbuf, &valueLen);
+        vbuf = parser.nboUnpackString(vbuf, value, valueLen);
+        value[valueLen] = '\0';
+
+        server_vars_view.update(Glib::ustring(name), Glib::ustring(value));
+    }
+    if (msg_mask["bzdb"]) {
+        Glib::ustring str = Glib::ustring::compose("*** Received %1 BZDB update(s)\n", numVars);
+        msg_view.add_text(str, Glib::ustring("default"));
+    }
 }
 
 void gbzadmin::handle_ping_message(void *vbuf)
 {
-	if (echo_pings) {
-		// echo PING msg - this will show true lag eventually
-		sock.sendLagPing((char *)vbuf);
-	}
-	// since we are not using seqno, unpack
-	// this only when we want to display this msg
-	if (msg_mask["ping"]) {
-		guint16 seqno;		
-		parser.nboUnpackUShort(vbuf, &seqno);
-		Glib::ustring str = Glib::ustring::compose("*** Received lag ping from server (%1)\n", seqno);
-		msg_view.add_text(str, Glib::ustring("server"));
-	}
-	// reset the watchdog counter with ever server ping
-	wd_counter = MaxWdTime;
+    if (echo_pings) {
+        // echo PING msg - this will show true lag eventually
+        sock.sendLagPing((char *)vbuf);
+    }
+    // since we are not using seqno, unpack
+    // this only when we want to display this msg
+    if (msg_mask["ping"]) {
+        guint16 seqno;
+        parser.nboUnpackUShort(vbuf, &seqno);
+        Glib::ustring str = Glib::ustring::compose("*** Received lag ping from server (%1)\n", seqno);
+        msg_view.add_text(str, Glib::ustring("server"));
+    }
+    // reset the watchdog counter with ever server ping
+    wd_counter = MaxWdTime;
 }
 
 void gbzadmin::handle_game_query_message(void *vbuf)
 {
-	guint16 tmp;
-	guint16 tmpRogueSize, tmpRedSize, tmpGreenSize;
-	guint16 tmpBlueSize, tmpPurpleSize;
+    guint16 tmp;
+    guint16 tmpRogueSize, tmpRedSize, tmpGreenSize;
+    guint16 tmpBlueSize, tmpPurpleSize;
 
-	vbuf = parser.nboUnpackUShort(vbuf, &tmp);
-	game_view.setType(tmp);
-	if (tmp == RabbitChase)
-		player_view.set_rabbit_mode(true);
-		
-	vbuf = parser.nboUnpackUShort(vbuf, &tmp);
-	game_view.setOptions(tmp);
-	vbuf = parser.nboUnpackUShort(vbuf, &tmp);
-	game_view.setMaxPlayers(tmp);
-	vbuf = parser.nboUnpackUShort(vbuf, &tmp);
-	game_view.setMaxShots(tmp);
-	vbuf = parser.nboUnpackUShort(vbuf, &tmpRogueSize);
-	game_view.setRogueSize(tmpRogueSize);
-	vbuf = parser.nboUnpackUShort(vbuf, &tmpRedSize);
-	game_view.setRedSize(tmpRedSize);
-	vbuf = parser.nboUnpackUShort(vbuf, &tmpGreenSize);
-	game_view.setGreenSize(tmpGreenSize);
-	vbuf = parser.nboUnpackUShort(vbuf, &tmpBlueSize);
-	game_view.setBlueSize(tmpBlueSize);
-	vbuf = parser.nboUnpackUShort(vbuf, &tmpPurpleSize);
-	game_view.setPurpleSize(tmpPurpleSize);
-	vbuf = parser.nboUnpackUShort(vbuf, &tmp);
-	game_view.setObsSize(tmp);
-	game_view.setTotalObservers(tmp);
-	vbuf = parser.nboUnpackUShort(vbuf, &tmp);
-	game_view.setRogueMax(tmp);
-	vbuf = parser.nboUnpackUShort(vbuf, &tmp);
-	game_view.setRedMax(tmp);
-	vbuf = parser.nboUnpackUShort(vbuf, &tmp);
-	game_view.setGreenMax(tmp);
-	vbuf = parser.nboUnpackUShort(vbuf, &tmp);
-	game_view.setBlueMax(tmp);
-	vbuf = parser.nboUnpackUShort(vbuf, &tmp);
-	game_view.setPurpleMax(tmp);
-	vbuf = parser.nboUnpackUShort(vbuf, &tmp);
-	game_view.setObsMax(tmp);
-	vbuf = parser.nboUnpackUShort(vbuf, &tmp);
-	game_view.setShakeWins(tmp);
-	vbuf = parser.nboUnpackUShort(vbuf, &tmp);
-	game_view.setShakeTimeOut(tmp);
-	vbuf = parser.nboUnpackUShort(vbuf, &tmp);
-	game_view.setMaxPlayerScore(tmp);
-	vbuf = parser.nboUnpackUShort(vbuf, &tmp);
-	game_view.setMaxTeamScore(tmp);
-	vbuf = parser.nboUnpackUShort(vbuf, &tmp);
-	game_view.setMaxTime(tmp);
-	vbuf = parser.nboUnpackUShort(vbuf, &tmp);
-	game_view.setTimeElapsed(tmp);
+    vbuf = parser.nboUnpackUShort(vbuf, &tmp);
+    game_view.setType(tmp);
+    if (tmp == RabbitChase)
+        player_view.set_rabbit_mode(true);
 
-	game_view.setTotalPlayers(tmpRogueSize + tmpRedSize + tmpGreenSize + tmpBlueSize +	tmpPurpleSize);
+    vbuf = parser.nboUnpackUShort(vbuf, &tmp);
+    game_view.setOptions(tmp);
+    vbuf = parser.nboUnpackUShort(vbuf, &tmp);
+    game_view.setMaxPlayers(tmp);
+    vbuf = parser.nboUnpackUShort(vbuf, &tmp);
+    game_view.setMaxShots(tmp);
+    vbuf = parser.nboUnpackUShort(vbuf, &tmpRogueSize);
+    game_view.setRogueSize(tmpRogueSize);
+    vbuf = parser.nboUnpackUShort(vbuf, &tmpRedSize);
+    game_view.setRedSize(tmpRedSize);
+    vbuf = parser.nboUnpackUShort(vbuf, &tmpGreenSize);
+    game_view.setGreenSize(tmpGreenSize);
+    vbuf = parser.nboUnpackUShort(vbuf, &tmpBlueSize);
+    game_view.setBlueSize(tmpBlueSize);
+    vbuf = parser.nboUnpackUShort(vbuf, &tmpPurpleSize);
+    game_view.setPurpleSize(tmpPurpleSize);
+    vbuf = parser.nboUnpackUShort(vbuf, &tmp);
+    game_view.setObsSize(tmp);
+    game_view.setTotalObservers(tmp);
+    vbuf = parser.nboUnpackUShort(vbuf, &tmp);
+    game_view.setRogueMax(tmp);
+    vbuf = parser.nboUnpackUShort(vbuf, &tmp);
+    game_view.setRedMax(tmp);
+    vbuf = parser.nboUnpackUShort(vbuf, &tmp);
+    game_view.setGreenMax(tmp);
+    vbuf = parser.nboUnpackUShort(vbuf, &tmp);
+    game_view.setBlueMax(tmp);
+    vbuf = parser.nboUnpackUShort(vbuf, &tmp);
+    game_view.setPurpleMax(tmp);
+    vbuf = parser.nboUnpackUShort(vbuf, &tmp);
+    game_view.setObsMax(tmp);
+    vbuf = parser.nboUnpackUShort(vbuf, &tmp);
+    game_view.setShakeWins(tmp);
+    vbuf = parser.nboUnpackUShort(vbuf, &tmp);
+    game_view.setShakeTimeOut(tmp);
+    vbuf = parser.nboUnpackUShort(vbuf, &tmp);
+    game_view.setMaxPlayerScore(tmp);
+    vbuf = parser.nboUnpackUShort(vbuf, &tmp);
+    game_view.setMaxTeamScore(tmp);
+    vbuf = parser.nboUnpackUShort(vbuf, &tmp);
+    game_view.setMaxTime(tmp);
+    vbuf = parser.nboUnpackUShort(vbuf, &tmp);
+    game_view.setTimeElapsed(tmp);
 
-	game_view.update();
+    game_view.setTotalPlayers(tmpRogueSize + tmpRedSize + tmpGreenSize + tmpBlueSize +	tmpPurpleSize);
+
+    game_view.update();
 }
 
 void gbzadmin::handle_teamupdate_message(void *vbuf)
 {
-	guint8 numTeams;
-	
-	vbuf = parser.nboUnpackUByte(vbuf, &numTeams);
-	if (numTeams > 5) {
-		return;
-	}
-	guint16 tmp;
-	for (int k = 0; k < numTeams; k++) {
-		vbuf = parser.nboUnpackUShort(vbuf, &tmp);
-		game_view.setTeam(k, tmp);
-		vbuf = parser.nboUnpackUShort(vbuf, &tmp); // team_size[team[k]]);
-		game_view.setTeamSize(k, tmp);
-		vbuf = parser.nboUnpackUShort(vbuf, &tmp); // team_wins[team[k]]);
-		game_view.setTeamWins(k, tmp);
-		vbuf = parser.nboUnpackUShort(vbuf, &tmp); // team_losses[team[k]]);
-		game_view.setTeamLosses(k, tmp);
-	}
-	game_view.update();
+    guint8 numTeams;
+
+    vbuf = parser.nboUnpackUByte(vbuf, &numTeams);
+    if (numTeams > 5) {
+        return;
+    }
+    guint16 tmp;
+    for (int k = 0; k < numTeams; k++) {
+        vbuf = parser.nboUnpackUShort(vbuf, &tmp);
+        game_view.setTeam(k, tmp);
+        vbuf = parser.nboUnpackUShort(vbuf, &tmp); // team_size[team[k]]);
+        game_view.setTeamSize(k, tmp);
+        vbuf = parser.nboUnpackUShort(vbuf, &tmp); // team_wins[team[k]]);
+        game_view.setTeamWins(k, tmp);
+        vbuf = parser.nboUnpackUShort(vbuf, &tmp); // team_losses[team[k]]);
+        game_view.setTeamLosses(k, tmp);
+    }
+    game_view.update();
+}
+
+void gbzadmin::handle_teleport_message(void *vbuf)
+{
+	guint8 id;
+//    guint16 from, to;
+    
+    if (msg_mask["teleport"]) {
+		vbuf = parser.nboUnpackUByte(vbuf, &id);
+//		vbuf = parser.nboUnpackUShort(vbuf, &from);
+//		vbuf = parser.nboUnpackUShort(vbuf, &to);
+		Player *player = player_view.find_player(id);
+    
+        Glib::ustring str(msg_view.Color(PurpleFg));
+        str += "*** ";
+        str += colorize(player);
+        str += player->get_callsign();
+        str += msg_view.Color(WhiteFg) + " has teleported!";
+        str += "\n";
+        msg_view.add_text(str);
+    }
 }
 
 Glib::ustring gbzadmin::colorize(Player *player)
 {
 //	Glib::ustring color;
-	return msg_view.get_color(player->get_team());
+    return msg_view.get_color(player->get_team());
 }
 
 
@@ -1887,1152 +1923,1061 @@ Glib::ustring gbzadmin::colorize(Player *player)
 // handler will get called by both TCP and UDP signals.
 void gbzadmin::on_read_data()
 {
-	gint what = get_message();
-	
-	Glib::ustring error(msg_view.Color(RedFg));
-	time_t now;
-	now = time(0);
-	struct tm *ts = localtime(&now);
-	char time_str[128];
-		
-	switch (what) {
-	case Superkilled:
-		error += "--- ERROR: Server forced disconnect " + msg_view.Color(YellowFg) + "(Superkilled)\n";
-		msg_view.add_text(error);
-		app->set_title(windowTitle);
-		sock.disconnect();
-		clean_up(false);
-		break;
-		
-	case CommError:
-		strftime(time_str, 128, " (%T)", ts);
-		
-		if (wd_counter <= 0) {
-			error += "--- ERROR: Connection to server lost " + msg_view.Color(YellowFg) + "(WatchDog)\n";
-		} else {
-			error += "--- ERROR: Connection to server lost " + msg_view.Color(YellowFg) + "(CommError)\n";
-		}
-		error += " at";
-		error += time_str;
-		error += "\n";
-		
-		msg_view.add_text(error);
-		app->set_title(windowTitle);
-		sock.disconnect();
-		clean_up(false);
-		break;
-		
-	default:
-		// nothing to see here folks, move along...
-		break;
-	}
+    gint what = get_message();
+
+    Glib::ustring error(msg_view.Color(RedFg));
+    time_t now;
+    now = time(0);
+    struct tm *ts = localtime(&now);
+    char time_str[128];
+
+    switch (what) {
+        case Superkilled:
+            error += "--- ERROR: Server forced disconnect " + msg_view.Color(YellowFg) + "(Superkilled)\n";
+            msg_view.add_text(error);
+            app->set_title(windowTitle);
+            sock.disconnect();
+            clean_up(false);
+            break;
+
+        case CommError:
+            strftime(time_str, 128, " (%T)", ts);
+
+            if (wd_counter <= 0) {
+                error += "--- ERROR: Connection to server lost " + msg_view.Color(YellowFg) + "(WatchDog)\n";
+            } else {
+                error += "--- ERROR: Connection to server lost " + msg_view.Color(YellowFg) + "(CommError)\n";
+            }
+            error += " at";
+            error += time_str;
+            error += "\n";
+
+            msg_view.add_text(error);
+            app->set_title(windowTitle);
+            sock.disconnect();
+            clean_up(false);
+            break;
+
+        default:
+            // nothing to see here folks, move along...
+            break;
+    }
 }
 
 gint gbzadmin::get_message()
 {
-	if (!isConnected() || (wd_counter <= 0))
-		return CommError;
+    if (!isConnected() || (wd_counter <= 0))
+        return CommError;
 
-	guint16 code, len;
-	gchar inbuf[MaxPacketLen];
-	
-	if (sock.read(code, len, (gchar*)inbuf, BlockTime) == 1) {
-		//printf("Received Code: 0x%04x\n", code);
-		void *vbuf = inbuf;
-		
-		if (code == MsgSuperKill) {
-			return Superkilled;
-		}
-		
-		std::map<guint16, messagehandler>::iterator iter = handler_map.find(code);
-     	if (iter != handler_map.end()) {
-		    messagehandler handler = iter->second;
-		    ((this)->*handler)(vbuf);
-      	} else {
-      		return NoMessage;
-      	}
-#if 0
-		switch (code) {
-		case MsgSuperKill:
-			return Superkilled;
-			
-		case MsgNewRabbit:
-			handle_rabbit_message(vbuf);
-			break;
-			
-		case MsgJoinServer:
-		  	//handle_joinserver_message(vbuf);
-		  	break;
-			
-		case MsgPause:
-			handle_pause_message(vbuf);
-			break;
-			
-		case MsgAutoPilot:
-			handle_autopilot_message(vbuf);
-		  break;
-			
-		case MsgAddPlayer:
-			handle_add_player_message(vbuf);
-			break;
-			
-		case MsgRemovePlayer:
-			handle_remove_player_message(vbuf);
-			break;
+    guint16 code, len;
+    gchar inbuf[MaxPacketLen];
 
-		case MsgPlayerInfo:
-			handle_playerinfo_message(vbuf);
-			break;
+    if (sock.read(code, len, (gchar*)inbuf, BlockTime) == 1) {
+        void *vbuf = inbuf;
 
-		case MsgAdminInfo:
-			handle_admininfo_message(vbuf);
-			break;
-			
-		case MsgKilled:
-			handle_killed_message(vbuf);
-			break;
-			
-		case MsgScore:
-			handle_score_message(vbuf);
-			break;
-			
-		case MsgScoreOver:
-     		handle_score_over_message(vbuf);
-      		break;
-			
-		case MsgAlive:
-			handle_alive_message(vbuf);
-			break;
-			
-		case MsgUDPLinkEstablished:
-			handle_udplinkestablished_message(vbuf);
-	    	break;
+        if (code == MsgSuperKill) {
+            return Superkilled;
+        }
 
-		case MsgUDPLinkRequest:
-			handle_udplinkrequest_message(vbuf);
-			break;
-			
-		case MsgSetVar:
-			handle_setvar_message(vbuf);
-			break;
+		// find and execute the appropriate message handler
+        msg_handler_map::const_iterator iter = handler_map.find(code);
+        if (iter != handler_map.end()) {
+            messagehandler handler = iter->second;
+            ((this)->*handler)(vbuf);
+        } else {
+//        	print_message_code(code); // print unhandled codes
+            return NoMessage;
+        }
+        return GotMessage;
+    }
 
-		case MsgGrabFlag:
-			handle_grabflag_message(vbuf);
-			break;
-			
-		case MsgDropFlag:
-			handle_dropflag_message(vbuf);
-			break;
+    return NoMessage;
+}
 
-		case MsgFlagUpdate:
-			handle_flagupdate_message(vbuf);
-			break;
-			
-		case MsgTransferFlag:
-			handle_transferflag_message(vbuf);
-			break;
-			
-		case MsgLagPing:
-			handle_ping_message(vbuf);
-			 reset the watchdog timer
-			wd_counter = MaxWdTime;
-			break;
+void gbzadmin::print_message_code(guint16 code)
+{
+	std::cout << std::showbase 	// show the 0x prefix
+         << std::internal 		// fill between the prefix and the number
+         << std::setfill('0'); 	// fill with 0s
 
-		case MsgQueryGame:
-			handle_game_query_message(vbuf);
-			break;
-
-		case MsgTeamUpdate:
-			handle_teamupdate_message(vbuf);
-			break;
-			
-		case MsgMessage:
-			handle_message_message(vbuf);
-			break;
-			
-		default:
-			return NoMessage;
-		}
-#endif		
-		return GotMessage;
-	}
-
-	return NoMessage;
+	if (code != 0x7073 && code != 0x7362) {
+    	std::cout << std::hex << std::setw(6) << code << std::endl;
+    }
 }
 
 void gbzadmin::logon()
 {
-	set_status_message(StatusConnTime, "Connecting...");
-	while(Gtk::Main::events_pending()) // update the GUI before the connect phase
-  	Gtk::Main::iteration();
-	
-	if (sock.connect(_server, _port)) {
-		if (sock.join(_callsign, _password)) {
-			//display some server info
-			Glib::ustring id_str = Glib::ustring::compose("%1", sock.getId());
-			Glib::ustring str(msg_view.Color(GoldenFg));
-			str += "--- Server version: " + msg_view.Color(YellowFg) + sock.getVersion() + "\n";
-			msg_view.add_text(str);
-			str = msg_view.Color(GoldenFg) + "--- My player ID: " + msg_view.Color(RedFg) + id_str + "\n";
-			msg_view.add_text(str);
-			str = msg_view.Color(GoldenFg) + "--- Connected to " + msg_view.Color(RedFg) + _server + ":";
-			str += msg_view.Color(BlueFg) + _port_str + msg_view.Color(YellowFg) + " (" + sock.get_server_IP() + ")\n";
-			msg_view.add_text(str);
-			str = msg_view.Color(GoldenFg) + "--- ";
-			str += msg_view.Color(GreenFg) + _server + " has ACCEPTED me\n";
-			msg_view.add_text(str);
-			// display the client version
-			str = msg_view.Color(BlueFg) + "--- " + getAppVersion() + "\n";
-			msg_view.add_text(str);
-			
-			// connect the TCP data pending signal from the socket object
-			tcp_data_pending = sock.on_tcp_data_pending.connect(sigc::mem_fun(*this, &gbzadmin::on_read_data));
-			// start the connection timer
-			conn_timer = Glib::signal_timeout().connect_seconds(sigc::mem_fun(*this, &gbzadmin::update_timer), 1);
-			connection_timer.reset();
-			// start the watchdog timer
-			wd_timer = Glib::signal_timeout().connect_seconds(sigc::mem_fun(*this, &gbzadmin::update_watchdog), 1);
-			watchdog_timer.reset();
-			// add callsign@server:port to the title
-			app->set_title(Glib::ustring(Glib::ustring(windowTitle) + " - " + _callsign + "@" + _server + ":" + _port_str));
-			
-			// send UDP request - this isn't strictly necessary since we won't be shooting
-			// FIXME: using UDP seems to cause problems. Not sure what is going on yet.
-			// The app starts using 100% CPU after a few minutes. Gets stuck in a loop?
-			// Perhaps a race condition due to improper handing of the signals?
-			if (useUDP)
-				sock.sendUDPlinkRequest();
-			
-			// enable the connected only items
-			enable_connected_items(true);
-		} else {	// failed to join
-			Glib::ustring str(msg_view.Color(YellowFg));
-			str += "--- " + msg_view.Color(RedFg) + sock.getRejectionMessage();
-			msg_view.add_text(str);
-			set_status_message(StatusConnTime, "Disconnected");
-		}
-	} else { // failed to connect
-		Glib::ustring str(msg_view.Color(YellowFg));
-		switch (sock.getState()) {
-		case gSocket::BadVersion:
-			str += "--- " + msg_view.Color(RedFg) + "Server versions are not compatible\n";
-			str += "    " + msg_view.Color(YellowFg) + "You tried to connect to a " + sock.getVersion() + " server\n";
-			str += "    using a ";
-			str += ServerVersion;
-			str += " client\n";
-			msg_view.add_text(str);
-			break;
-			
-		case gSocket::Refused:
-			str += "--- " + msg_view.Color(RedFg) + sock.getRejectionMessage();
-			msg_view.add_text(str);
-			break;
-			
-		case gSocket::Rejected:
-			str += "--- " + msg_view.Color(RedFg) + _server + " has REJECTED me\n";
-			str += ">>> " + msg_view.Color(RedFg) + sock.getRejectionMessage();
-			msg_view.add_text(str);
-			break;
-			
-		case gSocket::ResolveFailure:
-			str += ">>> " + msg_view.Color(RedFg) + sock.getRejectionMessage();
-			msg_view.add_text(str);
-			break;
-			
-		default:
-			str += "\n--- " + msg_view.Color(RedFg) + "Failed to connect to " + _server;
-			str += msg_view.Color(YellowFg) + " (socket error)\n";
-			msg_view.add_text(str);
-			break;
-		}
-	}
-	// hide the connect dialog here.
-	if (connect_dialog->is_visible())
-		connect_dialog->hide();
+    set_status_message(StatusConnTime, "Connecting...");
+    while(Gtk::Main::events_pending()) // update the GUI before the connect phase
+        Gtk::Main::iteration();
+
+    if (sock.connect(_server, _port)) {
+        if (sock.join(_callsign, _password)) {
+            //display some server info
+            Glib::ustring id_str = Glib::ustring::compose("%1", sock.getId());
+            Glib::ustring str(msg_view.Color(GoldenFg));
+            str += "--- Server version: " + msg_view.Color(YellowFg) + sock.getVersion() + "\n";
+            msg_view.add_text(str);
+            str = msg_view.Color(GoldenFg) + "--- My player ID: " + msg_view.Color(RedFg) + id_str + "\n";
+            msg_view.add_text(str);
+            str = msg_view.Color(GoldenFg) + "--- Connected to " + msg_view.Color(RedFg) + _server + ":";
+            str += msg_view.Color(BlueFg) + _port_str + msg_view.Color(YellowFg) + " (" + sock.get_server_IP() + ")\n";
+            msg_view.add_text(str);
+            str = msg_view.Color(GoldenFg) + "--- ";
+            str += msg_view.Color(GreenFg) + _server + " has ACCEPTED me\n";
+            msg_view.add_text(str);
+            // display the client version
+            str = msg_view.Color(BlueFg) + "--- " + getAppVersion() + "\n";
+            msg_view.add_text(str);
+
+            // connect the TCP data pending signal from the socket object
+            tcp_data_pending = sock.on_tcp_data_pending.connect(sigc::mem_fun(*this, &gbzadmin::on_read_data));
+            // start the connection timer
+            conn_timer = Glib::signal_timeout().connect_seconds(sigc::mem_fun(*this, &gbzadmin::update_timer), 1);
+            connection_timer.reset();
+            // start the watchdog timer
+            wd_timer = Glib::signal_timeout().connect_seconds(sigc::mem_fun(*this, &gbzadmin::update_watchdog), 1);
+            watchdog_timer.reset();
+            // add callsign@server:port to the title
+            app->set_title(Glib::ustring(Glib::ustring(windowTitle) + " - " + _callsign + "@" + _server + ":" + _port_str));
+
+            // send UDP request - this isn't strictly necessary since we won't be shooting
+            // FIXME: using UDP seems to cause problems. Not sure what is going on yet.
+            // The app starts using 100% CPU after a few minutes. Gets stuck in a loop?
+            // Perhaps a race condition due to improper handing of the signals?
+            if (useUDP)
+                sock.sendUDPlinkRequest();
+
+            // enable the connected only items
+            enable_connected_items(true);
+        } else {	// failed to join
+            Glib::ustring str(msg_view.Color(YellowFg));
+            str += "--- " + msg_view.Color(RedFg) + sock.getRejectionMessage();
+            msg_view.add_text(str);
+            set_status_message(StatusConnTime, "Disconnected");
+        }
+    } else { // failed to connect
+        Glib::ustring str(msg_view.Color(YellowFg));
+        switch (sock.getState()) {
+            case gSocket::BadVersion:
+                str += "--- " + msg_view.Color(RedFg) + "Server versions are not compatible\n";
+                str += "    " + msg_view.Color(YellowFg) + "You tried to connect to a " + sock.getVersion() + " server\n";
+                str += "    using a ";
+                str += ServerVersion;
+                str += " client\n";
+                msg_view.add_text(str);
+                break;
+
+            case gSocket::Refused:
+                str += "--- " + msg_view.Color(RedFg) + sock.getRejectionMessage();
+                msg_view.add_text(str);
+                break;
+
+            case gSocket::Rejected:
+                str += "--- " + msg_view.Color(RedFg) + _server + " has REJECTED me\n";
+                str += ">>> " + msg_view.Color(RedFg) + sock.getRejectionMessage();
+                msg_view.add_text(str);
+                break;
+
+            case gSocket::ResolveFailure:
+                str += ">>> " + msg_view.Color(RedFg) + sock.getRejectionMessage();
+                msg_view.add_text(str);
+                break;
+
+            default:
+                str += "\n--- " + msg_view.Color(RedFg) + "Failed to connect to " + _server;
+                str += msg_view.Color(YellowFg) + " (socket error)\n";
+                msg_view.add_text(str);
+                break;
+        }
+    }
+    // hide the connect dialog here.
+    if (connect_dialog->is_visible())
+        connect_dialog->hide();
 }
 
 // this function is called once per second to update stuff
 // like the connection timer and other status bar stuff
 bool gbzadmin::update_timer()
 {
-	double elapsed;
-	char time_str[128];
-	int hours, mins, secs;
-	bool running = isConnected();
-	
-	if (running) {
-		elapsed = connection_timer.elapsed();
-		hours = int(elapsed / 3600.0);
-		mins = int(elapsed / 60.0) % 60;
-		secs = int(elapsed) % 60;
-		::snprintf(time_str, sizeof(time_str), "%02d:%02d:%02d", hours, mins, secs);
-		//::snprintf(time_str, sizeof(time_str), "%02d:%02d:%02d  [WD:%2d]", hours, mins, secs, wd_counter);
+    double elapsed;
+    char time_str[128];
+    int hours, mins, secs;
+    bool running = isConnected();
 
-		set_status_message(StatusConnTime, time_str);
-	} else {
-		set_status_message(StatusConnTime, "Disconnected");
-	}
+    if (running) {
+        elapsed = connection_timer.elapsed();
+        hours = int(elapsed / 3600.0);
+        mins = int(elapsed / 60.0) % 60;
+        secs = int(elapsed) % 60;
+        ::snprintf(time_str, sizeof(time_str), "%02d:%02d:%02d", hours, mins, secs);
+        //::snprintf(time_str, sizeof(time_str), "%02d:%02d:%02d  [WD:%2d]", hours, mins, secs, wd_counter);
 
-	if (sock.netStatsEnabled()) {
-		float flow = sock.bitFlow();
-		char str[64];
-		::sprintf(str, "Flow rate: %5.2fkbps", flow);
-		set_status_message(StatusNetStats, str);
-	} else {
-		set_status_message(StatusNetStats, "");
-	}
-	if ((line = msg_view.get_buffer_line()) != prev_line) {
-		count = msg_view.get_buffer_size();
-		Glib::ustring str = Glib::ustring::compose("Line: %1  Count: %2", line, count);
-		set_status_message(StatusMsgLine, str.c_str());
-		prev_line = line;
-	}
-	
-	return running;
+        set_status_message(StatusConnTime, time_str);
+    } else {
+        set_status_message(StatusConnTime, "Disconnected");
+    }
+
+    if (sock.netStatsEnabled()) {
+        float flow = sock.bitFlow();
+        char str[64];
+        ::sprintf(str, "Flow rate: %5.2fkbps", flow);
+        set_status_message(StatusNetStats, str);
+    } else {
+        set_status_message(StatusNetStats, "");
+    }
+    if ((line = msg_view.get_buffer_line()) != prev_line) {
+        count = msg_view.get_buffer_size();
+        Glib::ustring str = Glib::ustring::compose("Line: %1  Count: %2", line, count);
+        set_status_message(StatusMsgLine, str.c_str());
+        prev_line = line;
+    }
+
+    return running;
 }
 
 bool gbzadmin::update_watchdog()
 {
-	bool connected = isConnected();
-	wd_counter--;
-	if ((wd_counter > 0) && connected) {
-		connected = true;
-	} else {
-		on_read_data();     // call this to process the watchdog timeout
-		connected = false;  // this will quit the timeout
-	}
-	return connected;
+    bool connected = isConnected();
+    wd_counter--;
+    if ((wd_counter > 0) && connected) {
+        connected = true;
+    } else {
+        on_read_data();     // call this to process the watchdog timeout
+        connected = false;  // this will quit the timeout
+    }
+    return connected;
 }
 
 bool gbzadmin::confirm_quit_and_save()
 {
-	bool result = false;
-	switch(confirm("Quiting...\nDo you want to save the message buffer?", true)) {
-		case GTK_RESPONSE_YES:
-			if (!save_dialog)
-				refBuilder->get_widget("save_dialog", save_dialog);
-				
-			switch (save_dialog->run()) {
-			case GTK_RESPONSE_YES:
-				save_the_buffer();
-				result = true;
-				break;
-				
-			default:
-				result = true;
-				break;
-			}
-			break;
-			
-		case GTK_RESPONSE_NO:
-			result = true;
-			break;
-			
-		case GTK_RESPONSE_CANCEL:
-			result = false;
-			break;
-	}			
-	return result;
+    bool result = false;
+    switch(confirm("Quiting...\nDo you want to save the message buffer?", true)) {
+        case GTK_RESPONSE_YES:
+            if (!save_dialog)
+                refBuilder->get_widget("save_dialog", save_dialog);
+
+            switch (save_dialog->run()) {
+                case GTK_RESPONSE_YES:
+                    save_the_buffer();
+                    result = true;
+                    break;
+
+                default:
+                    result = true;
+                    break;
+            }
+            break;
+
+        case GTK_RESPONSE_NO:
+            result = true;
+            break;
+
+        case GTK_RESPONSE_CANCEL:
+            result = false;
+            break;
+    }
+    return result;
 }
 
-int gbzadmin::confirm(Glib::ustring msg, bool use_cancel=false)
+int gbzadmin::confirm(Glib::ustring msg, bool use_cancel = false)
 {
-	Gtk::MessageDialog msg_dialog(msg, false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_NONE, true);
-	if (use_cancel) {
-		msg_dialog.add_button(GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL);
-	}
-		
-	msg_dialog.add_button(GTK_STOCK_YES, GTK_RESPONSE_YES);
-	msg_dialog.add_button(GTK_STOCK_NO, GTK_RESPONSE_NO);
-	msg_dialog.set_default_response(GTK_RESPONSE_NO);
-	
-	return msg_dialog.run();
+    Gtk::MessageDialog msg_dialog(msg, false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_NONE, true);
+    if (use_cancel) {
+        msg_dialog.add_button(GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL);
+    }
+
+    msg_dialog.add_button(GTK_STOCK_YES, GTK_RESPONSE_YES);
+    msg_dialog.add_button(GTK_STOCK_NO, GTK_RESPONSE_NO);
+    msg_dialog.set_default_response(GTK_RESPONSE_NO);
+
+    return msg_dialog.run();
 }
 
 void gbzadmin::on_message_view_scrolling_activate()
 {
-	Gtk::CheckMenuItem *scroll;
-	refBuilder->get_widget("message_view_scrolling", scroll);
-	msg_view.set_scroll(scroll->get_active());
+    Gtk::CheckMenuItem *scroll;
+    refBuilder->get_widget("message_view_scrolling", scroll);
+    msg_view.set_scroll(scroll->get_active());
 }
 
 void gbzadmin::send_message(const Glib::ustring message, guint8 target)
 {
-	char msg[MaxPacketLen];
-  void* buf = msg;
+    char msg[MaxPacketLen];
+    void* buf = msg;
 
-  buf = parser.nboPackUByte(buf, guint8(target));
-  buf = parser.nboPackString(buf, message.c_str(), MessageLen);
+    buf = parser.nboPackUByte(buf, guint8(target));
+    buf = parser.nboPackString(buf, message.c_str(), MessageLen);
 
-  sock.send(MsgMessage, (uint16_t)((char *)buf - msg), msg);
+    sock.send(MsgMessage, (uint16_t)((char *)buf - msg), msg);
 }
 
 void gbzadmin::on_send_button_pressed()
 {
-	Gtk::Entry *entry;
-	refBuilder->get_widget("command_entry", entry);
-	// retrieve the string from the entry widget
-	Glib::ustring tmp_cmd;
-	tmp_cmd = entry->get_text();
+    Gtk::Entry *entry;
+    refBuilder->get_widget("command_entry", entry);
+    // retrieve the string from the entry widget
+    Glib::ustring tmp_cmd;
+    tmp_cmd = entry->get_text();
 
-	if (tmp_cmd.size() == 0)
-		return;
-		
-	// clear the command entry
-	entry->set_text("");
-	
-	if (tmp_cmd.substr(0, 1) != "/") {
-		// Dumbass check:
-		// make sure is not an ill-formed password string !!
-		if (tmp_cmd.substr(0, 9) == "password ") {
-			Glib::ustring msg("You are about to send your password to EVERYONE!\n"
-					"Try using a '/' in front of 'password'\n\nYou're Welcome");
-			post_message(msg, Gtk::MESSAGE_WARNING);
-			return;
-		} else { // hope its a message
-			msg_str = tmp_cmd;
-			if (!isConnected()) {
-				msg_str.clear();
-			}
-		}
-	} else if (tmp_cmd.substr(0, 1) == "/") { // check if is command
-		if (!isConnected() && tmp_cmd == "/quit") {
-			shut_down();
-			return;
-		}
-		cmd_str = tmp_cmd;
-	}
-	process_command();
+    if (tmp_cmd.size() == 0)
+        return;
+
+    // clear the command entry
+    entry->set_text("");
+
+    if (tmp_cmd.substr(0, 1) != "/") {
+        // Dumbass check:
+        // make sure is not an ill-formed password string !!
+        if (tmp_cmd.substr(0, 9) == "password ") {
+            Glib::ustring msg("You are about to send your password to EVERYONE!\n"
+                               "Try using a '/' in front of 'password'\n\nYou're Welcome");
+            post_message(msg, Gtk::MESSAGE_WARNING);
+            return;
+        } else { // hope its a message
+            msg_str = tmp_cmd;
+            if (!isConnected()) {
+                msg_str.clear();
+            }
+        }
+    } else if (tmp_cmd.substr(0, 1) == "/") { // check if is command
+        if (!isConnected() && tmp_cmd == "/quit") {
+            shut_down();
+            return;
+        }
+        cmd_str = tmp_cmd;
+    }
+    process_command();
 }
 
 void gbzadmin::process_command()
 {
-	Glib::ustring substr;
-	// check for local commands first
-	if (cmd_str.size()) {
-		// add this cmd to the history buffer
-		cmd.historyAdd(cmd_str);
-		if (cmd_str == "/quit") {
-			cmd_str.clear();
-			if (confirm_quit_and_save()) {
-				shut_down();
-			} else {
-				return;
-			}
-		} else if (cmd_str == "/join") {
-			// join immediately using current server:port and callsign/password
-			logon();
-		} else if (cmd_str == "/leave") {
-			logoff();
-		} else if (cmd_str == "/list") {
-			if (isConnected())
-				query_listServer();
-			else
-				msg_view.add_text("--- Cannot query list server offline! (yet)\n", Glib::ustring("rogue"));
-		} else if (cmd_str.substr(0, 8) == Glib::ustring("/reverse")) {
-			if (cmd_str.length() > 8) {
-				displayHostName(cmd_str.substr(9));
-			} else {
-				show_help(cmd_str);
-			}
-		} else if (cmd_str.substr(0, 5) == "/show") {
-			// handle message filter show command
-			Glib::ustring type(cmd_str.substr(6));
-			set_message_filter(type, true);
-			Glib::ustring str("--- Message's of type ");
-			str += "'" + type + "'" + " will now be shown\n";
-			msg_view.add_text(str, Glib::ustring("rogue"));
-		} else if (cmd_str.substr(0, 5) == "/hide") {
-			// handle message filter hide command
-			Glib::ustring type(cmd_str.substr(6));
-			set_message_filter(type, false);
-			Glib::ustring str("--- Message's of type ");
-			str += "'" + type + "'" + " will now be hidden\n";
-			msg_view.add_text(str, Glib::ustring("rogue"));
-		} else { // or send the command to the server
-			send_message(cmd_str, ServerPlayer);
-		}
-		cmd_str.clear();
-	} else if (msg_str.size()) { // otherwise it's a message
-		send_message(msg_str, cmd.get_current_target_id());
-		msg_str.clear();
-	} else {
-		return;
-	}
+    Glib::ustring substr;
+    // check for local commands first
+    if (cmd_str.size()) {
+        // add this cmd to the history buffer
+        cmd.historyAdd(cmd_str);
+        if (cmd_str == "/quit") {
+            cmd_str.clear();
+            if (confirm_quit_and_save()) {
+                shut_down();
+            } else {
+                return;
+            }
+        } else if (cmd_str == "/join") {
+            // join immediately using current server:port and callsign/password
+            logon();
+        } else if (cmd_str == "/leave") {
+            logoff();
+        } else if (cmd_str == "/list") {
+            if (isConnected())
+                query_listServer();
+            else
+                msg_view.add_text("--- Cannot query list server offline! (yet)\n", Glib::ustring("rogue"));
+        } else if (cmd_str.substr(0, 8) == Glib::ustring("/reverse")) {
+            if (cmd_str.length() > 8) {
+                displayHostName(cmd_str.substr(9));
+            } else {
+                show_help(cmd_str);
+            }
+        } else if (cmd_str.substr(0, 5) == "/show") {
+            // handle message filter show command
+            Glib::ustring type(cmd_str.substr(6));
+            set_message_filter(type, true);
+            Glib::ustring str("--- Message's of type ");
+            str += "'" + type + "'" + " will now be shown\n";
+            msg_view.add_text(str, Glib::ustring("rogue"));
+        } else if (cmd_str.substr(0, 5) == "/hide") {
+            // handle message filter hide command
+            Glib::ustring type(cmd_str.substr(6));
+            set_message_filter(type, false);
+            Glib::ustring str("--- Message's of type ");
+            str += "'" + type + "'" + " will now be hidden\n";
+            msg_view.add_text(str, Glib::ustring("rogue"));
+        } else { // or send the command to the server
+            send_message(cmd_str, ServerPlayer);
+        }
+        cmd_str.clear();
+    } else if (msg_str.size()) { // otherwise it's a message
+        send_message(msg_str, cmd.get_current_target_id());
+        msg_str.clear();
+    } else {
+        return;
+    }
 }
 
 // TODO: add command help system
 void gbzadmin::show_help(Glib::ustring what)
 {
-	Glib::ustring help("--- Help:\n        Sorry, no help available for ");
+    Glib::ustring help("--- Help:\n        Sorry, no help available for ");
 
-	if (what == "/reverse")	{
-		help = "Usage: /reverse <callsign> | <#slot>\n";
-		help += "       Finds the hostname of the given player\n";
-		msg_view.add_text(help, Glib::ustring("rogue"));
-	} else {
-		help += what + "\n";
-	}
+    if (what == "/reverse")	{
+        help = "Usage: /reverse <callsign> | <#slot>\n";
+        help += "       Finds the hostname of the given player\n";
+        msg_view.add_text(help, Glib::ustring("rogue"));
+    } else {
+        help += what + "\n";
+    }
 }
 
 void gbzadmin::on_variable_changed(Glib::ustring cmd)
 {
-	// update the variable data
+    // update the variable data
 
-	cmd_str = cmd;
-	process_command();
+    cmd_str = cmd;
+    process_command();
 }
 
 void gbzadmin::post_message(Glib::ustring msg, Gtk::MessageType type)
 {
-	Gtk::MessageDialog msg_dialog(msg, false, type);
-	msg_dialog.run();
+    Gtk::MessageDialog msg_dialog(msg, false, type);
+    msg_dialog.run();
 }
 
 void gbzadmin::on_mute_button_clicked()
 {
-	do_mute_player();
+    do_mute_player();
 }
 
 void gbzadmin::on_kick_button_clicked()
 {
-	do_kick_player();
+    do_kick_player();
 }
 
 void gbzadmin::on_ban_button_clicked()
 {
-	do_ban_player();
+    do_ban_player();
 }
 
 void gbzadmin::on_mute_activate()
 {
-	do_mute_player();
+    do_mute_player();
 }
 
 void gbzadmin::on_kick_activate()
 {
-	do_kick_player();
+    do_kick_player();
 }
 
 void gbzadmin::on_ban_activate()
 {
-	do_ban_player();
+    do_ban_player();
 }
 
 void gbzadmin::on_playerlist_activate()
 {
-	do_command_send(PlayerList);
+    do_command_send(PlayerList);
 }
 
 void gbzadmin::on_clientquery_activate()
 {
-	do_client_query();
+    do_client_query();
 }
 
 void gbzadmin::on_lagstats_activate()
 {
-	do_command_send(LagStats);
+    do_command_send(LagStats);
 }
 
 void gbzadmin::on_query_listserver_activate()
 {
-	if (isConnected()) {
-		cmd_str = "/list";
-		process_command();
-	} else {
-		query_listServer();
-	}
+    if (isConnected()) {
+        cmd_str = "/list";
+        process_command();
+    } else {
+        query_listServer();
+    }
 }
 
 void gbzadmin::query_listServer()
 {
-	time_t tm;
-	tm = time(NULL);
-	
-	Glib::Timer clock;	// starts the clock too
+    time_t tm;
+    tm = time(NULL);
 
-	std::vector<serverInfo*> si;
+    Glib::Timer clock;	// starts the clock too
 
-	listServer.getServerList(si);
-		
-	clock.stop();
-	double elapsed = clock.elapsed();
-	
-	server_list_view.display(si);
+    std::vector<serverInfo*> si;
 
-	// ctime str is terminated with '\n'
-	Glib::ustring str(msg_view.Color(YellowFg));
-	str += Glib::ustring::compose("--- queried (%1) list server in %2 seconds on %3",
-			ServerVersion/*sock.getVersion()*/, elapsed, ctime(&tm));
-			
-	msg_view.add_text(str);
+    listServer.getServerList(si);
+
+    clock.stop();
+    double elapsed = clock.elapsed();
+
+    server_list_view.display(si);
+
+    // ctime str is terminated with '\n'
+    Glib::ustring str(msg_view.Color(YellowFg));
+    str += Glib::ustring::compose("--- queried (%1) list server in %2 seconds on %3",
+                                   ServerVersion/*sock.getVersion()*/, elapsed, ctime(&tm));
+
+    msg_view.add_text(str);
 }
 
 void gbzadmin::do_mute_player()
 {
-	Gtk::Label *label, *all_label, *ban_label;
-	Gtk::Entry *ban_entry;
-	Gtk::CheckButton *check;
+    Gtk::Label *label, *all_label, *ban_label;
+    Gtk::Entry *ban_entry;
+    Gtk::CheckButton *check;
 
-	input_dialog->Gtk::Window::set_title("Mute Player");
+    input_dialog->Gtk::Window::set_title("Mute Player");
 
-	refBuilder->get_widget("reason_label", label);
-	refBuilder->get_widget("bantime_label", ban_label);
-	refBuilder->get_widget("bantime_entry", ban_entry);
-	refBuilder->get_widget("all_label", all_label);
-	refBuilder->get_widget("subnet_checkbutton", check);
+    refBuilder->get_widget("reason_label", label);
+    refBuilder->get_widget("bantime_label", ban_label);
+    refBuilder->get_widget("bantime_entry", ban_entry);
+    refBuilder->get_widget("all_label", all_label);
+    refBuilder->get_widget("subnet_checkbutton", check);
 
-	populate_player_combo();
+    populate_player_combo();
 
-	player_combo.set_active(0);
-	reason_combo.set_active(0);
-	current_cmd_type = MutePlayer;
+    player_combo.set_active(0);
+    reason_combo.set_active(0);
+    current_cmd_type = MutePlayer;
 
-	player_combo.show();
-	all_label->hide();
-	label->hide();
-	reason_combo.hide();
-	ban_label->hide();
-	ban_entry->hide();
-	check->hide();
-	input_dialog->show();
+    player_combo.show();
+    all_label->hide();
+    label->hide();
+    reason_combo.hide();
+    ban_label->hide();
+    ban_entry->hide();
+    check->hide();
+    input_dialog->show();
 }
 
 void gbzadmin::do_kick_player()
 {
-	Gtk::Label *label, *all_label, *ban_label;
-	Gtk::Entry *ban_entry;
-	Gtk::CheckButton *check;
+    Gtk::Label *label, *all_label, *ban_label;
+    Gtk::Entry *ban_entry;
+    Gtk::CheckButton *check;
 
-	input_dialog->Gtk::Window::set_title("Kick Player");
+    input_dialog->Gtk::Window::set_title("Kick Player");
 
-	refBuilder->get_widget("reason_label", label);
-	refBuilder->get_widget("bantime_label", ban_label);
-	refBuilder->get_widget("bantime_entry", ban_entry);
-	refBuilder->get_widget("all_label", all_label);
-	refBuilder->get_widget("subnet_checkbutton", check);
+    refBuilder->get_widget("reason_label", label);
+    refBuilder->get_widget("bantime_label", ban_label);
+    refBuilder->get_widget("bantime_entry", ban_entry);
+    refBuilder->get_widget("all_label", all_label);
+    refBuilder->get_widget("subnet_checkbutton", check);
 
-	populate_player_combo();
+    populate_player_combo();
 
-	player_combo.set_active(0);
-	reason_combo.set_active(0);
-	current_cmd_type = KickPlayer;
+    player_combo.set_active(0);
+    reason_combo.set_active(0);
+    current_cmd_type = KickPlayer;
 
-	label->show();
-	reason_combo.show();
-	player_combo.show();
-	all_label->hide();
-	ban_label->hide();
-	ban_entry->hide();
-	check->hide();
-	input_dialog->show();
+    label->show();
+    reason_combo.show();
+    player_combo.show();
+    all_label->hide();
+    ban_label->hide();
+    ban_entry->hide();
+    check->hide();
+    input_dialog->show();
 }
 
 void gbzadmin::do_ban_player()
 {
-	Gtk::Label *all_label;
-	Gtk::Entry *ban_entry;
+    Gtk::Label *all_label;
+    Gtk::Entry *ban_entry;
 
-	input_dialog->Gtk::Window::set_title("Ban Player");
+    input_dialog->Gtk::Window::set_title("Ban Player");
 
-	refBuilder->get_widget("bantime_entry", ban_entry);
-	refBuilder->get_widget("all_label", all_label);
+    refBuilder->get_widget("bantime_entry", ban_entry);
+    refBuilder->get_widget("all_label", all_label);
 
-	populate_player_combo();
+    populate_player_combo();
 
-	player_combo.set_active(0);
-	reason_combo.set_active(0);
-	current_cmd_type = BanPlayer;
+    player_combo.set_active(0);
+    reason_combo.set_active(0);
+    current_cmd_type = BanPlayer;
 
-	// "no soup for you, come back, one year!"
-	ban_entry->set_text("short");
-	
-	all_label->hide();
-	reason_combo.show();
-	player_combo.show();
-	input_dialog->show_all();
+    // "no soup for you, come back, one year!"
+    ban_entry->set_text("short");
+
+    all_label->hide();
+    reason_combo.show();
+    player_combo.show();
+    input_dialog->show_all();
 }
 
 void gbzadmin::on_playerlist_button_clicked()
 {
-	do_command_send(PlayerList);
+    do_command_send(PlayerList);
 }
 
 
 void gbzadmin::on_clientquery_button_clicked()
 {
-	do_client_query();
+    do_client_query();
 }
 
 void gbzadmin::do_client_query()
 {
-	Gtk::Entry *bantime_entry;
-	Gtk::Label *reason_label, *bantime_label, *all_label;
+    Gtk::Entry *bantime_entry;
+    Gtk::Label *reason_label, *bantime_label, *all_label;
 
-	input_dialog->Gtk::Window::set_title("Client Query");
+    input_dialog->Gtk::Window::set_title("Client Query");
 
-	current_cmd_type = ClientQuery;
-	refBuilder->get_widget("reason_label", reason_label);
-	refBuilder->get_widget("all_label", all_label);
-	refBuilder->get_widget("bantime_label", bantime_label);
-	refBuilder->get_widget("bantime_entry", bantime_entry);
-	
-	all_label->hide();
-	reason_label->hide();
-	reason_combo.hide();
-	bantime_label->hide();
-	bantime_entry->hide();
-	player_combo.show();
+    current_cmd_type = ClientQuery;
+    refBuilder->get_widget("reason_label", reason_label);
+    refBuilder->get_widget("all_label", all_label);
+    refBuilder->get_widget("bantime_label", bantime_label);
+    refBuilder->get_widget("bantime_entry", bantime_entry);
 
-	populate_player_combo();
-	
-	player_combo.prepend_text("All");
-	player_combo.set_active(0);
+    all_label->hide();
+    reason_label->hide();
+    reason_combo.hide();
+    bantime_label->hide();
+    bantime_entry->hide();
+    player_combo.show();
 
-	input_dialog->show();
+    populate_player_combo();
+
+    player_combo.prepend_text("All");
+    player_combo.set_active(0);
+
+    input_dialog->show();
 }
 
 void gbzadmin::on_lagstats_button_clicked()
 {
-	do_command_send(LagStats);
+    do_command_send(LagStats);
 }
 
 // this function builds commands that have
 // no parameters.
 void gbzadmin::do_command_send(gint type)
 {
-	current_cmd_type = type;
+    current_cmd_type = type;
 
-	switch(type) {
-	case PlayerList:
-		cmd_str = "/playerlist";
-		break;
-		
-	case LagStats:
-		cmd_str = "/lagstats";
-		break;
-			
-	case ShutDown:
-		cmd_str = "/shutdownserver";
-		break;
-			
-	case FlagUp:
-		cmd_str = "/flag up";
-		break;
-			
-	case SuperKill:
-		cmd_str = "/superkill";
-		break;
-			
-	case ReLoad:
-		cmd_str = "/reload";
-		break;
-			
-	case ServerUptime:
-		cmd_str = "/uptime";
-		break;
-			
-	default:
-		break;
-	}
-	process_command();
+    switch(type) {
+        case PlayerList:
+            cmd_str = "/playerlist";
+            break;
+
+        case LagStats:
+            cmd_str = "/lagstats";
+            break;
+
+        case ShutDown:
+            cmd_str = "/shutdownserver";
+            break;
+
+        case FlagUp:
+            cmd_str = "/flag up";
+            break;
+
+        case SuperKill:
+            cmd_str = "/superkill";
+            break;
+
+        case ReLoad:
+            cmd_str = "/reload";
+            break;
+
+        case ServerUptime:
+            cmd_str = "/uptime";
+            break;
+
+        default:
+            break;
+    }
+    process_command();
 }
 
 // retrieve input from the dialog depending on
 // the visible entry widgets
 void gbzadmin::on_input_dialog_response(gint response_id)
 {
-	Gtk::Entry *bantime;
-	Gtk::CheckButton *subnet;
-	Glib::ustring callsign_str, reason_str, bantime_str;
-	Glib::ustring command;
-	
-	if (response_id == Gtk::RESPONSE_OK) {
-		if (player_combo.is_visible()) {
-			callsign_str = player_combo.get_active_text();
-		}
-		if (reason_combo.is_visible()) {
-			reason_str = reason_combo.get_active_text();
-		}
-		refBuilder->get_widget("bantime_entry", bantime);
-		if (bantime->is_visible()) {
-			bantime_str = bantime->get_text();
-		}
-		switch (current_cmd_type) {
-		case ClientQuery:
-			if (callsign_str.length()) {
-				if (callsign_str == "All") {
-					command = "/clientquery";
-				} else {
-					command = "/clientquery \"" + callsign_str + "\"";
-				}
-			} else {
-				command = "/clientquery";
-			}
-			break;
-			
-		case MutePlayer:
-			if (callsign_str.length()) {
-				command = "/mute \"" + callsign_str + "\"";
-			}
-			break;
-				
-		case KickPlayer:
-			if (callsign_str.length()) {
-				command = "/kick \"" + callsign_str + "\"";
-			}
-			if (reason_str.length()) {
-				command += reason_str;
-			} else {
-				post_message("You must supply a reason", Gtk::MESSAGE_ERROR);
-				return;
-			}
-			break;
-				
-		case BanPlayer:
-			refBuilder->get_widget("subnet_checkbutton", subnet);
-			// if this option is checked the callsign is replaced by the 
-			// IP in which the last octet is replaced by a '*', banning
-			// an entire subnet.
-			if (subnet->get_active()) {
-				Glib::ustring ip = player_view.get_IP(callsign_str);
-				ip.erase(ip.find_last_of(".") + 1);
-				ip += "*";
-				command = "/ban " + ip + " ";
-			} else if (callsign_str.length()) {
-				command = "/ban \"" + callsign_str + "\" ";
-			}
-			if (bantime_str.length()) {
-				command += bantime_str;
-			} else { // default to short ban time
-				command += "short";
-			}
-			if (reason_str.length()) {
-				command += " (" + callsign_str + ") " + reason_str;
-			} else {
-				post_message("You must supply a reason", Gtk::MESSAGE_ERROR);
-				return;
-			}
-			break;
-			
-			default:
-				break;
-		}
-		cmd_str = command;
-	}
-	process_command();
-	input_dialog->hide();
+    Gtk::Entry *bantime;
+    Gtk::CheckButton *subnet;
+    Glib::ustring callsign_str, reason_str, bantime_str;
+    Glib::ustring command;
+
+    if (response_id == Gtk::RESPONSE_OK) {
+        if (player_combo.is_visible()) {
+            callsign_str = player_combo.get_active_text();
+        }
+        if (reason_combo.is_visible()) {
+            reason_str = reason_combo.get_active_text();
+        }
+        refBuilder->get_widget("bantime_entry", bantime);
+        if (bantime->is_visible()) {
+            bantime_str = bantime->get_text();
+        }
+        switch (current_cmd_type) {
+            case ClientQuery:
+                if (callsign_str.length()) {
+                    if (callsign_str == "All") {
+                        command = "/clientquery";
+                    } else {
+                        command = "/clientquery \"" + callsign_str + "\"";
+                    }
+                } else {
+                    command = "/clientquery";
+                }
+                break;
+
+            case MutePlayer:
+                if (callsign_str.length()) {
+                    command = "/mute \"" + callsign_str + "\"";
+                }
+                break;
+
+            case KickPlayer:
+                if (callsign_str.length()) {
+                    command = "/kick \"" + callsign_str + "\"";
+                }
+                if (reason_str.length()) {
+                    command += reason_str;
+                } else {
+                    post_message("You must supply a reason", Gtk::MESSAGE_ERROR);
+                    return;
+                }
+                break;
+
+            case BanPlayer:
+                refBuilder->get_widget("subnet_checkbutton", subnet);
+                // if this option is checked the callsign is replaced by the
+                // IP in which the last octet is replaced by a '*', banning
+                // an entire subnet.
+                if (subnet->get_active()) {
+                    Glib::ustring ip = player_view.get_IP(callsign_str);
+                    ip.erase(ip.find_last_of(".") + 1);
+                    ip += "*";
+                    command = "/ban " + ip + " ";
+                } else if (callsign_str.length()) {
+                    command = "/ban \"" + callsign_str + "\" ";
+                }
+                if (bantime_str.length()) {
+                    command += bantime_str;
+                } else { // default to short ban time
+                    command += "short";
+                }
+                if (reason_str.length()) {
+                    command += " (" + callsign_str + ") " + reason_str;
+                } else {
+                    post_message("You must supply a reason", Gtk::MESSAGE_ERROR);
+                    return;
+                }
+                break;
+
+            default:
+                break;
+        }
+        cmd_str = command;
+    }
+    process_command();
+    input_dialog->hide();
 }
 
 void gbzadmin::on_save_dialog_response(gint response_id)
 {
-	if (response_id == Gtk::RESPONSE_OK) {
-		save_the_buffer();
-	}
-	save_dialog->hide();
+    if (response_id == Gtk::RESPONSE_OK) {
+        save_the_buffer();
+    }
+    save_dialog->hide();
 }
 
 void gbzadmin::save_the_buffer()
 {
-	std::ofstream os;
+    std::ofstream os;
 
-	if (!save_dialog)
-		refBuilder->get_widget("save_dialog", save_dialog);
-		
-	Glib::ustring filename = save_dialog->get_filename();
-	os.open(filename.c_str());
-	if (os) {
-		Glib::ustring text = msg_view.get_buffer_text();
-		os << text;
-		os.close();
-	}
-	save_dialog->hide();
+    if (!save_dialog)
+        refBuilder->get_widget("save_dialog", save_dialog);
+
+    Glib::ustring filename = save_dialog->get_filename();
+    os.open(filename.c_str());
+    if (os) {
+        Glib::ustring text = msg_view.get_buffer_text();
+        os << text;
+        os.close();
+    }
+    save_dialog->hide();
 }
 
 void gbzadmin::replace_input_placeholders()
 {
-	// Remove the placeholder Gtk::ComboBox and add a Gtk::ComboTextBox
-	// We don't need the combobox and it's TreeModel, we just want to
-	// display strings. These comboboxes are on the input_dialog.
-	Gtk::VBox *box;
-	refBuilder->get_widget("vbox3", box);  // FIXME: this is vbox2 in the glade file, but this works!?!
-	
-	Gtk::ComboBox *crap;
-	refBuilder->get_widget("player_placeholder", crap);
-	
-	box->remove(*crap);
-	box->pack_start(player_combo);
-	box->reorder_child(player_combo, 1);
-	
-	refBuilder->get_widget("reason_placeholder", crap);
-	
-	box->remove(*crap);
-	box->pack_start(reason_combo);
-	box->reorder_child(reason_combo, 4);
-	
-	// populate the reason box
-	const char* reasons[] = {
-		"Cheating",
-		"Player Abuse",
-		"Spamming",
-		"NR",
-		"Idle too long",
-		"Team killing",
-		"Inappropriate Callsign",
-		"slot hog",
-		"I don't like you",
-		"'cause I can",
-		"Take a hike!",
-		"No reason",
-		0
-	};
-	
-	gint k = 0;
-	while (reasons[k]) {
-		reason_combo.append_text(Glib::ustring(reasons[k++]));
-	}
-	
-	// TODO: add combo text boxes and save 4 MRU entries
-	// for both server and port on the connect dialog.
+    // Remove the placeholder Gtk::ComboBox and add a Gtk::ComboTextBox
+    // We don't need the combobox and it's TreeModel, we just want to
+    // display strings. These comboboxes are on the input_dialog.
+    Gtk::VBox *box;
+    refBuilder->get_widget("vbox3", box); // FIXME: this is vbox2 in the glade file, but this works!?!
+
+    Gtk::ComboBox *crap;
+    refBuilder->get_widget("player_placeholder", crap);
+
+    box->remove(*crap);
+    box->pack_start(player_combo);
+    box->reorder_child(player_combo, 1);
+
+    refBuilder->get_widget("reason_placeholder", crap);
+
+    box->remove(*crap);
+    box->pack_start(reason_combo);
+    box->reorder_child(reason_combo, 4);
+
+    // populate the reason box
+    const char* reasons[] = {
+        "Cheating",
+        "Player Abuse",
+        "Spamming",
+        "NR",
+        "Idle too long",
+        "Team killing",
+        "Inappropriate Callsign",
+        "slot hog",
+        "I don't like you",
+        "'cause I can",
+        "Take a hike!",
+        "No reason",
+        0
+    };
+
+    gint k = 0;
+    while (reasons[k]) {
+        reason_combo.append_text(Glib::ustring(reasons[k++]));
+    }
+
+    // TODO: add combo text boxes and save 4 MRU entries
+    // for both server and port on the connect dialog.
 //	refBuilder->get_widget("vbox5", box);
 //	refBuilder->get_widget("server_entry", crap);
-//	
+//
 //	box->remove(*crap);
 //	box->pack_start(server_combo);
 //	box->reorder_child(server_combo, 7);
-//	
+//
 //	refBuilder->get_widget("port_entry", crap);
-//	
+//
 //	box->remove(*crap);
 //	box->pack_start(port_combo);
 //	box->reorder_child(port_combo, 9);
-	
-	// add the saved servers and ports to the combos
+
+    // add the saved servers and ports to the combos
 }
 
 void gbzadmin::populate_player_combo()
 {
-	player_combo.clear_items();
-	for (int k = 0; k < player_view.get_n_players(); k++) {
-		Player* player = player_view.get_player(k);
-		player_combo.append_text(player->get_callsign());
-	}
-	for (int k = 0; k < player_view.get_n_observers(); k++) {
-		Player* player = player_view.get_observer(k);
-		player_combo.append_text(player->get_callsign());
-	}
+    player_combo.clear_items();
+    for (int k = 0; k < player_view.get_n_players(); k++) {
+        Player* player = player_view.get_player(k);
+        player_combo.append_text(player->get_callsign());
+    }
+    for (int k = 0; k < player_view.get_n_observers(); k++) {
+        Player* player = player_view.get_observer(k);
+        player_combo.append_text(player->get_callsign());
+    }
 }
 
 void gbzadmin::enable_admin_items(bool set)
 {
-	server_vars_view.set_editable(set);
-	
-	Gtk::MenuItem *item = 0;
-	refBuilder->get_widget("shutdown_server", item);
-	item->set_sensitive(set);
-	
-	item = 0;
-	refBuilder->get_widget("super_kill", item);
-	item->set_sensitive(set);
-	
-	item = 0;
-	refBuilder->get_widget("playerlist", item);
-	item->set_sensitive(set);
-	
-	item = 0;
-	refBuilder->get_widget("mute", item);
-	item->set_sensitive(set);
-	
-	item = 0;
-	refBuilder->get_widget("kick", item);
-	item->set_sensitive(set);
-	
-	item = 0;
-	refBuilder->get_widget("ban", item);
-	item->set_sensitive(set);
-	
-	item = 0;
-	refBuilder->get_widget("flag_reset", item);
-	item->set_sensitive(set);
-	
-	item = 0;
-	refBuilder->get_widget("remove_flags", item);
-	item->set_sensitive(set);
-	
-	item = 0;
-	refBuilder->get_widget("lagwarn", item);
-	item->set_sensitive(set);
-	
-	Gtk::ToolButton *button = 0;
-	refBuilder->get_widget("mute_button", button);
-	button->set_sensitive(set);
-	
-	button = 0;
-	refBuilder->get_widget("kick_button", button);
-	button->set_sensitive(set);
-	
-	button = 0;
-	refBuilder->get_widget("ban_button", button);
-	button->set_sensitive(set);
-	
-	button = 0;
-	refBuilder->get_widget("playerlist_button", button);
-	button->set_sensitive(set);
+    server_vars_view.set_editable(set);
+
+    Gtk::MenuItem *item = 0;
+    refBuilder->get_widget("shutdown_server", item);
+    item->set_sensitive(set);
+
+    item = 0;
+    refBuilder->get_widget("super_kill", item);
+    item->set_sensitive(set);
+
+    item = 0;
+    refBuilder->get_widget("playerlist", item);
+    item->set_sensitive(set);
+
+    item = 0;
+    refBuilder->get_widget("mute", item);
+    item->set_sensitive(set);
+
+    item = 0;
+    refBuilder->get_widget("kick", item);
+    item->set_sensitive(set);
+
+    item = 0;
+    refBuilder->get_widget("ban", item);
+    item->set_sensitive(set);
+
+    item = 0;
+    refBuilder->get_widget("flag_reset", item);
+    item->set_sensitive(set);
+
+    item = 0;
+    refBuilder->get_widget("remove_flags", item);
+    item->set_sensitive(set);
+
+    item = 0;
+    refBuilder->get_widget("lagwarn", item);
+    item->set_sensitive(set);
+
+    Gtk::ToolButton *button = 0;
+    refBuilder->get_widget("mute_button", button);
+    button->set_sensitive(set);
+
+    button = 0;
+    refBuilder->get_widget("kick_button", button);
+    button->set_sensitive(set);
+
+    button = 0;
+    refBuilder->get_widget("ban_button", button);
+    button->set_sensitive(set);
+
+    button = 0;
+    refBuilder->get_widget("playerlist_button", button);
+    button->set_sensitive(set);
 }
 
 void gbzadmin::enable_connected_items(bool set)
 {
 
-	Gtk::MenuItem *item = 0;
-	refBuilder->get_widget("save", item);
-	item->set_sensitive(set);
+    Gtk::MenuItem *item = 0;
+    refBuilder->get_widget("save", item);
+    item->set_sensitive(set);
 
-	refBuilder->get_widget("clientquery", item);
-	item->set_sensitive(set);
-	
-	item = 0;
-	refBuilder->get_widget("lagstats", item);
-	item->set_sensitive(set);
+    refBuilder->get_widget("clientquery", item);
+    item->set_sensitive(set);
 
-	item = 0;
-	refBuilder->get_widget("capture", item);
-	item->set_sensitive(set);
+    item = 0;
+    refBuilder->get_widget("lagstats", item);
+    item->set_sensitive(set);
 
-	item = 0;
-	refBuilder->get_widget("uptime", item);
-	item->set_sensitive(set);
-	
+    item = 0;
+    refBuilder->get_widget("capture", item);
+    item->set_sensitive(set);
+
+    item = 0;
+    refBuilder->get_widget("uptime", item);
+    item->set_sensitive(set);
+
 //	item = 0;
 //	refBuilder->get_widget("query_listserver", item);
 //	item->set_sensitive(set);
-	
-	Gtk::ToolButton *button = 0;
-	refBuilder->get_widget("clientquery_button", button);
-	button->set_sensitive(set);
-	
-	button = 0;
-	refBuilder->get_widget("lagstats_button", button);
-	button->set_sensitive(set);
-	
-	// connected or not connected
-	if (isConnected()) {
-		// disable the connect button and menu item
-		Gtk::ToolButton *connect_button;
-		refBuilder->get_widget("connect_button", connect_button);
-		connect_button->set_sensitive(false);
-			
-		Gtk::MenuItem *connect;
-		refBuilder->get_widget("connect", connect);
-		connect->set_sensitive(false);
-			
-		// enable the disconnect button and menu item
-		Gtk::ToolButton *disconnect_button;
-		refBuilder->get_widget("disconnect_button", disconnect_button);
-		disconnect_button->set_sensitive();
-			
-		Gtk::MenuItem *disconnect;
-		refBuilder->get_widget("disconnect", disconnect);
-		disconnect->set_sensitive();
-	} else {
-		// enable the connect button and menu item
-		Gtk::ToolButton *connect_button;
-		refBuilder->get_widget("connect_button", connect_button);
-		connect_button->set_sensitive();
-			
-		Gtk::MenuItem *connect;
-		refBuilder->get_widget("connect", connect);
-		connect->set_sensitive();
-	
-		// disable the disconnect button and menu item
-		Gtk::ToolButton *disconnect_button;
-		refBuilder->get_widget("disconnect_button", disconnect_button);
-		disconnect_button->set_sensitive(false);
-			
-		Gtk::MenuItem *disconnect;
-		refBuilder->get_widget("disconnect", disconnect);
-		disconnect->set_sensitive(false);
-	}
+
+    Gtk::ToolButton *button = 0;
+    refBuilder->get_widget("clientquery_button", button);
+    button->set_sensitive(set);
+
+    button = 0;
+    refBuilder->get_widget("lagstats_button", button);
+    button->set_sensitive(set);
+
+    // connected or not connected
+    if (isConnected()) {
+        // disable the connect button and menu item
+        Gtk::ToolButton *connect_button;
+        refBuilder->get_widget("connect_button", connect_button);
+        connect_button->set_sensitive(false);
+
+        Gtk::MenuItem *connect;
+        refBuilder->get_widget("connect", connect);
+        connect->set_sensitive(false);
+
+        // enable the disconnect button and menu item
+        Gtk::ToolButton *disconnect_button;
+        refBuilder->get_widget("disconnect_button", disconnect_button);
+        disconnect_button->set_sensitive();
+
+        Gtk::MenuItem *disconnect;
+        refBuilder->get_widget("disconnect", disconnect);
+        disconnect->set_sensitive();
+    } else {
+        // enable the connect button and menu item
+        Gtk::ToolButton *connect_button;
+        refBuilder->get_widget("connect_button", connect_button);
+        connect_button->set_sensitive();
+
+        Gtk::MenuItem *connect;
+        refBuilder->get_widget("connect", connect);
+        connect->set_sensitive();
+
+        // disable the disconnect button and menu item
+        Gtk::ToolButton *disconnect_button;
+        refBuilder->get_widget("disconnect_button", disconnect_button);
+        disconnect_button->set_sensitive(false);
+
+        Gtk::MenuItem *disconnect;
+        refBuilder->get_widget("disconnect", disconnect);
+        disconnect->set_sensitive(false);
+    }
 }
 
 Glib::ustring gbzadmin::flag_has_owner(guint8 id)
 {
-	Glib::ustring flag("");
-	
-	std::vector<flag_info*>::iterator it;
-	bool found = false;
-	
-	// search the flag store
-	it = flag_store.begin();
-	while (it != flag_store.end()) {
-		if (((*it)->owner == id) && ((*it)->status == Parser::FlagOnTank)) {
-			flag = Glib::ustring::compose("%1", (gchar*)((*it)->type));
-			found = true;
-			break;
-		}
-		it++;
-	}
-	if (!found)
-		flag.clear();
-		
-	return flag;
+    Glib::ustring flag("");
+
+    std::vector<flag_info*>::iterator it;
+    bool found = false;
+
+    // search the flag store
+    it = flag_store.begin();
+    while (it != flag_store.end()) {
+        if (((*it)->owner == id) && ((*it)->status == Parser::FlagOnTank)) {
+            flag = Glib::ustring::compose("%1", (gchar*)((*it)->type));
+            found = true;
+            break;
+        }
+        it++;
+    }
+    if (!found)
+        flag.clear();
+
+    return flag;
 }
 
 void gbzadmin::add_flag(flag_info *fi)
 {
-	std::vector<flag_info*>::iterator it = flag_store.begin();
-	bool found = false;
-	
-	while (it != flag_store.end()) {
-		if ((*it)->idx == fi->idx) { // if flag does not exist add it
-			found = true;
-			break;
-		}
-		it++;
-	}
-	if (!found) {
-		flag_store.push_back(fi);
-	}
+    std::vector<flag_info*>::iterator it = flag_store.begin();
+    bool found = false;
+
+    while (it != flag_store.end()) {
+        if ((*it)->idx == fi->idx) { // if flag does not exist add it
+            found = true;
+            break;
+        }
+        it++;
+    }
+    if (!found) {
+        flag_store.push_back(fi);
+    }
 }
 
 void gbzadmin::remove_flag(flag_info *fi)
 {
-	std::vector<flag_info*>::iterator it = flag_store.begin();
-	
-	while (it != flag_store.end()) {
-		if ((*it)->idx == fi->idx) { // if flag exists erase it
-			flag_store.erase(it);
-			break;
-		}
-		it++;
-	}
+    std::vector<flag_info*>::iterator it = flag_store.begin();
+
+    while (it != flag_store.end()) {
+        if ((*it)->idx == fi->idx) { // if flag exists erase it
+            flag_store.erase(it);
+            break;
+        }
+        it++;
+    }
 }
 
 void gbzadmin::on_shutdown_server_activate()
 {
-	if (confirm("Do you really want to shutdown the server?") == GTK_RESPONSE_YES)
-		do_command_send(ShutDown);
+    if (confirm("Do you really want to shutdown the server?") == GTK_RESPONSE_YES)
+        do_command_send(ShutDown);
 }
 
 void gbzadmin::on_super_kill_activate()
 {
-	if (confirm("Really...?\nYou REALLY want to kill _EVERYONE_?\nYourself included!") == GTK_RESPONSE_YES)
-		do_command_send(SuperKill);
+    if (confirm("Really...?\nYou REALLY want to kill _EVERYONE_?\nYourself included!") == GTK_RESPONSE_YES)
+        do_command_send(SuperKill);
 }
 
 // this is from connect_clicked in libgtkmm
 void gbzadmin::connect_clicked(const Glib::ustring& name, const sigc::slot<void>& slot_)
 {
-	Gtk::Widget* pWidget = 0;
-	refBuilder->get_widget(name, pWidget);
-	
-	Gtk::ToolButton* pButton = dynamic_cast<Gtk::ToolButton*>(pWidget);
-	Gtk::MenuItem* pMenuItem = dynamic_cast<Gtk::MenuItem*>(pWidget);
-	
-	if(pButton)
-		pButton->signal_clicked().connect( slot_);
+    Gtk::Widget* pWidget = 0;
+    refBuilder->get_widget(name, pWidget);
 
-	if(pMenuItem)
-		pMenuItem->signal_activate().connect( slot_ );
+    Gtk::ToolButton* pButton = dynamic_cast<Gtk::ToolButton*>(pWidget);
+    Gtk::MenuItem* pMenuItem = dynamic_cast<Gtk::MenuItem*>(pWidget);
+
+    if(pButton)
+        pButton->signal_clicked().connect(slot_);
+
+    if(pMenuItem)
+        pMenuItem->signal_activate().connect(slot_);
 }
 
 //
@@ -3043,86 +2988,86 @@ void gbzadmin::connect_clicked(const Glib::ustring& name, const sigc::slot<void>
 //
 void gbzadmin::dump_player_stats(Player *player)
 {
-	std::ofstream os;
+    std::ofstream os;
 
-	Glib::ustring statsPath(Glib::get_home_dir());
-	statsPath += "/Documents/playerstats.txt";
-	
-	os.open(statsPath.c_str(), std::ios_base::app);
-	
-	if (os) {
-		os << player->get_callsign() << ";";
-		os << player->get_motto() << ";";
-		os << (int)(player->get_id()) << ";";
-		os << player->get_team() << ";";
-		os << player->get_registered() << ";";
-		os << player->get_verified() << ";";
-		os << player->get_admin() << ";";
-		os << player->get_IP() << ";";
-		os << player->get_wins() << ";";
-		os << player->get_losses() << ";";
-		os << player->get_score() << ";";
-		os << player->get_tks() << ";";
-		os << player->get_strength_index() << ";";
-		
-		time_t now = time(NULL);
-		const time_t joined = player->get_time_joined();
-		struct tm *ts = localtime(&joined);
-		char str[64];
-		strftime(str, 64, "%T", ts);
-		
-		os << str << ";";	// time joined
-		
-		ts = localtime(&now);
-		strftime(str, 64, "%T", ts);
-		
-		os << str << ";";	// time left
-		
-		double diff = difftime(now, player->get_time_joined());
-		unsigned long ldiff = (unsigned long)diff;
-		guint hours = (ldiff / 3600);
-		guint minutes = (ldiff / 60) - (hours * 60);
-		guint seconds = ldiff % 60;
-		
-		os << hours << ":" << minutes << ":" << seconds << ";"; // duration
-		// add the date
-		strftime(str, 64, "%F;", ts);
-		os << str;
-		// what server:port is this?
-		os << _server << ":" << _port;
-		// done, <CR><LF>
-		os << "\n";
-		
-		os.close();
-	}
+    Glib::ustring statsPath(Glib::get_home_dir());
+    statsPath += "/Documents/playerstats.txt";
+
+    os.open(statsPath.c_str(), std::ios_base::app);
+
+    if (os) {
+        os << player->get_callsign() << ";";
+        os << player->get_motto() << ";";
+        os << (int)(player->get_id()) << ";";
+        os << player->get_team() << ";";
+        os << player->get_registered() << ";";
+        os << player->get_verified() << ";";
+        os << player->get_admin() << ";";
+        os << player->get_IP() << ";";
+        os << player->get_wins() << ";";
+        os << player->get_losses() << ";";
+        os << player->get_score() << ";";
+        os << player->get_tks() << ";";
+        os << player->get_strength_index() << ";";
+
+        time_t now = time(NULL);
+        const time_t joined = player->get_time_joined();
+        struct tm *ts = localtime(&joined);
+        char str[64];
+        strftime(str, 64, "%T", ts);
+
+        os << str << ";";	// time joined
+
+        ts = localtime(&now);
+        strftime(str, 64, "%T", ts);
+
+        os << str << ";";	// time left
+
+        double diff = difftime(now, player->get_time_joined());
+        unsigned long ldiff = (unsigned long)diff;
+        guint hours = (ldiff / 3600);
+        guint minutes = (ldiff / 60) - (hours * 60);
+        guint seconds = ldiff % 60;
+
+        os << hours << ":" << minutes << ":" << seconds << ";"; // duration
+        // add the date
+        strftime(str, 64, "%F;", ts);
+        os << str;
+        // what server:port is this?
+        os << _server << ":" << _port;
+        // done, <CR><LF>
+        os << "\n";
+
+        os.close();
+    }
 }
 
 // param is cmd_str.substr(9)
 void gbzadmin::displayHostName(Glib::ustring param)
 {
-	Player *player = 0;
-	Glib::ustring substr;
-	
-	if (param.at(0) == '#') { // player ID
-		substr = param.substr(1); // remove the '#'
-		gint idx = atoi(substr.c_str());
-		player = player_view.find_player(idx);
-	} else { // player callsign
-		player = player_view.find_player(param);
-	}
-	if (player) {
-		if (player->get_IP().length()) {
-			Glib::ustring str("### ");
-			Glib::ustring host = sock.reverseResolve(player->get_IP(), player->get_callsign());
-			str += host;
-			msg_view.add_text(str, Glib::ustring("rogue"));
-		} else {
-			Glib::ustring str("### Player IP was not found, cannot resolve hostname!\n");
-			msg_view.add_text(str, Glib::ustring("rogue"));
-		}
-	} else {
-		Glib::ustring str("### Player was not found, invalid player ID or callsign?\n");
-		msg_view.add_text(str, Glib::ustring("rogue"));
-	}
+    Player *player = 0;
+    Glib::ustring substr;
+
+    if (param.at(0) == '#') { // player ID
+        substr = param.substr(1); // remove the '#'
+        gint idx = atoi(substr.c_str());
+        player = player_view.find_player(idx);
+    } else { // player callsign
+        player = player_view.find_player(param);
+    }
+    if (player) {
+        if (player->get_IP().length()) {
+            Glib::ustring str("### ");
+            Glib::ustring host = sock.reverseResolve(player->get_IP(), player->get_callsign());
+            str += host;
+            msg_view.add_text(str, Glib::ustring("rogue"));
+        } else {
+            Glib::ustring str("### Player IP was not found, cannot resolve hostname!\n");
+            msg_view.add_text(str, Glib::ustring("rogue"));
+        }
+    } else {
+        Glib::ustring str("### Player was not found, invalid player ID or callsign?\n");
+        msg_view.add_text(str, Glib::ustring("rogue"));
+    }
 }
 

@@ -91,7 +91,7 @@ void view::initialize_colors()
 	AnsiCodes[WhiteFg]		= Glib::ustring("\033[37m");	// gainsboro foreground
 
 	AnsiCodes[OrangeFg] 	= Glib::ustring("\033[130m");	// orange foreground
-	AnsiCodes[GoldenFg] 	= Glib::ustring("\033[131m"); // goldenrod foreground
+	AnsiCodes[GoldenFg] 	= Glib::ustring("\033[131m"); 	// goldenrod foreground
 	AnsiCodes[Cyan4Fg] 		= Glib::ustring("\033[132m");	// cyan4 foreground
 	AnsiCodes[PGreen4Fg] 	= Glib::ustring("\033[133m");	// palegreen4 foreground
 
@@ -136,7 +136,7 @@ void view::initialize_tag_table()
  	tag_table->add(tag_fg);
  	
  	tag_fg = Gtk::TextTag::create("purple");
-	tag_fg->property_foreground() = "purple"; // Color(PurpleFgFg)
+	tag_fg->property_foreground() = "purple"; // Color(PurpleFg)
  	tag_table->add(tag_fg);
  	
  	tag_fg = Gtk::TextTag::create("observer");

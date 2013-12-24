@@ -25,6 +25,7 @@
 
 #include <gtkmm.h>
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <sys/types.h>
 #include <sys/utsname.h>
@@ -140,7 +141,8 @@ protected:
 	void save_config_file(Glib::ustring filename);
 	void parse_config_file(Glib::ustring filename);
 	Glib::ustring colorize(Player* player);
-	void init_message_map();
+	void init_message_handler_map();
+	void print_message_code(guint16 code);
 	
 	// timer functions
 	bool update_timer();
@@ -182,6 +184,7 @@ protected:
 	void handle_game_query_message(void *vbuf);
 	void handle_teamupdate_message(void *vbuf);
 	void handle_joinserver_message(void *vbuf);
+	void handle_teleport_message(void *vbuf);
 	
 private:
 	Gtk::Window *app;
@@ -233,6 +236,11 @@ private:
 	gint win_width, win_height;
 	int msg_pane, game_pane;
 	
+	// message handler function map
+	typedef void (gbzadmin::*messagehandler)(void*);
+    typedef std::map<guint16, messagehandler> msg_handler_map;
+    msg_handler_map handler_map;
+	
 	// need to have a flag list in order to 
 	// see the players existing flags on startup
 	std::vector<flag_info*> flag_store;
@@ -279,8 +287,6 @@ private:
 		StatusNetStats
 	};
 	
-	typedef void (gbzadmin::*messagehandler)(void*);
-    std::map<guint16, messagehandler> handler_map;
 };
 
 #endif // _gbzadmin_h_

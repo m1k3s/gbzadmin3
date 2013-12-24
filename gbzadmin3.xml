@@ -2754,7 +2754,25 @@
                   </packing>
                 </child>
                 <child>
-                  <placeholder/>
+                <!-- EDIT added the teleport check box -->
+                	<object class="GtkCheckButton" id="teleport">
+                    <property name="label" translatable="yes">Teleport</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">False</property>
+                    <property name="use_action_appearance">False</property>
+                    <property name="use_underline">True</property>
+                    <property name="draw_indicator">True</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">1</property>
+                    <property name="right_attach">2</property>
+                    <property name="top_attach">5</property>
+                    <property name="bottom_attach">6</property>
+                    <property name="x_options">GTK_FILL</property>
+                    <property name="y_options"></property>
+                  </packing>
+                <!-- END EDIT -->
                 </child>
                 <child>
                   <placeholder/>
