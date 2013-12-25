@@ -7,7 +7,7 @@ SUBDIRS = src po
 
 EXTRA_DIST = \
 	autogen.sh \
-	gbzadmin3.xml
+	gbzadmin3.glade
 
 install-data-local:
 	@$(NORMAL_INSTALL)
@@ -19,7 +19,7 @@ install-data-local:
 	    fi \
 	  done \
 	fi
-	for gladefile in gbzadmin3.xml; do \
+	for gladefile in gbzadmin3.glade; do \
 	  if test -f $$gladefile; then \
             $(INSTALL_DATA) $$gladefile $(DESTDIR)$(pkgdatadir); \
 	  fi \

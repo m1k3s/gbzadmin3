@@ -614,6 +614,8 @@ void gbzadmin::on_about_activate()
     comment += getAppVersion();
     comment += "-";
     comment += getServerVersion();
+    
+//    std::cout << PACKAGE_DATA_DIR << std::endl;
 
     Glib::ustring path(PACKAGE_DATA_DIR);
     path += "/";
@@ -658,6 +660,7 @@ void gbzadmin::add_callbacks()
     connect_clicked("playerlist_button", sigc::mem_fun(*this, &gbzadmin::on_playerlist_button_clicked));
     connect_clicked("clientquery_button", sigc::mem_fun(*this, &gbzadmin::on_clientquery_button_clicked));
     connect_clicked("lagstats_button", sigc::mem_fun(*this, &gbzadmin::on_lagstats_button_clicked));
+    connect_clicked("query_button", sigc::mem_fun(*this, &gbzadmin::on_query_listserver_clicked));
 
     // Menu Item handlers
     connect_clicked("quit", sigc::mem_fun(*this, &gbzadmin::on_quit_activate));
@@ -1235,7 +1238,7 @@ void gbzadmin::handle_rabbit_message(void *vbuf)
         if (msg_mask["rabbit"]) {
             Glib::ustring str("*** ");
             str += colorize(player) + player->get_callsign() + defColor + " is now the rabbit\n";
-            msg_view.add_text(str, Glib::ustring("default"));
+            msg_view.add_text(str);
         }
         player_view.update();
     }
@@ -1256,7 +1259,7 @@ void gbzadmin::handle_pause_message(void *vbuf)
         if (msg_mask["pause"]) {
             Glib::ustring str("*** ");
             str += colorize(player) + player->get_callsign() + defColor + " is " + (paused ? "paused" : "resumed") + "\n";
-            msg_view.add_text(str, Glib::ustring("default"));
+            msg_view.add_text(str);
         }
         player_view.update();
     }
@@ -1278,7 +1281,7 @@ void gbzadmin::handle_alive_message(void *vbuf)
             Glib::ustring str("*** ");
             str += colorize(player) + player->get_callsign() + defColor;
             str += Glib::ustring::compose(" has spawned at [%1:%2:%3] (%4)\n", pos[0], pos[1], pos[2], forward);
-            msg_view.add_text(str, Glib::ustring("default"));
+            msg_view.add_text(str);
         }
     }
     player_view.update();
@@ -1599,7 +1602,7 @@ void gbzadmin::handle_autopilot_message(void *vbuf)
             str += (autopilot ? "taking the controls for " : "releasing the controls back to "
                      + colorize(player) + player->get_callsign());
             str += "\n";
-            msg_view.add_text(str, Glib::ustring("default"));
+            msg_view.add_text(str);
         }
     }
 }
@@ -1893,12 +1896,12 @@ void gbzadmin::handle_teamupdate_message(void *vbuf)
 void gbzadmin::handle_teleport_message(void *vbuf)
 {
 	guint8 id;
-//    guint16 from, to;
+    guint16 from, to;
     
     if (msg_mask["teleport"]) {
 		vbuf = parser.nboUnpackUByte(vbuf, &id);
-//		vbuf = parser.nboUnpackUShort(vbuf, &from);
-//		vbuf = parser.nboUnpackUShort(vbuf, &to);
+		vbuf = parser.nboUnpackUShort(vbuf, &from);
+		vbuf = parser.nboUnpackUShort(vbuf, &to);
 		Player *player = player_view.find_player(id);
     
         Glib::ustring str(msg_view.Color(PurpleFg));
@@ -1906,6 +1909,8 @@ void gbzadmin::handle_teleport_message(void *vbuf)
         str += colorize(player);
         str += player->get_callsign();
         str += msg_view.Color(WhiteFg) + " has teleported!";
+        str += msg_view.Color(RedFg);
+        str += Glib::ustring::compose(" (%1 ==> %2)", from, to);
         str += "\n";
         msg_view.add_text(str);
     }
@@ -2012,7 +2017,7 @@ void gbzadmin::logon()
         Gtk::Main::iteration();
 
     if (sock.connect(_server, _port)) {
-        if (sock.join(_callsign, _password)) {
+        if (sock.join(_callsign, _password, "gbzadmin")) {
             //display some server info
             Glib::ustring id_str = Glib::ustring::compose("%1", sock.getId());
             Glib::ustring str(msg_view.Color(GoldenFg));
@@ -2270,10 +2275,11 @@ void gbzadmin::process_command()
         } else if (cmd_str == "/leave") {
             logoff();
         } else if (cmd_str == "/list") {
-            if (isConnected())
+//            if (isConnected()) {
                 query_listServer();
-            else
-                msg_view.add_text("--- Cannot query list server offline! (yet)\n", Glib::ustring("rogue"));
+//            } else {
+//                msg_view.add_text("--- Cannot query list server offline! (yet)\n", Glib::ustring("rogue"));
+//            }
         } else if (cmd_str.substr(0, 8) == Glib::ustring("/reverse")) {
             if (cmd_str.length() > 8) {
                 displayHostName(cmd_str.substr(9));
@@ -2294,6 +2300,8 @@ void gbzadmin::process_command()
             Glib::ustring str("--- Message's of type ");
             str += "'" + type + "'" + " will now be hidden\n";
             msg_view.add_text(str, Glib::ustring("rogue"));
+        } else if (cmd_str.substr(0, 7) == "/mottos") {
+        	show_mottos();
         } else { // or send the command to the server
             send_message(cmd_str, ServerPlayer);
         }
@@ -2382,6 +2390,16 @@ void gbzadmin::on_lagstats_activate()
 void gbzadmin::on_query_listserver_activate()
 {
     if (isConnected()) {
+        cmd_str = "/list";
+        process_command();
+    } else {
+        query_listServer();
+    }
+}
+
+void gbzadmin::on_query_listserver_clicked()
+{
+	if (isConnected()) {
         cmd_str = "/list";
         process_command();
     } else {
@@ -2859,44 +2877,64 @@ void gbzadmin::enable_connected_items(bool set)
     refBuilder->get_widget("lagstats_button", button);
     button->set_sensitive(set);
 
+	// enable connect button/menu item if not connected
+	// otherwise disable the items
+    Gtk::ToolButton *connect_button;
+    refBuilder->get_widget("connect_button", connect_button);
+    connect_button->set_sensitive(!isConnected());
+
+    Gtk::MenuItem *connect;
+    refBuilder->get_widget("connect", connect);
+    connect->set_sensitive(!isConnected());
+    
+    // disable disconnect button/menuitem if not connected
+    // otherwise disable the items
+    Gtk::ToolButton *disconnect_button;
+    refBuilder->get_widget("disconnect_button", disconnect_button);
+    disconnect_button->set_sensitive(isConnected());
+
+    Gtk::MenuItem *disconnect;
+    refBuilder->get_widget("disconnect", disconnect);
+    disconnect->set_sensitive(isConnected());
+    
     // connected or not connected
-    if (isConnected()) {
-        // disable the connect button and menu item
-        Gtk::ToolButton *connect_button;
-        refBuilder->get_widget("connect_button", connect_button);
-        connect_button->set_sensitive(false);
+//    if (isConnected()) {
+//        // disable the connect button and menu item
+//        Gtk::ToolButton *connect_button;
+//        refBuilder->get_widget("connect_button", connect_button);
+//        connect_button->set_sensitive(false);
 
-        Gtk::MenuItem *connect;
-        refBuilder->get_widget("connect", connect);
-        connect->set_sensitive(false);
+//        Gtk::MenuItem *connect;
+//        refBuilder->get_widget("connect", connect);
+//        connect->set_sensitive(false);
 
-        // enable the disconnect button and menu item
-        Gtk::ToolButton *disconnect_button;
-        refBuilder->get_widget("disconnect_button", disconnect_button);
-        disconnect_button->set_sensitive();
+//        // enable the disconnect button and menu item
+//        Gtk::ToolButton *disconnect_button;
+//        refBuilder->get_widget("disconnect_button", disconnect_button);
+//        disconnect_button->set_sensitive();
 
-        Gtk::MenuItem *disconnect;
-        refBuilder->get_widget("disconnect", disconnect);
-        disconnect->set_sensitive();
-    } else {
-        // enable the connect button and menu item
-        Gtk::ToolButton *connect_button;
-        refBuilder->get_widget("connect_button", connect_button);
-        connect_button->set_sensitive();
+//        Gtk::MenuItem *disconnect;
+//        refBuilder->get_widget("disconnect", disconnect);
+//        disconnect->set_sensitive();
+//    } else {
+//        // enable the connect button and menu item
+//        Gtk::ToolButton *connect_button;
+//        refBuilder->get_widget("connect_button", connect_button);
+//        connect_button->set_sensitive();
 
-        Gtk::MenuItem *connect;
-        refBuilder->get_widget("connect", connect);
-        connect->set_sensitive();
+//        Gtk::MenuItem *connect;
+//        refBuilder->get_widget("connect", connect);
+//        connect->set_sensitive();
 
-        // disable the disconnect button and menu item
-        Gtk::ToolButton *disconnect_button;
-        refBuilder->get_widget("disconnect_button", disconnect_button);
-        disconnect_button->set_sensitive(false);
+//        // disable the disconnect button and menu item
+//        Gtk::ToolButton *disconnect_button;
+//        refBuilder->get_widget("disconnect_button", disconnect_button);
+//        disconnect_button->set_sensitive(false);
 
-        Gtk::MenuItem *disconnect;
-        refBuilder->get_widget("disconnect", disconnect);
-        disconnect->set_sensitive(false);
-    }
+//        Gtk::MenuItem *disconnect;
+//        refBuilder->get_widget("disconnect", disconnect);
+//        disconnect->set_sensitive(false);
+//    }
 }
 
 Glib::ustring gbzadmin::flag_has_owner(guint8 id)
@@ -3069,5 +3107,29 @@ void gbzadmin::displayHostName(Glib::ustring param)
         Glib::ustring str("### Player was not found, invalid player ID or callsign?\n");
         msg_view.add_text(str, Glib::ustring("rogue"));
     }
+}
+
+void gbzadmin::show_mottos()
+{
+	Glib::ustring str("");
+	for (int k = 0; k < player_view.get_n_players(); k++) {
+        Player* player = player_view.get_player(k);
+        str += msg_view.Color(Cyan4Fg) + ">>> ";
+        str += player->get_callsign();
+        str += "'s motto is ";
+        str += msg_view.Color(GoldenFg) + "'";
+        str += player->get_motto();
+        str += "'\n";
+    }
+    for (int k = 0; k < player_view.get_n_observers(); k++) {
+        Player* player = player_view.get_observer(k);
+        str += msg_view.Color(Cyan4Fg) + ">>> ";
+        str += player->get_callsign();
+        str += "'s motto is ";
+        str += msg_view.Color(GoldenFg) + "'";
+        str += player->get_motto();
+        str += "'\n";
+    }
+    msg_view.add_text(str);
 }
 

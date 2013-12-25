@@ -80,10 +80,11 @@ Configuration for $PACKAGE $VERSION :
 
  Host System Type .....: $host
  Install path .........: $prefix
+ Data Directory........: $datarootdir
+ GTKmm version ........: `pkg-config gtkmm-2.4 --modversion`
  Preprocessor Flags ...: $CXXFLAGS
  Compiler Flags .......: $CFLAGS $PACKAGE_CFLAGS
  Linker Flags .........: $LDFLAGS $LIBS $PACKAGE_LIBS
- GTKmm version ........: `pkg-config gtkmm-2.4 --modversion`
 
  Now type 'make' to build $PACKAGE $VERSION,
  and then 'make install' for installation.

@@ -76,7 +76,7 @@ public:
 	~gSocket();
 	
 	bool connect(Glib::ustring host, int p = 5154);
-	bool join(Glib::ustring callsign, Glib::ustring password);
+	bool join(Glib::ustring callsign, Glib::ustring password, Glib::ustring motto);
 	void disconnect();
 	void sendUDPlinkRequest();
 	void enableOutboundUDP();

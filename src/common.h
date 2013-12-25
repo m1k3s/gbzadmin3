@@ -74,7 +74,7 @@ enum NetworkUpdates {
   NoUpdates       = 0, // receive no player data and no chats
   PlayerUpdates   = 1, // receive only player updates
   ChatUpdates     = 2, // receive only chats
-  AllUpdates      = 3	 // receive player data and chats
+  AllUpdates      = 3  // receive player data and chats
 };
 
 // Player allow attributes for MsgAllow
@@ -100,7 +100,7 @@ enum PauseCodes {
 // protocol version
 const char* const ServerVersion	= "BZFS0221";
 
-// null message code -- should never be sent
+// null message code -- should never be sent/received
 const guint16		MsgNull = 0x0000;
 
 // server message codes

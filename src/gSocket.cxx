@@ -280,7 +280,7 @@ bool gSocket::resolveHost( const Glib::ustring& host )
     return true;
 }
 
-bool gSocket::join( Glib::ustring callsign, Glib::ustring password )
+bool gSocket::join( Glib::ustring callsign, Glib::ustring password, Glib::ustring motto)
 {
     uint16_t code, rejCode;
     Glib::ustring reason;
@@ -289,7 +289,7 @@ bool gSocket::join( Glib::ustring callsign, Glib::ustring password )
     // query the list server to get a token
     listServer.queryListServer( callsign, password, token );
     // request to enter the game -- sending callsign and token
-    sendEnter( TankPlayer, ObserverTeam, callsign, "gbzadmin", token );
+    sendEnter( TankPlayer, ObserverTeam, callsign, motto, token );
 
     // FIXME: need to make sure all this stuff goes before
     //        calling readEnter()

@@ -285,6 +285,7 @@ Glib::ustring playerView::format_player(Player * player)
 	// FIXME: using C style formating
 	// score (wins - losses) [tks] strength index, player id), callsign
 	char tmp_buf[256];
+	Glib::ustring fmt_str("");
 	if (rabbitMode) {
 		::snprintf(tmp_buf, sizeof(tmp_buf), "%2d%% %5d (%4d - %4d) [%2d] % 10.3f %3d) %s",
 				   rabbit_score, score, wins, losses, tks, si, id, callsign.c_str());

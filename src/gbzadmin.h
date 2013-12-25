@@ -100,6 +100,7 @@ protected:
 	void on_server_list_window_activate();
 	bool on_delete_event (GdkEventAny *event);
 	void on_query_listserver_activate();
+	void on_query_listserver_clicked();
 	void on_save_config_activate();
 	
 	// signal callback function
@@ -143,6 +144,7 @@ protected:
 	Glib::ustring colorize(Player* player);
 	void init_message_handler_map();
 	void print_message_code(guint16 code);
+	void show_mottos();
 	
 	// timer functions
 	bool update_timer();

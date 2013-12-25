@@ -25,7 +25,7 @@
 #include "gbzadmin.h"
 #include "config.h"
 
-const char *xml_interface = "gbzadmin3.xml";
+const char *xml_interface = "gbzadmin3.glade";
 
 int main(int argc, char *argv[])
 {
@@ -74,11 +74,12 @@ int main(int argc, char *argv[])
 		path.push_back(xml_interface);
 		xml_file = Glib::build_filename(path);
 	} else {
-		std::cout << "Using local XML file: " << xml_file << std::endl;
+		std::cout << "Using local glade file: " << xml_file << std::endl;
 	}
 
 	// Load the xml file and instantiate its objects:
-	Glib::RefPtr<Gtk::Builder> refBuilder; 
+	Glib::RefPtr<Gtk::Builder> refBuilder;
+//	std::cout << "glade file: " << xml_file << std::endl;
 
 	try	{
 		refBuilder = Gtk::Builder::create_from_file(xml_file);

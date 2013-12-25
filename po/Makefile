@@ -25,7 +25,7 @@ top_srcdir = ..
 
 prefix = /home/mike
 exec_prefix = ${prefix}
-datarootdir = ${prefix}/share
+datarootdir = /home/mike/.local/share
 datadir = ${datarootdir}
 libdir = ${exec_prefix}/lib
 localedir = $(libdir)/locale

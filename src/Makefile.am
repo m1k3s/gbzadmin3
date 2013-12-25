@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in
 
-INCLUDES = \
+AM_CPPFLAGS = \
 	-DPACKAGE_DATA_DIR=\""$(datadir)"\" \
 	-DPACKAGE_LOCALE_DIR=\""$(prefix)/$(DATADIRNAME)/locale"\" \
 	@PACKAGE_CFLAGS@
@@ -21,7 +21,7 @@ gbzadmin3_SOURCES = \
 	game_stat_view.cxx game_stat_view.h \
 	players.cxx players.h \
 	parser.cxx parser.h \
-	serverlist_view.cxx serverlist_view.h \
-	configfile.cxx configfile.h
+	serverlist_view.cxx serverlist_view.h
+##	configfile.cxx configfile.h
 
 gbzadmin3_LDADD = @PACKAGE_LIBS@ $(INTLLIBS) -lcurl
