@@ -88,8 +88,9 @@ void gbzadmin::power_down()
 
     save_config_file(configPath);
 
-    if (app)
+    if (app) {
         app->hide(); // hide() will cause main::run() to end.
+    }
 }
 
 // in case the user clicks the close button on the
@@ -100,7 +101,7 @@ bool gbzadmin::on_delete_event (GdkEventAny *event)
     if (isConnected()) {
         cmd_str = "/quit";
         process_command();
-    }	else {
+    } else {
         power_down();
     }
     return true;
@@ -151,8 +152,9 @@ void gbzadmin::logoff()
         conn_timer.disconnect();
         wd_timer.disconnect();
         tcp_data_pending.disconnect();
-        if (useUDP)
+        if (useUDP) {
             udp_data_pending.disconnect();
+        }
         sock.sendExit();
         sock.disconnect();
     } else {
@@ -165,8 +167,9 @@ void gbzadmin::clean_up(bool clear_msg_view)
 {
     set_status_message(StatusConnTime, "Disconnected");
 
-    if (clear_msg_view)
+    if (clear_msg_view) {
         msg_view.clear();
+    }
 
     player_view.clear();
     cmd.clear_targets();
@@ -192,9 +195,9 @@ void gbzadmin::clean_up(bool clear_msg_view)
 
 void gbzadmin::on_save_activate()
 {
-    if (!save_dialog)
+    if (!save_dialog) {
         refBuilder->get_widget("save_dialog", save_dialog);
-
+    }
     save_dialog->show();
 }
 
@@ -269,9 +272,9 @@ void gbzadmin::on_flag_reset_dialog_response(gint response_id)
         }
         cmd_str = command;
 
-        if (response_id == Gtk::RESPONSE_OK)
+        if (response_id == Gtk::RESPONSE_OK) {
             flag_reset_dialog->hide();
-
+        }
         process_command();
     } else {
         flag_reset_dialog->hide();
@@ -280,25 +283,26 @@ void gbzadmin::on_flag_reset_dialog_response(gint response_id)
 
 void gbzadmin::on_flag_up_activate()
 {
-    if (confirm("You are about to remove ALL flags\nDo you really want to do this?", false) == GTK_RESPONSE_YES)
+    if (confirm("You are about to remove ALL flags\nDo you really want to do this?", false) == GTK_RESPONSE_YES) {
         do_command_send(FlagUp);
+    }
 }
 
 void gbzadmin::connect_dialog_setup()
 {
     refBuilder->get_widget("connect_dialog", connect_dialog);
     if (connect_dialog) {
-        Gtk::Entry *w_callsign, *w_password, *w_server, *w_port;
+        Gtk::Entry *w_callsign, *w_password, *w_server;
         refBuilder->get_widget("callsign_entry", w_callsign);
         refBuilder->get_widget("password_entry", w_password);
         refBuilder->get_widget("server_entry", w_server);
-        refBuilder->get_widget("port_entry", w_port);
 
         w_callsign->set_text(_callsign);
         w_password->set_text(_password);
         // TODO: add MRU server/port
-        w_server->set_text(_server);
-        w_port->set_text(_port_str);
+        Glib::ustring addr("");
+        addr = _server + ":" + _port_str;
+        w_server->set_text(addr);
 
         connect_dialog->show();
     }
@@ -306,25 +310,31 @@ void gbzadmin::connect_dialog_setup()
 
 void gbzadmin::on_connect_dialog_response(gint response_id)
 {
-    Gtk::Entry *w_name, *w_port, *w_callsign, *w_password;
-    Glib::ustring port_str;
+    Gtk::Entry *w_server, *w_callsign, *w_password;
 
     if (response_id == Gtk::RESPONSE_OK) {
         refBuilder->get_widget("callsign_entry", w_callsign);
         refBuilder->get_widget("password_entry", w_password);
-        refBuilder->get_widget("server_entry", w_name);
-        refBuilder->get_widget("port_entry", w_port);
+        refBuilder->get_widget("server_entry", w_server);
 
-        _port_str = w_port->get_text();
-        _port = atoi(_port_str.c_str());
-        _server = w_name->get_text();
+		Glib::ustring str = w_server->get_text();
+		size_t idx = str.find_last_of(":");
+		if (idx == std::string::npos) { // check for the host:port separator ":"
+			_server = str;
+			_port_str = "5154";
+			_port = 5154; // use default port
+		} else {
+			_server = str.substr(0, idx);
+			_port_str = str.substr(idx + 1);
+			_port = atoi(_port_str.c_str());
+		}
         _callsign.assign(w_callsign->get_text(), 0, CallSignLen);
         _password.assign(w_password->get_text(), 0, PasswordLen);
 
         logon();
     } else {
         // only hide the connect dialog if canceled.
-        // the logon routine will hide it.
+        // the logon routine will hide it otherwise.
         connect_dialog->hide();
     }
 }
@@ -360,11 +370,11 @@ void gbzadmin::pref_dialog_setup()
 
         Glib::ustring sp = "";
         refBuilder->get_widget("pref_dump_players", check);
-        if (sp.empty())
+        if (sp.empty()) {
             check->set_sensitive(false);
-        else
+        } else {
             check->set_active(dump_players);
-
+        }
         refBuilder->get_widget("net_stats", check);
         check->set_active(sock.netStatsEnabled());
 
@@ -437,8 +447,9 @@ void gbzadmin::on_pref_dialog_response(gint response_id)
         _port_str = e->get_text();
         _port = atoi(_port_str.c_str());
 
-        if (response_id == Gtk::RESPONSE_OK)
+        if (response_id == Gtk::RESPONSE_OK) {
             pref_dialog->hide();
+        }
     } else {
         pref_dialog->hide();
     }
@@ -527,14 +538,15 @@ Gtk::Window *gbzadmin::init_gbzadmin(Glib::RefPtr<Gtk::Builder> _refBuilder)
     // replace the input dialog comboboxes with combotextboxes
     replace_input_placeholders();
 
-    if (auto_cmd)
+    if (auto_cmd) {
         cmd.set_auto_cmd();
-
+    }
     // disable the connected-only items
     enable_connected_items(false);
 
-    if (connect_at_startup)
+    if (connect_at_startup) {
         logon();
+    }
 
     return app;
 }
@@ -614,7 +626,7 @@ void gbzadmin::on_about_activate()
     comment += getAppVersion();
     comment += "-";
     comment += getServerVersion();
-    
+
 //    std::cout << PACKAGE_DATA_DIR << std::endl;
 
     Glib::ustring path(PACKAGE_DATA_DIR);
@@ -702,28 +714,34 @@ void gbzadmin::add_callbacks()
 
     // dialog response handlers
     refBuilder->get_widget("connect_dialog", connect_dialog);
-    if (connect_dialog)
+    if (connect_dialog) {
         connect_dialog->signal_response().connect(sigc::mem_fun(*this, &gbzadmin::on_connect_dialog_response));
+    }
 
     refBuilder->get_widget("pref_dialog", pref_dialog);
-    if (pref_dialog)
+    if (pref_dialog) {
         pref_dialog->signal_response().connect(sigc::mem_fun(*this, &gbzadmin::on_pref_dialog_response));
+    }
 
     refBuilder->get_widget("input_dialog", input_dialog);
-    if (input_dialog)
+    if (input_dialog) {
         input_dialog->signal_response().connect(sigc::mem_fun(*this, &gbzadmin::on_input_dialog_response));
+    }
 
     refBuilder->get_widget("save_dialog", save_dialog);
-    if (save_dialog)
+    if (save_dialog) {
         save_dialog->signal_response().connect(sigc::mem_fun(*this, &gbzadmin::on_save_dialog_response));
+    }
 
     refBuilder->get_widget("flag_reset_dialog", flag_reset_dialog);
-    if (flag_reset_dialog)
+    if (flag_reset_dialog) {
         flag_reset_dialog->signal_response().connect(sigc::mem_fun(*this, &gbzadmin::on_flag_reset_dialog_response));
+    }
 
     refBuilder->get_widget("lagwarn_dialog", lagwarn_dialog);
-    if (lagwarn_dialog)
+    if (lagwarn_dialog) {
         lagwarn_dialog->signal_response().connect(sigc::mem_fun(*this, &gbzadmin::on_lagwarn_dialog_response));
+    }
 
     // connect the server variable changed signal
     server_vars_view.on_variable_changed.connect(sigc::mem_fun(*this, &gbzadmin::on_variable_changed));
@@ -920,8 +938,9 @@ void gbzadmin::parse_config_file(Glib::ustring filename)
             is.getline(buf, 256);
 
             result = sscanf(buf, "%32[^#=]=%256[^\n]\n", variable, value);
-            if ((result < 2) || (result == EOF))
+            if ((result < 2) || (result == EOF)) {
                 break;
+            }
 
             // now that we have the variable,value pair we need to assign
             // the value to the prefs.value
@@ -1143,7 +1162,7 @@ void gbzadmin::save_config_file(Glib::ustring filename)
 
         buf = Glib::ustring::compose("msg_flags=%1\n", msg_mask["flags"]);
         os.write(buf.c_str(), buf.length());
-        
+
         buf = Glib::ustring::compose("msg_teleport=%1\n", msg_mask["teleport"]);
         os.write(buf.c_str(), buf.length());
 
@@ -1171,8 +1190,9 @@ void gbzadmin::set_message_filter(Glib::ustring type, bool set)
 
 Glib::ustring gbzadmin::get_team_str(int t)
 {
-    if (t < 0 || t > 5)
+    if (t < 0 || t > 5) {
         return Glib::ustring("unknown");
+    }
 
     const char* teams[] = {
         "Rogue",
@@ -1313,12 +1333,14 @@ void gbzadmin::handle_add_player_message(void *vbuf)
     char time_str[128];
     strftime(time_str, 128, " (%T)", ts);
 
-    if (player_view.get_rabbit_mode() && (team == RogueTeam))
+    if (player_view.get_rabbit_mode() && (team == RogueTeam)) {
         team = HunterTeam;
+    }
 
     // check for duplicate MsgAddPlayer
-    if (player_view.find_player(p))
+    if (player_view.find_player(p)) {
         return;
+    }
 
     // add the player to the list
     Player *player = new Player;
@@ -1328,8 +1350,9 @@ void gbzadmin::handle_add_player_message(void *vbuf)
 
     // checking all known flags for owners
     Glib::ustring flag = flag_has_owner(p);
-    if (flag.size())
+    if (flag.size()) {
         player->set_flag(flag);
+    }
 
     // If you are an admin, then MsgAdminInfo will output the message
     me = sock.getId();
@@ -1600,7 +1623,7 @@ void gbzadmin::handle_autopilot_message(void *vbuf)
         if (msg_mask["roger"]) {
             Glib::ustring str("*** Roger is ");
             str += (autopilot ? "taking the controls for " : "releasing the controls back to "
-                     + colorize(player) + player->get_callsign());
+                    + colorize(player) + player->get_callsign());
             str += "\n";
             msg_view.add_text(str);
         }
@@ -1624,7 +1647,7 @@ void gbzadmin::handle_grabflag_message(void *vbuf)
         if (msg_mask["flags"]) {
             Glib::ustring buffer("*** ");
             buffer += Glib::ustring::compose("%1 has picked up the %2 flag\n",
-                                              player->get_callsign(), flag.size() ? flag : "<unknown>");
+                                             player->get_callsign(), flag.size() ? flag : "<unknown>");
 
             msg_view.add_text(buffer, Glib::ustring("default"));
         }
@@ -1650,7 +1673,7 @@ void gbzadmin::handle_dropflag_message(void *vbuf)
         if (msg_mask["flags"]) {
             Glib::ustring buffer("*** ");
             buffer += Glib::ustring::compose("%1 has dropped the %2 flag\n",
-                                              player->get_callsign(), flag.size() ? flag : "<unknown>");
+                                             player->get_callsign(), flag.size() ? flag : "<unknown>");
 
             msg_view.add_text(buffer, Glib::ustring("default"));
         }
@@ -1722,7 +1745,6 @@ void gbzadmin::handle_message_message(void *vbuf)
     vbuf = parser.nboUnpackUByte(vbuf, &type);
 
     // format the message depending on source and destination
-
     gint16 dstTeam = (LastRealPlayer < dst && dst <= FirstTeam ? TeamColor(FirstTeam - dst) : NoTeam);
 
     if (msg_mask["chat"]) {
@@ -1734,8 +1756,9 @@ void gbzadmin::handle_message_message(void *vbuf)
             src_callsign = src_player->get_callsign();
             src_team = src_player->get_team();
         }
-        if (dst_player)
+        if (dst_player) {
             dst_callsign = dst_player->get_callsign();
+        }
 
         Glib::ustring str(msg_view.Color(OrangeFg));
         Glib::ustring formatted;
@@ -1819,8 +1842,9 @@ void gbzadmin::handle_game_query_message(void *vbuf)
 
     vbuf = parser.nboUnpackUShort(vbuf, &tmp);
     game_view.setType(tmp);
-    if (tmp == RabbitChase)
+    if (tmp == RabbitChase) {
         player_view.set_rabbit_mode(true);
+    }
 
     vbuf = parser.nboUnpackUShort(vbuf, &tmp);
     game_view.setOptions(tmp);
@@ -1895,15 +1919,15 @@ void gbzadmin::handle_teamupdate_message(void *vbuf)
 
 void gbzadmin::handle_teleport_message(void *vbuf)
 {
-	guint8 id;
+    guint8 id;
     guint16 from, to;
-    
+
     if (msg_mask["teleport"]) {
-		vbuf = parser.nboUnpackUByte(vbuf, &id);
-		vbuf = parser.nboUnpackUShort(vbuf, &from);
-		vbuf = parser.nboUnpackUShort(vbuf, &to);
-		Player *player = player_view.find_player(id);
-    
+        vbuf = parser.nboUnpackUByte(vbuf, &id);
+        vbuf = parser.nboUnpackUShort(vbuf, &from);
+        vbuf = parser.nboUnpackUShort(vbuf, &to);
+        Player *player = player_view.find_player(id);
+
         Glib::ustring str(msg_view.Color(PurpleFg));
         str += "*** ";
         str += colorize(player);
@@ -1971,8 +1995,9 @@ void gbzadmin::on_read_data()
 
 gint gbzadmin::get_message()
 {
-    if (!isConnected() || (wd_counter <= 0))
+    if (!isConnected() || (wd_counter <= 0)) {
         return CommError;
+    }
 
     guint16 code, len;
     gchar inbuf[MaxPacketLen];
@@ -1984,13 +2009,14 @@ gint gbzadmin::get_message()
             return Superkilled;
         }
 
-		// find and execute the appropriate message handler
+        // find and execute the appropriate message handler
         msg_handler_map::const_iterator iter = handler_map.find(code);
         if (iter != handler_map.end()) {
             messagehandler handler = iter->second;
             ((this)->*handler)(vbuf);
         } else {
-//        	print_message_code(code); // print unhandled codes
+            // print unhandled codes, we may want to monitor some of them
+//        	print_message_code(code);
             return NoMessage;
         }
         return GotMessage;
@@ -2001,20 +2027,21 @@ gint gbzadmin::get_message()
 
 void gbzadmin::print_message_code(guint16 code)
 {
-	std::cout << std::showbase 	// show the 0x prefix
-         << std::internal 		// fill between the prefix and the number
-         << std::setfill('0'); 	// fill with 0s
+    std::cout << std::showbase 	// show the 0x prefix
+              << std::internal 		// fill between the prefix and the number
+              << std::setfill('0'); 	// fill with 0s
 
-	if (code != 0x7073 && code != 0x7362) {
-    	std::cout << std::hex << std::setw(6) << code << std::endl;
+    if (code != 0x7073 && code != 0x7362) { // we don't care about shot begin/end
+        std::cout << std::hex << std::setw(6) << code << std::endl;
     }
 }
 
 void gbzadmin::logon()
 {
     set_status_message(StatusConnTime, "Connecting...");
-    while(Gtk::Main::events_pending()) // update the GUI before the connect phase
+    while(Gtk::Main::events_pending()) {  // update the GUI before the connect phase
         Gtk::Main::iteration();
+    }
 
     if (sock.connect(_server, _port)) {
         if (sock.join(_callsign, _password, "gbzadmin")) {
@@ -2050,8 +2077,9 @@ void gbzadmin::logon()
             // FIXME: using UDP seems to cause problems. Not sure what is going on yet.
             // The app starts using 100% CPU after a few minutes. Gets stuck in a loop?
             // Perhaps a race condition due to improper handing of the signals?
-            if (useUDP)
+            if (useUDP) {
                 sock.sendUDPlinkRequest();
+            }
 
             // enable the connected only items
             enable_connected_items(true);
@@ -2097,8 +2125,9 @@ void gbzadmin::logon()
         }
     }
     // hide the connect dialog here.
-    if (connect_dialog->is_visible())
+    if (connect_dialog->is_visible()) {
         connect_dialog->hide();
+    }
 }
 
 // this function is called once per second to update stuff
@@ -2159,8 +2188,9 @@ bool gbzadmin::confirm_quit_and_save()
     bool result = false;
     switch(confirm("Quiting...\nDo you want to save the message buffer?", true)) {
         case GTK_RESPONSE_YES:
-            if (!save_dialog)
+            if (!save_dialog) {
                 refBuilder->get_widget("save_dialog", save_dialog);
+            }
 
             switch (save_dialog->run()) {
                 case GTK_RESPONSE_YES:
@@ -2225,8 +2255,9 @@ void gbzadmin::on_send_button_pressed()
     Glib::ustring tmp_cmd;
     tmp_cmd = entry->get_text();
 
-    if (tmp_cmd.size() == 0)
+    if (tmp_cmd.size() == 0) {
         return;
+    }
 
     // clear the command entry
     entry->set_text("");
@@ -2236,7 +2267,7 @@ void gbzadmin::on_send_button_pressed()
         // make sure is not an ill-formed password string !!
         if (tmp_cmd.substr(0, 9) == "password ") {
             Glib::ustring msg("You are about to send your password to EVERYONE!\n"
-                               "Try using a '/' in front of 'password'\n\nYou're Welcome");
+                              "Try using a '/' in front of 'password'\n\nYou're Welcome");
             post_message(msg, Gtk::MESSAGE_WARNING);
             return;
         } else { // hope its a message
@@ -2276,7 +2307,7 @@ void gbzadmin::process_command()
             logoff();
         } else if (cmd_str == "/list") {
 //            if (isConnected()) {
-                query_listServer();
+            query_listServer();
 //            } else {
 //                msg_view.add_text("--- Cannot query list server offline! (yet)\n", Glib::ustring("rogue"));
 //            }
@@ -2301,7 +2332,7 @@ void gbzadmin::process_command()
             str += "'" + type + "'" + " will now be hidden\n";
             msg_view.add_text(str, Glib::ustring("rogue"));
         } else if (cmd_str.substr(0, 7) == "/mottos") {
-        	show_mottos();
+            show_mottos();
         } else { // or send the command to the server
             send_message(cmd_str, ServerPlayer);
         }
@@ -2399,7 +2430,7 @@ void gbzadmin::on_query_listserver_activate()
 
 void gbzadmin::on_query_listserver_clicked()
 {
-	if (isConnected()) {
+    if (isConnected()) {
         cmd_str = "/list";
         process_command();
     } else {
@@ -2426,7 +2457,7 @@ void gbzadmin::query_listServer()
     // ctime str is terminated with '\n'
     Glib::ustring str(msg_view.Color(YellowFg));
     str += Glib::ustring::compose("--- queried (%1) list server in %2 seconds on %3",
-                                   ServerVersion/*sock.getVersion()*/, elapsed, ctime(&tm));
+                                  ServerVersion/*sock.getVersion()*/, elapsed, ctime(&tm));
 
     msg_view.add_text(str);
 }
@@ -2699,8 +2730,9 @@ void gbzadmin::save_the_buffer()
 {
     std::ofstream os;
 
-    if (!save_dialog)
+    if (!save_dialog) {
         refBuilder->get_widget("save_dialog", save_dialog);
+    }
 
     Glib::ustring filename = save_dialog->get_filename();
     os.open(filename.c_str());
@@ -2865,10 +2897,6 @@ void gbzadmin::enable_connected_items(bool set)
     refBuilder->get_widget("uptime", item);
     item->set_sensitive(set);
 
-//	item = 0;
-//	refBuilder->get_widget("query_listserver", item);
-//	item->set_sensitive(set);
-
     Gtk::ToolButton *button = 0;
     refBuilder->get_widget("clientquery_button", button);
     button->set_sensitive(set);
@@ -2877,8 +2905,8 @@ void gbzadmin::enable_connected_items(bool set)
     refBuilder->get_widget("lagstats_button", button);
     button->set_sensitive(set);
 
-	// enable connect button/menu item if not connected
-	// otherwise disable the items
+    // enable connect button/menu item if not connected
+    // otherwise disable the items
     Gtk::ToolButton *connect_button;
     refBuilder->get_widget("connect_button", connect_button);
     connect_button->set_sensitive(!isConnected());
@@ -2886,7 +2914,7 @@ void gbzadmin::enable_connected_items(bool set)
     Gtk::MenuItem *connect;
     refBuilder->get_widget("connect", connect);
     connect->set_sensitive(!isConnected());
-    
+
     // disable disconnect button/menuitem if not connected
     // otherwise disable the items
     Gtk::ToolButton *disconnect_button;
@@ -2896,45 +2924,6 @@ void gbzadmin::enable_connected_items(bool set)
     Gtk::MenuItem *disconnect;
     refBuilder->get_widget("disconnect", disconnect);
     disconnect->set_sensitive(isConnected());
-    
-    // connected or not connected
-//    if (isConnected()) {
-//        // disable the connect button and menu item
-//        Gtk::ToolButton *connect_button;
-//        refBuilder->get_widget("connect_button", connect_button);
-//        connect_button->set_sensitive(false);
-
-//        Gtk::MenuItem *connect;
-//        refBuilder->get_widget("connect", connect);
-//        connect->set_sensitive(false);
-
-//        // enable the disconnect button and menu item
-//        Gtk::ToolButton *disconnect_button;
-//        refBuilder->get_widget("disconnect_button", disconnect_button);
-//        disconnect_button->set_sensitive();
-
-//        Gtk::MenuItem *disconnect;
-//        refBuilder->get_widget("disconnect", disconnect);
-//        disconnect->set_sensitive();
-//    } else {
-//        // enable the connect button and menu item
-//        Gtk::ToolButton *connect_button;
-//        refBuilder->get_widget("connect_button", connect_button);
-//        connect_button->set_sensitive();
-
-//        Gtk::MenuItem *connect;
-//        refBuilder->get_widget("connect", connect);
-//        connect->set_sensitive();
-
-//        // disable the disconnect button and menu item
-//        Gtk::ToolButton *disconnect_button;
-//        refBuilder->get_widget("disconnect_button", disconnect_button);
-//        disconnect_button->set_sensitive(false);
-
-//        Gtk::MenuItem *disconnect;
-//        refBuilder->get_widget("disconnect", disconnect);
-//        disconnect->set_sensitive(false);
-//    }
 }
 
 Glib::ustring gbzadmin::flag_has_owner(guint8 id)
@@ -2954,8 +2943,9 @@ Glib::ustring gbzadmin::flag_has_owner(guint8 id)
         }
         it++;
     }
-    if (!found)
+    if (!found) {
         flag.clear();
+    }
 
     return flag;
 }
@@ -2992,14 +2982,16 @@ void gbzadmin::remove_flag(flag_info *fi)
 
 void gbzadmin::on_shutdown_server_activate()
 {
-    if (confirm("Do you really want to shutdown the server?") == GTK_RESPONSE_YES)
+    if (confirm("Do you really want to shutdown the server?") == GTK_RESPONSE_YES) {
         do_command_send(ShutDown);
+    }
 }
 
 void gbzadmin::on_super_kill_activate()
 {
-    if (confirm("Really...?\nYou REALLY want to kill _EVERYONE_?\nYourself included!") == GTK_RESPONSE_YES)
+    if (confirm("Really...?\nYou REALLY want to kill _EVERYONE_?\nYourself included!") == GTK_RESPONSE_YES) {
         do_command_send(SuperKill);
+    }
 }
 
 // this is from connect_clicked in libgtkmm
@@ -3011,11 +3003,13 @@ void gbzadmin::connect_clicked(const Glib::ustring& name, const sigc::slot<void>
     Gtk::ToolButton* pButton = dynamic_cast<Gtk::ToolButton*>(pWidget);
     Gtk::MenuItem* pMenuItem = dynamic_cast<Gtk::MenuItem*>(pWidget);
 
-    if(pButton)
+    if (pButton) {
         pButton->signal_clicked().connect(slot_);
+    }
 
-    if(pMenuItem)
+    if (pMenuItem) {
         pMenuItem->signal_activate().connect(slot_);
+    }
 }
 
 //
@@ -3111,8 +3105,8 @@ void gbzadmin::displayHostName(Glib::ustring param)
 
 void gbzadmin::show_mottos()
 {
-	Glib::ustring str("");
-	for (int k = 0; k < player_view.get_n_players(); k++) {
+    Glib::ustring str("");
+    for (int k = 0; k < player_view.get_n_players(); k++) {
         Player* player = player_view.get_player(k);
         str += msg_view.Color(Cyan4Fg) + ">>> ";
         str += player->get_callsign();

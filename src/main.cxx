@@ -79,7 +79,6 @@ int main(int argc, char *argv[])
 
 	// Load the xml file and instantiate its objects:
 	Glib::RefPtr<Gtk::Builder> refBuilder;
-//	std::cout << "glade file: " << xml_file << std::endl;
 
 	try	{
 		refBuilder = Gtk::Builder::create_from_file(xml_file);
