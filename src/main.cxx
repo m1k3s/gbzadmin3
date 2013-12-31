@@ -30,7 +30,7 @@ const char *xml_interface = "gbzadmin3.glade";
 int main(int argc, char *argv[])
 {
 	Gtk::Main admin(argc, argv);
-	Glib::ustring xml_file;
+	Glib::ustring glade_file;
 	
 	// find the glade file. If the program is launched from the devel
 	// directory, use the local glade file. Otherwise if the program 
@@ -58,30 +58,30 @@ int main(int argc, char *argv[])
 			gchar *suffix = g_strrstr (prog_name.c_str(), dir.c_str());
 			if (suffix) {
 				*suffix = 0;
-				xml_file = Glib::build_filename(prog_name, xml_interface);
+				glade_file = Glib::build_filename(prog_name, xml_interface);
 			}
 		}
 		
-		if (!Glib::file_test(xml_file, Glib::FILE_TEST_EXISTS)) {
-			xml_file.clear();
+		if (!Glib::file_test(glade_file, Glib::FILE_TEST_EXISTS)) {
+			glade_file.clear();
 		}
 	}
 
-	if (xml_file.empty()) {
+	if (glade_file.empty()) {
 		std::vector<Glib::ustring> path;
 		path.push_back(PACKAGE_DATA_DIR);
 		path.push_back(PACKAGE);
 		path.push_back(xml_interface);
-		xml_file = Glib::build_filename(path);
+		glade_file = Glib::build_filename(path);
 	} else {
-		std::cout << "Using local glade file: " << xml_file << std::endl;
+		std::cout << "Using local glade file: " << glade_file << std::endl;
 	}
 
 	// Load the xml file and instantiate its objects:
 	Glib::RefPtr<Gtk::Builder> refBuilder;
 
 	try	{
-		refBuilder = Gtk::Builder::create_from_file(xml_file);
+		refBuilder = Gtk::Builder::create_from_file(glade_file);
 	}
 	catch (const Glib::FileError& ex)	{
 		std::cerr << "\n *** " << ex.what() << std::endl;
@@ -89,10 +89,10 @@ int main(int argc, char *argv[])
 	}
 	// instantiate the main class 'gbzadmin'
 	Gtk::Window *app;
-	gbzadmin gbzadmin;
+	gbzadmin gbzadmin3;
 	
 	// initialize gbzadmin
-	if (!(app = gbzadmin.init_gbzadmin(refBuilder))) {
+	if (!(app = gbzadmin3.init_gbzadmin(refBuilder))) {
 		std::cout << "Failed to initialize gbzadmin" << std::endl;
 		return 1;
 	}

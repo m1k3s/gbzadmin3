@@ -227,25 +227,6 @@ void view::init(Glib::RefPtr <Gtk::Builder> _refBuilder, const gchar* which)
 	// set default font
 	me->Gtk::Widget::modify_font(Pango::FontDescription(viewFont));
 	
-	// set the font from the config file
-//	if (client->dir_exists("/apps/gbzadmin3/views")) {
-//		Glib::ustring path("/apps/gbzadmin3/views/"), tmp_path(path);
-//		tmp_path += theView;
-//		tmp_path += "/font";
-//		viewFont = client->Gnome::Conf::Client::get_string(tmp_path);
-//		me->Gtk::Widget::modify_font(Pango::FontDescription(viewFont));
-//		
-//		// set the foreground/background colors from gconf
-//		tmp_path = path;
-//		tmp_path += theView;
-//		tmp_path += "/foreground";
-//		color_fg = client->Gnome::Conf::Client::get_string(tmp_path);
-//		
-//		tmp_path = path;
-//		tmp_path += theView;
-//		tmp_path += "/background";
-//		color_bg = client->Gnome::Conf::Client::get_string(tmp_path);
-//	}	
 	view_scroll = false;
 	capture = false;
 	do_shrink = false;
@@ -506,7 +487,6 @@ void view::stop_capture()
 void view::on_set_view_prefs()
 {
 	Glib::ustring fontname;
-	Glib::ustring path("/apps/gbzadmin3/views/"), tmp_path;
 	
 	Gtk::FontSelection *fs = 0;
 	refBuilder->get_widget("fontselection", fs);
@@ -540,19 +520,6 @@ void view::on_set_view_prefs()
 		fontname = fs->get_font_name();
 		me->Gtk::Widget::modify_font(Pango::FontDescription(fontname));
 		viewFont = fontname;
-		
-		// update gconf
-//		tmp_path = path + theView;
-//		tmp_path += "/font";
-//		client->Gnome::Conf::Client::set(tmp_path, viewFont);
-//		
-//		tmp_path = path + theView;
-//		tmp_path += "/foreground";
-//		client->Gnome::Conf::Client::set(tmp_path, color_fg);
-//		
-//		tmp_path = path + theView;
-//		tmp_path += "/background";
-//		client->Gnome::Conf::Client::set(tmp_path, color_bg);
 	}
 	view_dialog->hide();
 }
@@ -570,25 +537,7 @@ void view::set_view_font(Glib::ustring font)
 	viewFont = font;
 	me->Gtk::Widget::modify_font(Pango::FontDescription(viewFont));
 }
-#if 0
-void view::save_gconf()
-{
-	Glib::ustring path("/apps/gbzadmin3/views/"), tmp_path(path);
-	tmp_path += theView;
-	tmp_path += "/font";
-	client->Gnome::Conf::Client::set(tmp_path, viewFont);
-	
-	tmp_path = path + theView;
-	tmp_path += "/foreground";
-	client->Gnome::Conf::Client::set(tmp_path, color_fg);
-	
-	tmp_path = path + theView;
-	tmp_path += "/background";
-	client->Gnome::Conf::Client::set(tmp_path, color_bg);
-	
-	client->Gnome::Conf::Client::set("/apps/gbzadmin3/views/msg_view/line_numbers", line_numbers);
-}
-#endif
+
 std::vector<Glib::ustring> view::split(const Glib::ustring& in, const Glib::ustring &delims)
 {
 	std::vector<Glib::ustring> tokens;

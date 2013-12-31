@@ -58,3 +58,4 @@ private:
 	std::vector<serverInfo*> si;
 };
 #endif // _gListServer_h_
+

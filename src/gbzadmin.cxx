@@ -25,6 +25,7 @@
 
 const char *windowTitle = "gBZAdmin3";
 const char *configFileName = "/.gbzadmin";
+const int maxServersList = 16;
 
 // message mask/prefs dialog widget names
 const gchar *msg_names[] = {
@@ -131,7 +132,7 @@ void gbzadmin::on_connect_activate()
     connect_dialog_setup();
 }
 
-void gbzadmin::on_connect_clicked()
+void gbzadmin::on_connect_signal_to_item()
 {
     connect_dialog_setup();
 }
@@ -141,7 +142,7 @@ void gbzadmin::on_disconnect_activate()
     logoff();
 }
 
-void gbzadmin::on_disconnect_clicked()
+void gbzadmin::on_disconnect_signal_to_item()
 {
     logoff();
 }
@@ -292,44 +293,81 @@ void gbzadmin::connect_dialog_setup()
 {
     refBuilder->get_widget("connect_dialog", connect_dialog);
     if (connect_dialog) {
-        Gtk::Entry *w_callsign, *w_password, *w_server;
+        Gtk::Entry *w_callsign, *w_password, *w_motto;
+//        Gtk::Entry *w_server;
         refBuilder->get_widget("callsign_entry", w_callsign);
         refBuilder->get_widget("password_entry", w_password);
-        refBuilder->get_widget("server_entry", w_server);
+//        refBuilder->get_widget("server_entry", w_server);
+        refBuilder->get_widget("motto_entry", w_motto);
 
         w_callsign->set_text(_callsign);
         w_password->set_text(_password);
-        // TODO: add MRU server/port
-        Glib::ustring addr("");
-        addr = _server + ":" + _port_str;
-        w_server->set_text(addr);
-
-        connect_dialog->show();
+        w_motto->set_text(_motto);
+        
+        // add the server:port strings
+        server_combo.clear_items();
+        std::list<Glib::ustring>::iterator iter;
+        int nLines = 1;
+        for (iter = server_mru_str.begin(); iter != server_mru_str.end(); iter++) {
+        	server_combo.append_text(*iter);
+        	nLines++;
+        	if (nLines >= max_mru_lines) {
+        		break;
+        	}
+        }
+//        Glib::ustring addr("");
+//        addr = _server + ":" + _port_str;
+//        w_server->set_text(addr);
+//		server_combo.append_text(addr);
+		iter = server_mru_str.begin();
+		server_combo.set_active_text(*iter); // this should be the top of the MRU list
+        connect_dialog->show_all();
     }
 }
 
 void gbzadmin::on_connect_dialog_response(gint response_id)
 {
-    Gtk::Entry *w_server, *w_callsign, *w_password;
+    Gtk::Entry *w_callsign, *w_password, *w_motto;
+//	Gtk::Entry *w_server;
 
     if (response_id == Gtk::RESPONSE_OK) {
         refBuilder->get_widget("callsign_entry", w_callsign);
         refBuilder->get_widget("password_entry", w_password);
-        refBuilder->get_widget("server_entry", w_server);
+//        refBuilder->get_widget("server_entry", w_server);
+        refBuilder->get_widget("motto_entry", w_motto);
 
-		Glib::ustring str = w_server->get_text();
-		size_t idx = str.find_last_of(":");
-		if (idx == std::string::npos) { // check for the host:port separator ":"
-			_server = str;
+//		Glib::ustring str = w_server->get_text();
+		Glib::ustring addr = server_combo.get_entry_text();
+		
+		size_t idx = addr.find_last_of(":");
+		if (idx == std::string::npos) { // host:port separator ":" is missing
+			_server = addr;
 			_port_str = "5154";
 			_port = 5154; // use default port
-		} else {
-			_server = str.substr(0, idx);
-			_port_str = str.substr(idx + 1);
+		} else { // parse the server name and port
+			_server = addr.substr(0, idx);
+			_port_str = addr.substr(idx + 1);
 			_port = atoi(_port_str.c_str());
 		}
+		
+		bool found = false;
+		std::list<Glib::ustring>::iterator iter = server_mru_str.begin();
+        while (iter != server_mru_str.end()) {
+        	if (*iter == addr) {
+        		found = true;
+        		break; // server:port already in list
+        	}
+        	iter++;
+        }
+        if (!found) { // add server:port string to MRU list
+        	server_mru_str.push_front(addr);
+        }
+        
         _callsign.assign(w_callsign->get_text(), 0, CallSignLen);
         _password.assign(w_password->get_text(), 0, PasswordLen);
+        _motto.assign(w_motto->get_text(), 0, MottoLen);
+        
+        // TODO: save the chosen host:port string to the MRU list
 
         logon();
     } else {
@@ -476,6 +514,7 @@ Gtk::Window *gbzadmin::init_gbzadmin(Glib::RefPtr<Gtk::Builder> _refBuilder)
     win_height = 600;
     msg_pane = 300;
     game_pane = 400;
+    max_mru_lines = maxServersList;
 
     current_cmd_type = NoCommand;
 
@@ -483,6 +522,8 @@ Gtk::Window *gbzadmin::init_gbzadmin(Glib::RefPtr<Gtk::Builder> _refBuilder)
     if (!app) {
         return 0;
     }
+    
+    app->set_title(Glib::ustring(windowTitle));
 
     Glib::ustring configPath(Glib::get_home_dir());
     configPath += configFileName;
@@ -517,16 +558,7 @@ Gtk::Window *gbzadmin::init_gbzadmin(Glib::RefPtr<Gtk::Builder> _refBuilder)
 
     // misc view initializations
     msg_view.set_line_numbers(line_numbers);
-//	msg_view.set_view_font(msg_view_font);
-    msg_view.set_bg(msg_view_bg);
-    msg_view.set_fg(msg_view_fg);
     defColor = msg_view.Color(WhiteFg);
-    player_view.set_bg(player_view_bg);
-    player_view.set_bg(player_view_bg);
-    game_view.set_bg(gamestat_view_bg);
-    game_view.set_bg(gamestat_view_bg);
-    server_list_view.set_bg(serverlist_view_bg);
-    server_list_view.set_bg(serverlist_view_bg);
 
     add_callbacks();
 
@@ -537,6 +569,9 @@ Gtk::Window *gbzadmin::init_gbzadmin(Glib::RefPtr<Gtk::Builder> _refBuilder)
 
     // replace the input dialog comboboxes with combotextboxes
     replace_input_placeholders();
+    
+    // replace the connect dlg combobox
+    replace_connect_placeholders();
 
     if (auto_cmd) {
         cmd.set_auto_cmd();
@@ -554,33 +589,6 @@ Gtk::Window *gbzadmin::init_gbzadmin(Glib::RefPtr<Gtk::Builder> _refBuilder)
 // message code to handler function map initialization
 void gbzadmin::init_message_handler_map()
 {
-    // TODO: decide on initialization method...
-
-//	handler_map.insert(std::make_pair(MsgJoinServer, 			&gbzadmin::handle_joinserver_message));
-//	handler_map.insert(std::make_pair(MsgPause, 				&gbzadmin::handle_pause_message));
-//	handler_map.insert(std::make_pair(MsgAutoPilot, 			&gbzadmin::handle_autopilot_message));
-//	handler_map.insert(std::make_pair(MsgAddPlayer,				&gbzadmin::handle_add_player_message));
-//	handler_map.insert(std::make_pair(MsgNewRabbit, 			&gbzadmin::handle_rabbit_message));
-//	handler_map.insert(std::make_pair(MsgRemovePlayer, 			&gbzadmin::handle_remove_player_message));
-//	handler_map.insert(std::make_pair(MsgPlayerInfo, 			&gbzadmin::handle_playerinfo_message));
-//	handler_map.insert(std::make_pair(MsgAdminInfo, 			&gbzadmin::handle_admininfo_message));
-//	handler_map.insert(std::make_pair(MsgKilled, 				&gbzadmin::handle_killed_message));
-//	handler_map.insert(std::make_pair(MsgScore, 				&gbzadmin::handle_score_message));
-//	handler_map.insert(std::make_pair(MsgAlive, 				&gbzadmin::handle_alive_message));
-//	handler_map.insert(std::make_pair(MsgUDPLinkEstablished,	&gbzadmin::handle_udplinkestablished_message));
-//	handler_map.insert(std::make_pair(MsgUDPLinkRequest, 		&gbzadmin::handle_udplinkrequest_message));
-//	handler_map.insert(std::make_pair(MsgSetVar, 				&gbzadmin::handle_setvar_message));
-//	handler_map.insert(std::make_pair(MsgGrabFlag, 				&gbzadmin::handle_grabflag_message));
-//	handler_map.insert(std::make_pair(MsgDropFlag, 				&gbzadmin::handle_dropflag_message));
-//	handler_map.insert(std::make_pair(MsgFlagUpdate, 			&gbzadmin::handle_flagupdate_message));
-//	handler_map.insert(std::make_pair(MsgTransferFlag, 			&gbzadmin::handle_transferflag_message));
-//	handler_map.insert(std::make_pair(MsgLagPing,				&gbzadmin::handle_ping_message));
-//	handler_map.insert(std::make_pair(MsgQueryGame,	 			&gbzadmin::handle_game_query_message));
-//	handler_map.insert(std::make_pair(MsgTeamUpdate, 			&gbzadmin::handle_teamupdate_message));
-//	handler_map.insert(std::make_pair(MsgMessage, 				&gbzadmin::handle_message_message));
-
-    //    - OR -
-
     handler_map[MsgJoinServer]			= &gbzadmin::handle_joinserver_message;
     handler_map[MsgPause]				= &gbzadmin::handle_pause_message;
     handler_map[MsgAutoPilot]			= &gbzadmin::handle_autopilot_message;
@@ -627,8 +635,6 @@ void gbzadmin::on_about_activate()
     comment += "-";
     comment += getServerVersion();
 
-//    std::cout << PACKAGE_DATA_DIR << std::endl;
-
     Glib::ustring path(PACKAGE_DATA_DIR);
     path += "/";
     path += PACKAGE;
@@ -652,7 +658,7 @@ void gbzadmin::on_about_activate()
 
     dlg.set_name("gBZAdmin");
     dlg.set_version(VERSION);
-    dlg.set_copyright("Copyright (c) 2005 - 2012 Michael Sheppard\nPortions Copyright (c) 1993 - 2009 Tim Riker");
+    dlg.set_copyright("Copyright (c) 2005 - 2013 Michael Sheppard\nPortions Copyright (c) 1993 - 2009 Tim Riker");
     dlg.set_license(license);
     dlg.set_comments(comment);
     dlg.set_authors(authors);
@@ -664,41 +670,41 @@ void gbzadmin::on_about_activate()
 void gbzadmin::add_callbacks()
 {
     // Tool Button handlers
-    connect_clicked("connect_button", sigc::mem_fun(*this, &gbzadmin::on_connect_clicked));
-    connect_clicked("disconnect_button", sigc::mem_fun(*this, &gbzadmin::on_disconnect_clicked));
-    connect_clicked("mute_button", sigc::mem_fun(*this, &gbzadmin::on_mute_button_clicked));
-    connect_clicked("kick_button", sigc::mem_fun(*this, &gbzadmin::on_kick_button_clicked));
-    connect_clicked("ban_button", sigc::mem_fun(*this, &gbzadmin::on_ban_button_clicked));
-    connect_clicked("playerlist_button", sigc::mem_fun(*this, &gbzadmin::on_playerlist_button_clicked));
-    connect_clicked("clientquery_button", sigc::mem_fun(*this, &gbzadmin::on_clientquery_button_clicked));
-    connect_clicked("lagstats_button", sigc::mem_fun(*this, &gbzadmin::on_lagstats_button_clicked));
-    connect_clicked("query_button", sigc::mem_fun(*this, &gbzadmin::on_query_listserver_clicked));
+    connect_signal_to_item("connect_button", sigc::mem_fun(*this, &gbzadmin::on_connect_signal_to_item));
+    connect_signal_to_item("disconnect_button", sigc::mem_fun(*this, &gbzadmin::on_disconnect_signal_to_item));
+    connect_signal_to_item("mute_button", sigc::mem_fun(*this, &gbzadmin::on_mute_button_clicked));
+    connect_signal_to_item("kick_button", sigc::mem_fun(*this, &gbzadmin::on_kick_button_clicked));
+    connect_signal_to_item("ban_button", sigc::mem_fun(*this, &gbzadmin::on_ban_button_clicked));
+    connect_signal_to_item("playerlist_button", sigc::mem_fun(*this, &gbzadmin::on_playerlist_button_clicked));
+    connect_signal_to_item("clientquery_button", sigc::mem_fun(*this, &gbzadmin::on_clientquery_button_clicked));
+    connect_signal_to_item("lagstats_button", sigc::mem_fun(*this, &gbzadmin::on_lagstats_button_clicked));
+    connect_signal_to_item("query_button", sigc::mem_fun(*this, &gbzadmin::on_query_listserver_clicked));
 
     // Menu Item handlers
-    connect_clicked("quit", sigc::mem_fun(*this, &gbzadmin::on_quit_activate));
-    connect_clicked("about", sigc::mem_fun(*this, &gbzadmin::on_about_activate));
-    connect_clicked("connect", sigc::mem_fun(*this, &gbzadmin::on_connect_activate));
-    connect_clicked("disconnect", sigc::mem_fun(*this, &gbzadmin::on_disconnect_activate));
-    connect_clicked("save", sigc::mem_fun(*this, &gbzadmin::on_save_activate));
-    connect_clicked("save_config", sigc::mem_fun(*this, &gbzadmin::on_save_config_activate));
-    connect_clicked("preferences", sigc::mem_fun(*this, &gbzadmin::on_prefs_activate));
-    connect_clicked("message_view_scrolling", sigc::mem_fun(*this, &gbzadmin::on_message_view_scrolling_activate));
-    connect_clicked("mute", sigc::mem_fun(*this, &gbzadmin::on_mute_activate));
-    connect_clicked("kick", sigc::mem_fun(*this, &gbzadmin::on_kick_activate));
-    connect_clicked("ban", sigc::mem_fun(*this, &gbzadmin::on_ban_activate));
-    connect_clicked("playerlist", sigc::mem_fun(*this, &gbzadmin::on_playerlist_activate));
-    connect_clicked("clientquery", sigc::mem_fun(*this, &gbzadmin::on_clientquery_activate));
-    connect_clicked("lagwarn", sigc::mem_fun(*this, &gbzadmin::on_lagwarn_activate));
-    connect_clicked("query_listserver", sigc::mem_fun(*this, &gbzadmin::on_query_listserver_activate));
-    connect_clicked("lagstats", sigc::mem_fun(*this, &gbzadmin::on_lagstats_activate));
-    connect_clicked("uptime", sigc::mem_fun(*this, &gbzadmin::on_uptime_activate));
-    connect_clicked("flag_reset", sigc::mem_fun(*this, &gbzadmin::on_flag_reset_activate));
-    connect_clicked("remove_flags", sigc::mem_fun(*this, &gbzadmin::on_flag_up_activate));
-    connect_clicked("shutdown_server", sigc::mem_fun(*this, &gbzadmin::on_shutdown_server_activate));
-    connect_clicked("super_kill", sigc::mem_fun(*this, &gbzadmin::on_super_kill_activate));
-    connect_clicked("player_list_window", sigc::mem_fun(*this, &gbzadmin::on_player_window_activate));
-    connect_clicked("server_variables_window", sigc::mem_fun(*this, &gbzadmin::on_server_window_activate));
-    connect_clicked("server_list_window", sigc::mem_fun(*this, &gbzadmin::on_server_list_window_activate));
+    connect_signal_to_item("quit", sigc::mem_fun(*this, &gbzadmin::on_quit_activate));
+    connect_signal_to_item("about", sigc::mem_fun(*this, &gbzadmin::on_about_activate));
+    connect_signal_to_item("connect", sigc::mem_fun(*this, &gbzadmin::on_connect_activate));
+    connect_signal_to_item("disconnect", sigc::mem_fun(*this, &gbzadmin::on_disconnect_activate));
+    connect_signal_to_item("save", sigc::mem_fun(*this, &gbzadmin::on_save_activate));
+    connect_signal_to_item("save_config", sigc::mem_fun(*this, &gbzadmin::on_save_config_activate));
+    connect_signal_to_item("preferences", sigc::mem_fun(*this, &gbzadmin::on_prefs_activate));
+    connect_signal_to_item("message_view_scrolling", sigc::mem_fun(*this, &gbzadmin::on_message_view_scrolling_activate));
+    connect_signal_to_item("mute", sigc::mem_fun(*this, &gbzadmin::on_mute_activate));
+    connect_signal_to_item("kick", sigc::mem_fun(*this, &gbzadmin::on_kick_activate));
+    connect_signal_to_item("ban", sigc::mem_fun(*this, &gbzadmin::on_ban_activate));
+    connect_signal_to_item("playerlist", sigc::mem_fun(*this, &gbzadmin::on_playerlist_activate));
+    connect_signal_to_item("clientquery", sigc::mem_fun(*this, &gbzadmin::on_clientquery_activate));
+    connect_signal_to_item("lagwarn", sigc::mem_fun(*this, &gbzadmin::on_lagwarn_activate));
+    connect_signal_to_item("query_listserver", sigc::mem_fun(*this, &gbzadmin::on_query_listserver_activate));
+    connect_signal_to_item("lagstats", sigc::mem_fun(*this, &gbzadmin::on_lagstats_activate));
+    connect_signal_to_item("uptime", sigc::mem_fun(*this, &gbzadmin::on_uptime_activate));
+    connect_signal_to_item("flag_reset", sigc::mem_fun(*this, &gbzadmin::on_flag_reset_activate));
+    connect_signal_to_item("remove_flags", sigc::mem_fun(*this, &gbzadmin::on_flag_up_activate));
+    connect_signal_to_item("shutdown_server", sigc::mem_fun(*this, &gbzadmin::on_shutdown_server_activate));
+    connect_signal_to_item("super_kill", sigc::mem_fun(*this, &gbzadmin::on_super_kill_activate));
+    connect_signal_to_item("player_list_window", sigc::mem_fun(*this, &gbzadmin::on_player_window_activate));
+    connect_signal_to_item("server_variables_window", sigc::mem_fun(*this, &gbzadmin::on_server_window_activate));
+    connect_signal_to_item("server_list_window", sigc::mem_fun(*this, &gbzadmin::on_server_list_window_activate));
 
     Gtk::CheckMenuItem *check;
     refBuilder->get_widget("capture", check);
@@ -935,15 +941,15 @@ void gbzadmin::parse_config_file(Glib::ustring filename)
     if (is.is_open()) {
         do {
             memset(buf, 0, 1024);
-            is.getline(buf, 256);
+            is.getline(buf, 512);
 
-            result = sscanf(buf, "%32[^#=]=%256[^\n]\n", variable, value);
+            result = sscanf(buf, "%32[^#=]=%512[^\n]\n", variable, value);
             if ((result < 2) || (result == EOF)) {
                 break;
             }
 
             // now that we have the variable,value pair we need to assign
-            // the value to the prefs.value
+            // the value to the class variable
 
             if (g_ascii_strcasecmp(variable, "callsign") == 0) {
                 _callsign = value;
@@ -967,6 +973,7 @@ void gbzadmin::parse_config_file(Glib::ustring filename)
                 game_pane = atoi(value);
             } else if (g_ascii_strcasecmp(variable, "port") == 0) {
                 _port_str = value;
+                _port = atoi(_port_str.c_str());
             } else if (g_ascii_strcasecmp(variable, "auto_cmd") == 0) {
                 auto_cmd = atoi(value) ? true : false;
             } else if (g_ascii_strcasecmp(variable, "echo_pings") == 0) {
@@ -975,22 +982,6 @@ void gbzadmin::parse_config_file(Glib::ustring filename)
                 dump_players = atoi(value) ? true : false;
             } else if (g_ascii_strcasecmp(variable, "line_numbers") == 0) {
                 line_numbers = atoi(value) ? true : false;
-//	 		} else if (g_ascii_strcasecmp(variable, "msg_view_fg") == 0) {
-//	 			msg_view_fg = value;
-//	 		} else if (g_ascii_strcasecmp(variable, "msg_view_bg") == 0) {
-//	 			msg_view_bg = value;
-//	 		} else if (g_ascii_strcasecmp(variable, "player_view_fg") == 0) {
-//	 			player_view_fg = value;
-//	 		} else if (g_ascii_strcasecmp(variable, "player_view_bg") == 0) {
-//	 			player_view_bg = value;
-//	 		} else if (g_ascii_strcasecmp(variable, "gamestat_view_fg") == 0) {
-//	 			gamestat_view_fg = value;
-//	 		} else if (g_ascii_strcasecmp(variable, "gamestat_view_bg") == 0) {
-//	 			gamestat_view_bg = value;
-//	 		} else if (g_ascii_strcasecmp(variable, "serverlist_view_fg") == 0) {
-//	 			serverlist_view_fg = value;
-//	 		} else if (g_ascii_strcasecmp(variable, "serverlist_view_bg") == 0) {
-//	 			serverlist_view_bg = value;
             } else if (g_ascii_strcasecmp(variable, "save_password") == 0) {
                 save_password = atoi(value) ? true : false;
             } else if (g_ascii_strcasecmp(variable, "msg_new_rabbit") == 0) {
@@ -1023,6 +1014,9 @@ void gbzadmin::parse_config_file(Glib::ustring filename)
                 msg_mask["flags"] = atoi(value) ? true : false;
             } else if (g_ascii_strcasecmp(variable, "msg_teleport") == 0) {
                 msg_mask["teleport"] = atoi(value) ? true : false;
+            } else if (g_ascii_strcasecmp(variable, "server_mru") == 0) {
+            	Glib::ustring str(value);
+            	server_mru_str = parse_server_mru(str, ";", 16);
             } else {
                 continue;
             }
@@ -1064,6 +1058,22 @@ void gbzadmin::save_config_file(Glib::ustring filename)
             buf = Glib::ustring::compose("port=%1\n", _port_str);
             os.write(buf.c_str(), buf.length());
         }
+        
+        // write the server list MRU
+        std::list<Glib::ustring>::iterator it = server_mru_str.begin();
+        while (it != server_mru_str.end()) {
+        	if (it == server_mru_str.begin()) {
+		    	buf = Glib::ustring::compose("server_mru=%1", *it);
+		    	os.write(buf.c_str(), buf.length());
+		    } else {
+		    	buf = Glib::ustring::compose(";%1", *it);
+		    	os.write(buf.c_str(), buf.length());
+		    }
+        	it++;
+        }
+        buf = Glib::ustring("\n");
+    	os.write(buf.c_str(), buf.length());
+        
         buf = Glib::ustring::compose("window_x=%1\n", win_x);
         os.write(buf.c_str(), buf.length());
 
@@ -1093,30 +1103,6 @@ void gbzadmin::save_config_file(Glib::ustring filename)
 
         buf = Glib::ustring::compose("line_numbers=%1\n", line_numbers);
         os.write(buf.c_str(), buf.length());
-
-//		buf = Glib::ustring::compose("msg_view_fg=%1\n", msg_view_fg);
-//		os.write(buf.c_str(), buf.length());
-//
-//		buf = Glib::ustring::compose("msg_view_bg=%1\n", msg_view_bg);
-//		os.write(buf.c_str(), buf.length());
-//
-//		buf = Glib::ustring::compose("player_view_fg=%1\n", player_view_fg);
-//		os.write(buf.c_str(), buf.length());
-//
-//		buf = Glib::ustring::compose("player_view_bg=%1\n", player_view_bg);
-//		os.write(buf.c_str(), buf.length());
-//
-//		buf = Glib::ustring::compose("serverlist_view_fg=%1\n", serverlist_view_fg);
-//		os.write(buf.c_str(), buf.length());
-//
-//		buf = Glib::ustring::compose("serverlist_view_bg=%1\n", serverlist_view_bg);
-//		os.write(buf.c_str(), buf.length());
-//
-//		buf = Glib::ustring::compose("gamestat_view_fg=%1\n", gamestat_view_fg);
-//		os.write(buf.c_str(), buf.length());
-//
-//		buf = Glib::ustring::compose("gamestat_view_bg=%1\n", gamestat_view_bg);
-//		os.write(buf.c_str(), buf.length());
 
         buf = Glib::ustring::compose("save_password=%1\n", save_password);
         os.write(buf.c_str(), buf.length());
@@ -1252,8 +1238,6 @@ void gbzadmin::handle_rabbit_message(void *vbuf)
 
     if (player) {
         player->set_team(RabbitTeam);
-        // FIXME: should just change the previous rabbit to hunter instead
-        // of changing all the other players too
         player_view.change_all_to_hunter_except(p);
         if (msg_mask["rabbit"]) {
             Glib::ustring str("*** ");
@@ -2027,11 +2011,11 @@ gint gbzadmin::get_message()
 
 void gbzadmin::print_message_code(guint16 code)
 {
-    std::cout << std::showbase 	// show the 0x prefix
-              << std::internal 		// fill between the prefix and the number
-              << std::setfill('0'); 	// fill with 0s
+    std::cout << std::showbase 		// show the 0x prefix
+              << std::internal 		// show leading zeroes
+              << std::setfill('0'); // fill with zeroes
 
-    if (code != 0x7073 && code != 0x7362) { // we don't care about shot begin/end
+    if (code != MsgShotBegin && code != MsgShotEnd) { // we don't care about shot begin/end
         std::cout << std::hex << std::setw(6) << code << std::endl;
     }
 }
@@ -2044,7 +2028,7 @@ void gbzadmin::logon()
     }
 
     if (sock.connect(_server, _port)) {
-        if (sock.join(_callsign, _password, "gbzadmin")) {
+        if (sock.join(_callsign, _password, _motto)) {
             //display some server info
             Glib::ustring id_str = Glib::ustring::compose("%1", sock.getId());
             Glib::ustring str(msg_view.Color(GoldenFg));
@@ -2306,32 +2290,28 @@ void gbzadmin::process_command()
         } else if (cmd_str == "/leave") {
             logoff();
         } else if (cmd_str == "/list") {
-//            if (isConnected()) {
             query_listServer();
-//            } else {
-//                msg_view.add_text("--- Cannot query list server offline! (yet)\n", Glib::ustring("rogue"));
-//            }
-        } else if (cmd_str.substr(0, 8) == Glib::ustring("/reverse")) {
+        } else if (cmd_str.substr(0, cmd_str.find_first_of(" ")) == "/reverse") {
             if (cmd_str.length() > 8) {
                 displayHostName(cmd_str.substr(9));
             } else {
                 show_help(cmd_str);
             }
-        } else if (cmd_str.substr(0, 5) == "/show") {
+        } else if (cmd_str.substr(0, cmd_str.find_first_of(" ")) == "/show") {
             // handle message filter show command
             Glib::ustring type(cmd_str.substr(6));
             set_message_filter(type, true);
             Glib::ustring str("--- Message's of type ");
             str += "'" + type + "'" + " will now be shown\n";
             msg_view.add_text(str, Glib::ustring("rogue"));
-        } else if (cmd_str.substr(0, 5) == "/hide") {
+        } else if (cmd_str.substr(0, cmd_str.find_first_of(" ")) == "/hide") {
             // handle message filter hide command
             Glib::ustring type(cmd_str.substr(6));
             set_message_filter(type, false);
             Glib::ustring str("--- Message's of type ");
             str += "'" + type + "'" + " will now be hidden\n";
             msg_view.add_text(str, Glib::ustring("rogue"));
-        } else if (cmd_str.substr(0, 7) == "/mottos") {
+        } else if (cmd_str.substr(0, cmd_str.find_first_of(" ")) == "/mottos") {
             show_mottos();
         } else { // or send the command to the server
             send_message(cmd_str, ServerPlayer);
@@ -2456,8 +2436,7 @@ void gbzadmin::query_listServer()
 
     // ctime str is terminated with '\n'
     Glib::ustring str(msg_view.Color(YellowFg));
-    str += Glib::ustring::compose("--- queried (%1) list server in %2 seconds on %3",
-                                  ServerVersion/*sock.getVersion()*/, elapsed, ctime(&tm));
+    str += Glib::ustring::compose("--- queried (%1) list server in %2 seconds on %3", ServerVersion, elapsed, ctime(&tm));
 
     msg_view.add_text(str);
 }
@@ -2750,7 +2729,7 @@ void gbzadmin::replace_input_placeholders()
     // We don't need the combobox and it's TreeModel, we just want to
     // display strings. These comboboxes are on the input_dialog.
     Gtk::VBox *box;
-    refBuilder->get_widget("vbox3", box); // FIXME: this is vbox2 in the glade file, but this works!?!
+    refBuilder->get_widget("vbox3", box);
 
     Gtk::ComboBox *crap;
     refBuilder->get_widget("player_placeholder", crap);
@@ -2788,21 +2767,20 @@ void gbzadmin::replace_input_placeholders()
     }
 
     // TODO: add combo text boxes and save 4 MRU entries
-    // for both server and port on the connect dialog.
-//	refBuilder->get_widget("vbox5", box);
-//	refBuilder->get_widget("server_entry", crap);
-//
-//	box->remove(*crap);
-//	box->pack_start(server_combo);
-//	box->reorder_child(server_combo, 7);
-//
-//	refBuilder->get_widget("port_entry", crap);
-//
-//	box->remove(*crap);
-//	box->pack_start(port_combo);
-//	box->reorder_child(port_combo, 9);
+    // for server:port on the connect dialog.
+}
 
-    // add the saved servers and ports to the combos
+void gbzadmin::replace_connect_placeholders()
+{
+	Gtk::VBox *box;
+	refBuilder->get_widget("vbox5", box);
+	
+	Gtk::Entry *crap;
+	refBuilder->get_widget("server_entry", crap);
+	
+	box->remove(*crap);
+	box->pack_start(server_combo);
+    box->reorder_child(server_combo, 7);
 }
 
 void gbzadmin::populate_player_combo()
@@ -2995,7 +2973,7 @@ void gbzadmin::on_super_kill_activate()
 }
 
 // this is from connect_clicked in libgtkmm
-void gbzadmin::connect_clicked(const Glib::ustring& name, const sigc::slot<void>& slot_)
+void gbzadmin::connect_signal_to_item(const Glib::ustring& name, const sigc::slot<void>& slot_)
 {
     Gtk::Widget* pWidget = 0;
     refBuilder->get_widget(name, pWidget);
@@ -3125,5 +3103,48 @@ void gbzadmin::show_mottos()
         str += "'\n";
     }
     msg_view.add_text(str);
+}
+
+std::list<Glib::ustring> gbzadmin::parse_server_mru(const Glib::ustring& in, const Glib::ustring &delims, int lines_max)
+{
+	std::list<Glib::ustring> tokens;
+	Glib::ustring currentToken("");
+	const Glib::ustring::size_type len = in.size();
+	Glib::ustring::size_type pos = in.find_first_not_of(delims);
+	int currentChar = (pos == Glib::ustring::npos) ? -1 : in[pos];
+	int nLines = 1;
+
+	while (pos < len && pos != Glib::ustring::npos) {
+		if (nLines >= lines_max) {
+			break;
+		}
+		bool tokenDone = false;
+		currentChar = (pos < len) ? in[pos] : -1;
+		while ((currentChar != -1) && !tokenDone) {
+			tokenDone = false;
+			if (delims.find(char(currentChar)) != Glib::ustring::npos) {
+				pos ++;
+				break;
+			}
+			currentToken += char(currentChar);
+			pos++;
+			currentChar = (pos < len) ? in[pos] : -1;
+		}
+		if (currentToken.size() > 0) {
+			tokens.push_back(currentToken);
+			currentToken.clear();
+		}
+		if ((pos < len) && (pos != std::string::npos)) {
+			pos = in.find_first_not_of(delims, pos);
+		}
+		nLines++;
+	}
+	if (pos != std::string::npos) {
+		std::string lastToken = in.substr(pos);
+		if (lastToken.size() > 0) {
+			tokens.push_back(lastToken);
+		}
+	}
+	return tokens;
 }
 

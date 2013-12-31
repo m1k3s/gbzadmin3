@@ -197,7 +197,6 @@ void playerView::update()
 }
 
 // format a player in the view
-// FIXME no need to add a '/' if there is only one attribute for the player
 Glib::ustring playerView::format_player(Player * player)
 {
 	gint rabbit_score = 0;
@@ -216,7 +215,11 @@ Glib::ustring playerView::format_player(Player * player)
 		attrib += "/Ver";
 	}
 	if (player->get_admin()) {
-		attrib += "/Adm";
+		if (attrib.size() == 1) {
+			attrib += "Adm";
+		} else {
+			attrib += "/Adm";
+		}
 	}
 	if (attrib.size() == 1) {
 		attrib += "Anon)";
@@ -404,8 +407,9 @@ void playerView::change_all_to_hunter_except(guint8 id)
 
 	it = players.begin();
 	while (it != players.end()) {
-		if ((*it)->get_id() != id)
+		if ((*it)->get_id() != id) {
 			(*it)->set_team(HunterTeam);
+		}
 		it++;
 	}
 }

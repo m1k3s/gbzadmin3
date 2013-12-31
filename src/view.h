@@ -23,7 +23,6 @@
 //  =====================================================================
 
 #include <gtkmm.h>
-//#include <gconfmm.h>
 #include <iostream>
 #include <fstream>
 

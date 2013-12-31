@@ -187,6 +187,7 @@ Glib::RefPtr<Gtk::TreeModel> cmdLine::create_completion_model()
 		"/loadplugin",
 		"/masterban",
 		"/modcount",
+		"/mottos",
 		"/msg",
 		"/mute",
 		"/mutelist",
@@ -251,7 +252,7 @@ Glib::ustring cmdLine::historyUp()
 	if (hist_it != history.end() && !hist_reset) {
 		hist_it++;
 		if (hist_it == history.end()) { // hist_it is one element past the end of the list
-			hist_it--;									  // back up
+			hist_it--;					// back up
 		}
 	} else {
 		hist_reset = false;
@@ -280,12 +281,12 @@ Glib::ustring cmdLine::historyDown()
 void cmdLine::historyDelete(Glib::ustring line)
 {
 	std::list<Glib::ustring>::iterator it = history.begin();
-   while(it != history.end() ) {
-     std::list<Glib::ustring>::iterator thisone = it;
-     it++;
-     if (*thisone == line) {
-        history.erase(thisone);
-     }
-   }
+	while(it != history.end() ) {
+		std::list<Glib::ustring>::iterator thisone = it;
+		it++;
+		if (*thisone == line) {
+			history.erase(thisone);
+		}
+	}
 }
 

@@ -61,7 +61,7 @@ public:
 	
 protected:
 	void add_callbacks();
-	void connect_clicked(const Glib::ustring& name, const sigc::slot<void>& slot_);
+	void connect_signal_to_item(const Glib::ustring& name, const sigc::slot<void>& slot_);
 	
 	// member callbacks
 	void on_quit_activate();
@@ -69,8 +69,8 @@ protected:
 	bool on_key_press_event (GdkEventKey *event);
 	void on_connect_activate();
 	void on_disconnect_activate();
-	void on_connect_clicked();
-	void on_disconnect_clicked();
+	void on_connect_signal_to_item();
+	void on_disconnect_signal_to_item();
 	void on_capture_activate();
 	void on_save_activate();
 	void on_prefs_activate();
@@ -128,6 +128,7 @@ protected:
 	void do_client_query();
 	void save_the_buffer();
 	void replace_input_placeholders();
+	void replace_connect_placeholders();
 	void populate_player_combo();
 	void enable_admin_items(bool set);
 	void enable_connected_items(bool set);
@@ -145,6 +146,7 @@ protected:
 	void init_message_handler_map();
 	void print_message_code(guint16 code);
 	void show_mottos();
+	std::list<Glib::ustring> parse_server_mru(const Glib::ustring& in, const Glib::ustring &delims, int lines_max);
 	
 	// timer functions
 	bool update_timer();
@@ -208,6 +210,7 @@ private:
 	// Gtk::ComboBoxText widgets. So we must supply our own.
 	Gtk::ComboBoxText player_combo;
 	Gtk::ComboBoxText reason_combo;
+	Gtk::ComboBoxEntryText server_combo;
 
 	// widgets and objects
 	playerView player_view;
@@ -250,6 +253,9 @@ private:
 	void add_flag(flag_info *fi);
 	void remove_flag(flag_info *fi);
 	
+	// TODO: server:port MRU arrays
+	std::list<Glib::ustring> server_mru_str;
+	
 	// preferences data
 	Glib::ustring _callsign;
 	Glib::ustring _password;
@@ -266,11 +272,7 @@ private:
 	bool save_password;
 	bool connect_at_startup;
 	bool line_numbers;
-	
-	Glib::ustring msg_view_fg, msg_view_bg;
-	Glib::ustring player_view_fg, player_view_bg;
-	Glib::ustring gamestat_view_fg, gamestat_view_bg;
-	Glib::ustring serverlist_view_fg, serverlist_view_bg;
+	int max_mru_lines;
 	
 	sigc::connection conn_timer;
 	sigc::connection wd_timer;

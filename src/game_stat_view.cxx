@@ -93,7 +93,6 @@ void gameStatView::update()
 
 	output = Color(GreenFg);
 	output += "=======================================================\n";
-	//add_text(output);
 	
 	// FIXME: C-Style formatting
 	char tmp_buf[256];
@@ -142,9 +141,10 @@ void gameStatView::update()
 	for (int k = 0; k < MaxTeams - 2; k++) {
 		output += get_color(k);
 		::snprintf(tmp_buf, sizeof(tmp_buf), "%-15s: %2d players, score: %3d  (%3d wins, %3d losses)\n",
-										team_str[k], team_size[k],
-										team_wins[k] - team_losses[k],
-										team_wins[k], team_losses[k]);
+					team_str[k], team_size[k],
+					team_wins[k] - team_losses[k],
+					team_wins[k], team_losses[k]);
+					
 		output += Glib::ustring(tmp_buf);
 	}
 	output += Color(GreenFg);
