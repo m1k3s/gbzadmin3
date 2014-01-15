@@ -223,7 +223,7 @@ public:
 			}
 		}
 		if (!found) {
-			var = "UNKNOWN";
+			var = " ---";
 		}
 		return var;
 	}

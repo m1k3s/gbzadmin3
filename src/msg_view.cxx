@@ -50,56 +50,59 @@ Glib::ustring msgView::colorBullet()
     return bullet;
 }
 
-void msgView::format(Glib::ustring& formatted, Glib::ustring msg, guint8 src, guint8 dst,
-                      guint16 dstTeam, guint8 me, Glib::ustring src_callsign, Glib::ustring dst_callsign)
+void msgView::format(Glib::ustring& formatted, Glib::ustring msg, MessageType type, guint8 src, guint8 dst,
+                      TeamColor dstTeam, guint8 me, Glib::ustring src_callsign, Glib::ustring dst_callsign)
 {
-    bool isAction = false;
     Glib::ustring message("");
+    
+//    bool toAll = (dst == AllPlayers);
+    bool fromServer = (src == ServerPlayer);
+    bool toAdmin = (dst == AdminPlayers);
 
     // get sender and receiver
-    Glib::ustring srcName(src == ServerPlayer ? "SERVER" : (src_callsign.size() ? src_callsign : "(UNKNOWN)"));
+    Glib::ustring srcName(fromServer ? "SERVER" : (src_callsign.size() ? src_callsign : "(UNKNOWN)"));
     Glib::ustring dstName((dst_callsign.size() ? dst_callsign : "(UNKNOWN)"));
 
-    // display action messages differently
-    if ((msg[0] == '*') && (msg[1] == ' ') && (msg[msg.size() - 1] == '*') && (msg[msg.size() - 2] == '\t')) {
-        isAction = true;
-        message = msg.substr(2, msg.size() - 4);
-    } else {
-        message = msg;
-    }
+	if (type == ActionMessage) {
+		message = msg.substr(2, msg.size() - 4);
+	} else {
+		message = msg;
+	}
+
     // direct message to or from me
     if ((dst == me) || (dst_callsign.size())) {
         if (!(src == me && dst == me)) {
             if (src == me) {
-                if (isAction) {
-                    formatted = "[->" + message + "]\n";
+                if (type == ActionMessage) {
+                    formatted = "[->" + dstName + "][" + srcName + " " + message + "]\n";
                 } else {
                     formatted = "[->" + dstName + "] " + Color(CyanFg) + message + "\n";
                 }
             } else {
-                if (isAction) {
-                    formatted = "[" + message + "->]\n";
+                if (type == ActionMessage) {
+                    formatted = "[" + srcName + " " + message + "->]\n";
                 } else {
-                    if (src == ServerPlayer)
+                    if (fromServer) {
                         formatted = "[" + srcName + "->] " + Color(PGreen4Fg) + message + "\n";
-                    else
+                    } else {
                         formatted = "[" + srcName + "->] " + Color(CyanFg) + message + "\n";
+                    }
                 }
             }
         } else {
             formatted += Color(CyanFg) + message + "\n";
         }
     } else {  // public, admin or team message
-        if (dst == AdminPlayers)
+        if (toAdmin) {
             formatted = "[Admin] ";
-        else if ((gint16)dstTeam != NoTeam)
+        } else if (dstTeam != NoTeam) {
             formatted = "[Team] ";
-
-        if (!isAction) {
-            formatted += srcName;
+        }
+		formatted += srcName;
+        if (type != ActionMessage) {
             formatted += ": ";
         }
-        formatted += (src == ServerPlayer) ? Color(Cyan4Fg) : Color(CyanFg);
+        formatted += fromServer ? Color(Cyan4Fg) : Color(CyanFg);
 
         formatted += message + "\n";
     }

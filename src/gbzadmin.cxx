@@ -318,9 +318,8 @@ void gbzadmin::connect_dialog_setup()
 //        Glib::ustring addr("");
 //        addr = _server + ":" + _port_str;
 //        w_server->set_text(addr);
-//		server_combo.append_text(addr);
 		iter = server_mru_str.begin();
-		server_combo.set_active_text(*iter); // this should be the top of the MRU list
+		server_combo.set_active_text(*iter);
         connect_dialog->show_all();
     }
 }
@@ -367,8 +366,6 @@ void gbzadmin::on_connect_dialog_response(gint response_id)
         _password.assign(w_password->get_text(), 0, PasswordLen);
         _motto.assign(w_motto->get_text(), 0, MottoLen);
         
-        // TODO: save the chosen host:port string to the MRU list
-
         logon();
     } else {
         // only hide the connect dialog if canceled.
@@ -1016,7 +1013,7 @@ void gbzadmin::parse_config_file(Glib::ustring filename)
                 msg_mask["teleport"] = atoi(value) ? true : false;
             } else if (g_ascii_strcasecmp(variable, "server_mru") == 0) {
             	Glib::ustring str(value);
-            	server_mru_str = parse_server_mru(str, ";", 16);
+            	server_mru_str = parse_server_mru(str, ";", maxServersList);
             } else {
                 continue;
             }
@@ -1727,9 +1724,15 @@ void gbzadmin::handle_message_message(void *vbuf)
     vbuf = parser.nboUnpackUByte(vbuf, &src);
     vbuf = parser.nboUnpackUByte(vbuf, &dst);
     vbuf = parser.nboUnpackUByte(vbuf, &type);
+    
+    // Only bother processing the message if we know how to handle it
+    if (MessageType(type) != ChatMessage && MessageType(type) != ActionMessage) {
+		return;
+	}
 
     // format the message depending on source and destination
-    gint16 dstTeam = (LastRealPlayer < dst && dst <= FirstTeam ? TeamColor(FirstTeam - dst) : NoTeam);
+//    TeamColor dstTeam = (LastRealPlayer < dst && dst <= FirstTeam ? TeamColor(FirstTeam - dst) : NoTeam);
+    TeamColor dstTeam = PlayerIdToTeam(dst);
 
     if (msg_mask["chat"]) {
         src_player = player_view.find_player(src);
@@ -1748,10 +1751,11 @@ void gbzadmin::handle_message_message(void *vbuf)
         Glib::ustring formatted;
         str += ">>> ";
         str += (src_team == NoTeam) ? msg_view.Color(GoldenFg) : msg_view.get_color(src_team);
-        msg_view.format(formatted, Glib::ustring((gchar*)vbuf), src, dst, (guint16)dstTeam, me, src_callsign, dst_callsign);
+        msg_view.format(formatted, Glib::ustring((gchar*)vbuf), MessageType(type), src, dst, dstTeam, me, src_callsign, dst_callsign);
         str += formatted;
 
         str = Glib::convert_with_fallback(str.c_str(), "UTF-8", "ISO-8859-1");
+        std::cout << "MsgMessage: " << str << std::endl;
         msg_view.add_text(str);
     }
 }
@@ -2223,11 +2227,13 @@ void gbzadmin::on_message_view_scrolling_activate()
 void gbzadmin::send_message(const Glib::ustring message, guint8 target)
 {
     char msg[MaxPacketLen];
+//	char msg[1 + MessageLen];
     void* buf = msg;
 
     buf = parser.nboPackUByte(buf, guint8(target));
     buf = parser.nboPackString(buf, message.c_str(), MessageLen);
 
+	std::cout << "send_message: " << target << " -> " << message << std::endl;
     sock.send(MsgMessage, (uint16_t)((char *)buf - msg), msg);
 }
 
@@ -3146,5 +3152,11 @@ std::list<Glib::ustring> gbzadmin::parse_server_mru(const Glib::ustring& in, con
 		}
 	}
 	return tokens;
+}
+
+//gint16 dstTeam = (LastRealPlayer < dst && dst <= FirstTeam ? TeamColor(FirstTeam - dst) : NoTeam);
+TeamColor gbzadmin::PlayerIdToTeam(guint8 id)
+{
+  return (LastRealPlayer < id && id <= FirstTeam ? TeamColor(FirstTeam - id) : NoTeam);
 }
 

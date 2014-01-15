@@ -65,9 +65,15 @@ const int ReferrerLen = 256;
 
 const int TankPlayer = 0;
 const int ComputerPlayer = 1;
-const int ChatPlayer = 2;
+//const int ChatPlayer = 2;
 
 const int DefaultPort = 5154;
+
+// types of text messages
+enum MessageType {
+  ChatMessage,
+  ActionMessage
+};
 
 // types of updates we can receive
 enum NetworkUpdates {
@@ -213,15 +219,14 @@ enum GameType
 };
 // game styles
 enum GameOptions {
-  Unused             = 0x0001, // -- this space available for rent --
-  SuperFlagGameStyle = 0x0002, // superflags allowed
-  NoTeamKills        = 0x0004, // teams can't kill each other
-  JumpingGameStyle   = 0x0008, // jumping allowed
-  InertiaGameStyle   = 0x0010, // momentum for all
-  RicochetGameStyle  = 0x0020, // all shots ricochet
-  ShakableGameStyle  = 0x0040, // can drop bad flags
-  AntidoteGameStyle  = 0x0080, // anti-bad flags
-  HandicapGameStyle  = 0x0100  // handicap players based on score (eek! was TimeSyncGameStyle)
+  SuperFlagGameStyle =	 0x0002, // superflags allowed
+  JumpingGameStyle =	 0x0008, // jumping allowed
+  InertiaGameStyle =	 0x0010, // momentum for all
+  RicochetGameStyle =	 0x0020, // all shots ricochet
+  ShakableGameStyle =	 0x0040, // can drop bad flags
+  AntidoteGameStyle =	 0x0080, // anti-bad flags
+  HandicapGameStyle =	 0x0100, // handicap players based on score (eek! was TimeSyncGameStyle)
+  NoTeamKillsGameStyle = 0x0400
 };
 
 enum {
@@ -242,8 +247,6 @@ enum TeamColor {
 	RabbitTeam = 6, HunterTeam = 7
 };
 
-const int MyTeam = (250 - ObserverTeam);
-
 enum {
 	LastRealPlayer = 243,
 	FirstTeam = 251,
@@ -252,6 +255,8 @@ enum {
 	AllPlayers = 254,
 	NoPlayer = 255
 };
+
+const int MyTeam = (FirstTeam - ObserverTeam);
 
 #endif // _common_h_
 

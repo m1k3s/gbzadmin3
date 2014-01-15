@@ -36,8 +36,8 @@ public:
 	msgView();
 	~msgView();
 	void init(Glib::RefPtr <Gtk::Builder> _refBuilder);
-	void format(Glib::ustring& formatted, Glib::ustring msg, guint8 src, guint8 dst,
-						guint16 dstTeam, guint8 me, Glib::ustring src_callsign, Glib::ustring dst_callsign);
+	void format(Glib::ustring& formatted, Glib::ustring msg, MessageType type, guint8 src, guint8 dst,
+						TeamColor dstTeam, guint8 me, Glib::ustring src_callsign, Glib::ustring dst_callsign);
 	Glib::ustring colorBullet();
 	void set_line_numbers(bool set) { line_numbers = set; }
 	bool get_line_numbers() { return line_numbers; }

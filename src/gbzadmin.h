@@ -147,6 +147,7 @@ protected:
 	void print_message_code(guint16 code);
 	void show_mottos();
 	std::list<Glib::ustring> parse_server_mru(const Glib::ustring& in, const Glib::ustring &delims, int lines_max);
+	TeamColor PlayerIdToTeam(guint8 id);
 	
 	// timer functions
 	bool update_timer();
