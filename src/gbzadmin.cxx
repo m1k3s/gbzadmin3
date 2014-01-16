@@ -1732,7 +1732,6 @@ void gbzadmin::handle_message_message(void *vbuf)
         str += formatted;
 
         str = Glib::convert_with_fallback(str.c_str(), "UTF-8", "ISO-8859-1");
-        std::cout << "MsgMessage: " << str << std::endl;
         msg_view.add_text(str);
     }
 }
@@ -2208,13 +2207,11 @@ void gbzadmin::on_message_view_scrolling_activate()
 void gbzadmin::send_message(const Glib::ustring message, guint8 target)
 {
     char msg[MaxPacketLen];
-//	char msg[1 + MessageLen];
     void* buf = msg;
 
     buf = parser.nboPackUByte(buf, guint8(target));
     buf = parser.nboPackString(buf, message.c_str(), MessageLen);
 
-	std::cout << "send_message: " << target << " -> " << message << std::endl;
     sock.send(MsgMessage, (uint16_t)((char *)buf - msg), msg);
 }
 
