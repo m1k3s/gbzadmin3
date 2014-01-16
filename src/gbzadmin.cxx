@@ -440,7 +440,8 @@ void gbzadmin::on_pref_dialog_response(gint response_id)
 
         refBuilder->get_widget("use_udp", w);
         checked = w->get_active();
-        useUDP = checked;
+        // force UDP off for now. no real need for it in this app
+        useUDP = false; //checked;
 
         refBuilder->get_widget("net_stats", w);
         checked = w->get_active();
