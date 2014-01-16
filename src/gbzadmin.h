@@ -148,6 +148,7 @@ protected:
 	void show_mottos();
 	std::list<Glib::ustring> parse_server_mru(const Glib::ustring& in, const Glib::ustring &delims, int lines_max);
 	TeamColor PlayerIdToTeam(guint8 id);
+	void parse_host_port(Glib::ustring addr);
 	
 	// timer functions
 	bool update_timer();
@@ -273,7 +274,6 @@ private:
 	bool save_password;
 	bool connect_at_startup;
 	bool line_numbers;
-	int max_mru_lines;
 	
 	sigc::connection conn_timer;
 	sigc::connection wd_timer;

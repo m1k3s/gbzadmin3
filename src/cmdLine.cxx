@@ -88,8 +88,9 @@ void cmdLine::add_target(guint8 id, Glib::ustring callsign)
 void cmdLine::remove_target(guint8 id, Glib::ustring callsign)
 {
 	// if current target is to be removed, change current target to "All"	
-	if (id == target_map[_targets.get_active_text()])
+	if (id == target_map[_targets.get_active_text()]) {
 		_targets.set_active(0);
+	}
 	// remove from the target map
 	std::map<Glib::ustring, int>::iterator it = target_map.find(callsign);
 	target_map.erase(it);
@@ -114,11 +115,6 @@ void cmdLine::clear_targets()
 	_targets.set_active(0);
 }
 
-void cmdLine::set_target_admin()
-{
-	_targets.set_active(2);
-}
-
 void cmdLine::set_target_all()
 {
 	_targets.set_active(0);
@@ -127,6 +123,11 @@ void cmdLine::set_target_all()
 void cmdLine::set_target_team()
 {
 	_targets.set_active(1);
+}
+
+void cmdLine::set_target_admin()
+{
+	_targets.set_active(2);
 }
 
 void cmdLine::set_auto_cmd()
@@ -269,8 +270,9 @@ Glib::ustring cmdLine::historyDown()
 		Glib::ustring emptyLine("");
 		return emptyLine;
 	}
-	if (hist_it != history.begin())
+	if (hist_it != history.begin()) {
 		hist_it--;
+	}
 				
 	Glib::ustring line("");
 	line = *hist_it;

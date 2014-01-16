@@ -2234,7 +2234,7 @@
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="xalign">0</property>
-                    <property name="label" translatable="yes">Callsign:</property>
+                    <property name="label" translatable="yes">Callsign</property>
                   </object>
                   <packing>
                     <property name="x_options">GTK_FILL</property>
@@ -2246,7 +2246,7 @@
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="xalign">0</property>
-                    <property name="label" translatable="yes">Server:</property>
+                    <property name="label" translatable="yes">Server:Port</property>
                   </object>
                   <packing>
                     <property name="top_attach">1</property>
@@ -2260,7 +2260,7 @@
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="xalign">0</property>
-                    <property name="label" translatable="yes">Port:</property>
+                    <property name="label" translatable="yes">Motto</property>
                   </object>
                   <packing>
                     <property name="top_attach">2</property>
@@ -2334,7 +2334,7 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkEntry" id="pref_port_entry">
+                  <object class="GtkEntry" id="pref_motto_entry">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="primary_icon_activatable">False</property>

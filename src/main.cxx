@@ -82,8 +82,7 @@ int main(int argc, char *argv[])
 
 	try	{
 		refBuilder = Gtk::Builder::create_from_file(glade_file);
-	}
-	catch (const Glib::FileError& ex)	{
+	} catch (const Glib::FileError& ex)	{
 		std::cerr << "\n *** " << ex.what() << std::endl;
 		return 1;
 	}

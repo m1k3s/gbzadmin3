@@ -55,7 +55,6 @@ void msgView::format(Glib::ustring& formatted, Glib::ustring msg, MessageType ty
 {
     Glib::ustring message("");
     
-//    bool toAll = (dst == AllPlayers);
     bool fromServer = (src == ServerPlayer);
     bool toAdmin = (dst == AdminPlayers);
 
@@ -69,9 +68,8 @@ void msgView::format(Glib::ustring& formatted, Glib::ustring msg, MessageType ty
 		message = msg;
 	}
 
-    // direct message to or from me
-    if ((dst == me) || (dst_callsign.size())) {
-        if (!(src == me && dst == me)) {
+    if ((dst == me) || (dst_callsign.size())) { // direct message to or from me
+        if (!(src == me && dst == me)) {        // but I'm not talking to my self
             if (src == me) {
                 if (type == ActionMessage) {
                     formatted = "[->" + dstName + "][" + srcName + " " + message + "]\n";

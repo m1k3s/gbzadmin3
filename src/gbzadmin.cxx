@@ -294,10 +294,8 @@ void gbzadmin::connect_dialog_setup()
     refBuilder->get_widget("connect_dialog", connect_dialog);
     if (connect_dialog) {
         Gtk::Entry *w_callsign, *w_password, *w_motto;
-//        Gtk::Entry *w_server;
         refBuilder->get_widget("callsign_entry", w_callsign);
         refBuilder->get_widget("password_entry", w_password);
-//        refBuilder->get_widget("server_entry", w_server);
         refBuilder->get_widget("motto_entry", w_motto);
 
         w_callsign->set_text(_callsign);
@@ -311,13 +309,10 @@ void gbzadmin::connect_dialog_setup()
         for (iter = server_mru_str.begin(); iter != server_mru_str.end(); iter++) {
         	server_combo.append_text(*iter);
         	nLines++;
-        	if (nLines >= max_mru_lines) {
+        	if (nLines >= maxServersList) {
         		break;
         	}
         }
-//        Glib::ustring addr("");
-//        addr = _server + ":" + _port_str;
-//        w_server->set_text(addr);
 		iter = server_mru_str.begin();
 		server_combo.set_active_text(*iter);
         connect_dialog->show_all();
@@ -327,27 +322,14 @@ void gbzadmin::connect_dialog_setup()
 void gbzadmin::on_connect_dialog_response(gint response_id)
 {
     Gtk::Entry *w_callsign, *w_password, *w_motto;
-//	Gtk::Entry *w_server;
 
     if (response_id == Gtk::RESPONSE_OK) {
         refBuilder->get_widget("callsign_entry", w_callsign);
         refBuilder->get_widget("password_entry", w_password);
-//        refBuilder->get_widget("server_entry", w_server);
         refBuilder->get_widget("motto_entry", w_motto);
 
-//		Glib::ustring str = w_server->get_text();
 		Glib::ustring addr = server_combo.get_entry_text();
-		
-		size_t idx = addr.find_last_of(":");
-		if (idx == std::string::npos) { // host:port separator ":" is missing
-			_server = addr;
-			_port_str = "5154";
-			_port = 5154; // use default port
-		} else { // parse the server name and port
-			_server = addr.substr(0, idx);
-			_port_str = addr.substr(idx + 1);
-			_port = atoi(_port_str.c_str());
-		}
+		parse_host_port(addr);
 		
 		bool found = false;
 		std::list<Glib::ustring>::iterator iter = server_mru_str.begin();
@@ -418,10 +400,12 @@ void gbzadmin::pref_dialog_setup()
         entry->set_text(_callsign);
 
         refBuilder->get_widget("pref_server_entry", entry);
-        entry->set_text(_server);
+        Glib::ustring host(_server);
+        host += ":" + _port_str;
+        entry->set_text(host);
 
-        refBuilder->get_widget("pref_port_entry", entry);
-        entry->set_text(_port_str);
+        refBuilder->get_widget("pref_motto_entry", entry);
+        entry->set_text(_motto);
 
         dlg->show();
     }
@@ -476,11 +460,10 @@ void gbzadmin::on_pref_dialog_response(gint response_id)
         _callsign = e->get_text();
 
         refBuilder->get_widget("pref_server_entry", e);
-        _server = e->get_text();
+        parse_host_port(e->get_text());
 
-        refBuilder->get_widget("pref_port_entry", e);
-        _port_str = e->get_text();
-        _port = atoi(_port_str.c_str());
+        refBuilder->get_widget("pref_motto_entry", e);
+        _motto = e->get_text();
 
         if (response_id == Gtk::RESPONSE_OK) {
             pref_dialog->hide();
@@ -511,7 +494,6 @@ Gtk::Window *gbzadmin::init_gbzadmin(Glib::RefPtr<Gtk::Builder> _refBuilder)
     win_height = 600;
     msg_pane = 300;
     game_pane = 400;
-    max_mru_lines = maxServersList;
 
     current_cmd_type = NoCommand;
 
@@ -1201,7 +1183,6 @@ void gbzadmin::handle_joinserver_message(void *vbuf)
     Glib::ustring addr;
     gint32 port;
     gint32 team;
-    //  Glib::ustring referrer;
     Glib::ustring message;
 
     vbuf = parser.nboUnpackStdString(vbuf, addr);
@@ -1219,11 +1200,7 @@ void gbzadmin::handle_joinserver_message(void *vbuf)
     serverName = addr.c_str();
 
     _port = port;
-    if (team == NoTeam) {
-        // leave it alone, player can select using the menu
-    } else {
-        _team = team;
-    }
+    _team = team;
 }
 
 void gbzadmin::handle_rabbit_message(void *vbuf)
@@ -1731,7 +1708,6 @@ void gbzadmin::handle_message_message(void *vbuf)
 	}
 
     // format the message depending on source and destination
-//    TeamColor dstTeam = (LastRealPlayer < dst && dst <= FirstTeam ? TeamColor(FirstTeam - dst) : NoTeam);
     TeamColor dstTeam = PlayerIdToTeam(dst);
 
     if (msg_mask["chat"]) {
@@ -2020,6 +1996,10 @@ void gbzadmin::print_message_code(guint16 code)
               << std::setfill('0'); // fill with zeroes
 
     if (code != MsgShotBegin && code != MsgShotEnd) { // we don't care about shot begin/end
+//    	Glib::ustring msg("<<*>>");
+//    	msg += parse_message_code(code);
+//    	msg += " message code received\n";
+//    	msg_view.add_text(msg, Glib::ustring("red"));
         std::cout << std::hex << std::setw(6) << code << std::endl;
     }
 }
@@ -3159,4 +3139,94 @@ TeamColor gbzadmin::PlayerIdToTeam(guint8 id)
 {
   return (LastRealPlayer < id && id <= FirstTeam ? TeamColor(FirstTeam - id) : NoTeam);
 }
+
+void gbzadmin::parse_host_port(Glib::ustring addr) 
+{
+	size_t idx = addr.find_last_of(":");
+    if (idx == std::string::npos) { // host:port separator ":" is missing
+		_server = addr;
+		_port_str = "5154";
+		_port = 5154; // use default port
+	} else { // parse the server name and port
+		_server = addr.substr(0, idx);
+		_port_str = addr.substr(idx + 1);
+		_port = atoi(_port_str.c_str());
+	}
+}
+
+//Glib::ustring gbzadmin::parse_message_code(guint16 code)
+//{
+//	char *messages[] = {
+//		{ "MsgAccept", "0x6163" },				// 'ac'
+//		{ "MsgAdminInfo", "0x6169" },			// 'ai'
+//		{ "MsgAlive", "0x616c" },				// 'al'
+//		{ "MsgAllow", "0x696f }", 				// 'ao'
+//		{ "MsgAddPlayer", "0x6170" },			// 'ap'
+//		{ "MsgAutoPilot", "0x6175" },			// 'au'
+//		{ "MsgCapBits", "0x6362 }", 			// 'cb'
+//		{ "MsgCaptureFlag", "0x6366" },		    // 'cf'
+//		{ "MsgCustomSound", "0x6373" },			// 'cs'
+//		{ "MsgCacheURL", "0x6375" },			// 'cu'
+//		{ "MsgDropFlag", "0x6466" },			// 'df'
+//		{ "MsgEnter", "0x656e" },				// 'en'
+//		{ "MsgExit", "0x6578" },				// 'ex'
+//		{ "MsgFlagUpdate", "0x6675" },			// 'fu'
+//		{ "MsgFetchResources", "0x6672" },		// 'fr'
+//		{ "MsgGrabFlag", "0x6766" },			// 'gf'
+//		{ "MsgGMUpdate", "0x676d" },			// 'gm'
+//		{ "MsgGetWorld", "0x6777" },			// 'gw'
+//		{ "MsgGameSettings", "0x6773" },		// 'gs'
+//		{ "MsgGameTime", "0x6774" },			// 'gt'
+//		{ "MsgHit", "0x6869 }", 				// 'hi'
+//		{ "MsgJoinServer", "0x6a73 }", 			// 'js'
+//		{ "MsgKilled", "0x6b6c" },				// 'kl'
+//		{ "MsgKrbPrincipal", "0x6b70" },		// 'kp'
+//		{ "MsgKrbTicket   ", "0x6b74" },		// 'kt'
+//		{ "MsgLagState", "0x6c73" },			// 'ls'
+//		{ "MsgLimboMessage", "0x6c6d }", 		// 'lm'
+//		{ "MsgMessage", "0x6d67" },				// 'mg'
+//		{ "MsgNewPlayer", "0x6e70 }", 			// 'np'
+//		{ "MsgNearFlag", "0x4e66 }", 			// 'Nf'
+//		{ "MsgNewRabbit", "0x6e52" },			// 'nR'
+//		{ "MsgNegotiateFlags", "0x6e66" },		// 'nf'
+//		{ "MsgPause", "0x7061" },				// 'pa'
+//		{ "MsgPlayerInfo", "0x7062" },			// 'pb'
+//		{ "MsgPlayerData", "0x7064 }", 			// 'pd'
+//		{ "MsgPlayerUpdate", "0x7075" },		// 'pu'
+//		{ "MsgPlayerUpdateSmall", "0x7073" },	// 'ps'
+//		{ "MsgQueryGame", "0x7167" },			// 'qg'
+//		{ "MsgQueryPlayers", "0x7170" },		// 'qp'
+//		{ "MsgReject", "0x726a" },				// 'rj'
+//		{ "MsgRemovePlayer", "0x7270" },		// 'rp'
+//		{ "MsgReplayReset", "0x7272" },			// 'rr'
+//		{ "MsgShotBegin", "0x7362" },			// 'sb'
+//		{ "MsgScore", "0x7363" },				// 'sc'
+//		{ "MsgScoreOver", "0x736f" },			// 'so'
+//		{ "MsgShotEnd", "0x7365" },				// 'se'
+//		{ "MsgSuperKill", "0x736b" },			// 'sk'
+//		{ "MsgSetTeam", "0x7374 }", 			// 'st'
+//		{ "MsgSetVar", "0x7376" },				// 'sv'
+//		{ "MsgTangibilityUpdate", "0x746e" },	// 'tn'
+//		{ "MsgTangibilityReset ", "0x7472" },	// 'tr'
+//		{ "MsgTimeUpdate", "0x746f" },			// 'to'
+//		{ "MsgTeleport", "0x7470" },			// 'tp'
+//		{ "MsgTransferFlag", "0x7466" },		// 'tf'
+//		{ "MsgTeamUpdate", "0x7475" },			// 'tu'
+//		{ "MsgWantWHash", "0x7768" },			// 'wh'
+//		{ "MsgWhatTimeIsIt", "0x7774" },		// 'wt'
+//		{ "MsgWantSettings", "0x7773" },		// 'ws'
+//		{ "MsgPortalAdd", "0x5061" },			// 'Pa'
+//		{ "MsgPortalRemove", "0x5072" },		// 'Pr'
+//		{ "MsgPortalUpdate", "0x5075" },		// 'Pu'
+//		{ "MsgPingCodeReply", "0x0303" },
+//		{ "MsgPingCodeRequest", "0x0404" },
+//		{ "MsgEchoRequest ", "0x6572 }", 		// 'er'
+//		{ "MsgEchoResponse", "0x6570 }", 		// 'ep'
+//		{ "MsgUDPLinkRequest", "0x6f66" },		// 'of'
+//		{ "MsgUDPLinkEstablished", "0x6f67" },	// 'og'
+//		{ "MsgServerControl", "0x6f69" },		// 'oi'
+//		{ "MsgLagPing", "0x7069" },				// 'pi'
+//	};
+//	
+//}
 
