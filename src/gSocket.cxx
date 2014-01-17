@@ -544,6 +544,7 @@ void gSocket::sendEnter( unsigned char type, unsigned int team, Glib::ustring ca
     }
     char msg[PlayerIdPLen + 4 + CallSignLen + MottoLen + TokenLen + VersionLen] = {0};
     void* buf = msg;
+    const char* versionStr = getAppVersion().c_str();
 
     buf = parser.nboPackUShort( buf, uint16_t( type ) );
     buf = parser.nboPackUShort( buf, uint16_t( team ) );
@@ -553,7 +554,7 @@ void gSocket::sendEnter( unsigned char type, unsigned int team, Glib::ustring ca
     buf = ( void* )( ( char* )buf + MottoLen );
     ::memcpy( buf, token.c_str(), token.size() );
     buf = ( void* )( ( char* )buf + TokenLen );
-    ::memcpy( buf, getAppVersion(), ::strlen( getAppVersion() ) + 1 );
+    ::memcpy( buf, versionStr, ::strlen(versionStr) + 1 );
     buf = ( void* )( ( char* )buf + VersionLen );
 
     this->send( MsgEnter, sizeof( msg ), msg );

@@ -63,11 +63,14 @@ void gListServer::getToken(Glib::ustring callsign, Glib::ustring password)
     msg = "action=LIST&version=";
     msg += ServerVersion;
     msg += "&clientversion";
-    msg += url_encode(getAppVersion());
+    msg += UrlEncode(getAppVersion());
+//    msg += url_encode(getAppVersion().c_str());
     msg += "&callsign=";
-    msg += url_encode(callsign.c_str());
+    msg += UrlEncode(callsign);
+//    msg += url_encode(callsign.c_str());
     msg += "&password=";
-    msg += url_encode(password.c_str());
+    msg += UrlEncode(password);
+//    msg += url_encode(password.c_str());
 
     curlData = (unsigned char*)g_try_new(gchar, 1024);
 

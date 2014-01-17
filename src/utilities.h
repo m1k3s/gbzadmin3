@@ -25,6 +25,7 @@
 
 #include <gtkmm.h>
 #include <iostream>
+#include <iomanip>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/types.h>
@@ -48,13 +49,13 @@
 
 // versioning info
 int getBuildDate();
-const char* const Gbzadmin_Build_Type	=	"DEVEL";	// DEVEL | STABLE | MAINT
+const char* const Gbzadmin_Build_Type =	"DEVEL";	// DEVEL | STABLE | MAINT
 
-char* getAppVersion();
-char* getOsName();
-char *getMachine();
+//char* getAppVersion();
+Glib::ustring getAppVersion();
 Glib::ustring getOsInfo(Glib::ustring info);
 const char* getServerVersion();
-char *url_encode(const char *text);
+//char *url_encode(const char *text);
+Glib::ustring UrlEncode(Glib::ustring text);
 
 #endif // _utilities_h_

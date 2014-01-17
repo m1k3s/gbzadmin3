@@ -1171,8 +1171,8 @@ gSocket.o: gSocket.cxx /usr/include/stdc-predef.h \
  /usr/include/errno.h /usr/include/x86_64-linux-gnu/bits/errno.h \
  /usr/include/linux/errno.h /usr/include/x86_64-linux-gnu/asm/errno.h \
  /usr/include/asm-generic/errno.h /usr/include/asm-generic/errno-base.h \
- /usr/include/c++/4.8/cstdio utilities.h /usr/include/c++/4.8/cerrno \
- /usr/include/x86_64-linux-gnu/sys/utsname.h \
+ /usr/include/c++/4.8/cstdio utilities.h /usr/include/c++/4.8/iomanip \
+ /usr/include/c++/4.8/cerrno /usr/include/x86_64-linux-gnu/sys/utsname.h \
  /usr/include/x86_64-linux-gnu/bits/utsname.h /usr/include/curl/curl.h \
  /usr/include/curl/curlver.h /usr/include/curl/curlbuild.h \
  /usr/include/curl/curlrules.h /usr/include/curl/easy.h \
@@ -3764,6 +3764,8 @@ gSocket.h:
 /usr/include/c++/4.8/cstdio:
 
 utilities.h:
+
+/usr/include/c++/4.8/iomanip:
 
 /usr/include/c++/4.8/cerrno:
 

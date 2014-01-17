@@ -44,6 +44,8 @@ const gchar *msg_names[] = {
     "flags",	// flag update
     "time",		// timestamp join/part
     "teleport", // player teleported
+    "gtime",	// game time
+    "tupdate",	// time update
 };
 
 const int n_msg_masks = (sizeof(msg_names) / sizeof(msg_names[0]));
@@ -569,7 +571,6 @@ Gtk::Window *gbzadmin::init_gbzadmin(Glib::RefPtr<Gtk::Builder> _refBuilder)
 // message code to handler function map initialization
 void gbzadmin::init_message_handler_map()
 {
-    handler_map[MsgJoinServer]			= &gbzadmin::handle_joinserver_message;
     handler_map[MsgPause]				= &gbzadmin::handle_pause_message;
     handler_map[MsgAutoPilot]			= &gbzadmin::handle_autopilot_message;
     handler_map[MsgAddPlayer]			= &gbzadmin::handle_add_player_message;
@@ -592,6 +593,8 @@ void gbzadmin::init_message_handler_map()
     handler_map[MsgTeamUpdate]			= &gbzadmin::handle_teamupdate_message;
     handler_map[MsgMessage]				= &gbzadmin::handle_message_message;
     handler_map[MsgTeleport]			= &gbzadmin::handle_teleport_message;
+    handler_map[MsgGameTime]			= &gbzadmin::handle_game_time_message;
+    handler_map[MsgTimeUpdate]			= &gbzadmin::handle_time_update_message;
 }
 
 void gbzadmin::on_about_activate()
@@ -638,7 +641,7 @@ void gbzadmin::on_about_activate()
 
     dlg.set_name("gBZAdmin");
     dlg.set_version(VERSION);
-    dlg.set_copyright("Copyright (c) 2005 - 2013 Michael Sheppard\nPortions Copyright (c) 1993 - 2009 Tim Riker");
+    dlg.set_copyright("Copyright (c) 2005 - 2014 Michael Sheppard\nPortions Copyright (c) 1993 - 2009 Tim Riker");
     dlg.set_license(license);
     dlg.set_comments(comment);
     dlg.set_authors(authors);
@@ -997,6 +1000,10 @@ void gbzadmin::parse_config_file(Glib::ustring filename)
             } else if (g_ascii_strcasecmp(variable, "server_mru") == 0) {
                 Glib::ustring str(value);
                 server_mru_str = parse_server_mru(str, ";", maxServersList);
+            } else if (g_ascii_strcasecmp(variable, "msg_time_update") == 0) {
+                msg_mask["tupdate"] = atoi(value) ? true : false;
+            } else if (g_ascii_strcasecmp(variable, "msg_game_time") == 0) {
+                msg_mask["gtime"] = atoi(value) ? true : false;
             } else {
                 continue;
             }
@@ -1131,6 +1138,12 @@ void gbzadmin::save_config_file(Glib::ustring filename)
 
         buf = Glib::ustring::compose("msg_teleport=%1\n", msg_mask["teleport"]);
         os.write(buf.c_str(), buf.length());
+        
+        buf = Glib::ustring::compose("msg_time_update=%1\n", msg_mask["tupdate"]);
+        os.write(buf.c_str(), buf.length());
+        
+        buf = Glib::ustring::compose("msg_game_time=%1\n", msg_mask["gtime"]);
+        os.write(buf.c_str(), buf.length());
 
         os.close();
     } else {
@@ -1179,31 +1192,6 @@ Glib::ustring gbzadmin::get_team_str(int t)
 ///////////////////////////////////////////////////////////////////////////////
 // message handler functions
 //
-void gbzadmin::handle_joinserver_message(void *vbuf)
-{
-    Glib::ustring addr;
-    gint32 port;
-    gint32 team;
-    Glib::ustring message;
-
-    vbuf = parser.nboUnpackStdString(vbuf, addr);
-    vbuf = parser.nboUnpackInt(vbuf, &port);
-    vbuf = parser.nboUnpackInt(vbuf, &team);
-    vbuf = parser.nboUnpackStdString(vbuf, referrer);
-    vbuf = parser.nboUnpackStdString(vbuf, message);
-
-    if (addr.empty()) {
-        return;
-    }
-    if ((_port < 0) || (_port > 65535)) {
-        return;
-    }
-    serverName = addr.c_str();
-
-    _port = port;
-    _team = team;
-}
-
 void gbzadmin::handle_rabbit_message(void *vbuf)
 {
     guint8 p;
@@ -1904,9 +1892,49 @@ void gbzadmin::handle_teleport_message(void *vbuf)
     }
 }
 
+void gbzadmin::handle_time_update_message(void *vbuf)
+{
+	if (msg_mask["tupdate"]) {
+		gint32 timeLeft;
+		vbuf = parser.nboUnpackInt(vbuf, &timeLeft);
+		Glib::ustring str(msg_view.Color(OrangeFg));
+		str += ">>> ";
+		str += msg_view.Color(RedFg);
+	
+		if (timeLeft == 0) {
+			str += "Time Expired";
+			msg_view.add_text(str);
+		} else if (timeLeft < 0) {
+			str += "Game Paused";
+			msg_view.add_text(str);
+		} else {
+			str += "Time: ";
+			str += msg_view.Color(BlueFg);
+			str += Glib::ustring::compose("%1\n", timeLeft);
+			msg_view.add_text(str);
+		}
+	}
+}
+
+void gbzadmin::handle_game_time_message(void *vbuf)
+{
+	if (msg_mask["gtime"]) {
+		guint32 msb, lsb;
+		vbuf = parser.nboUnpackUInt(vbuf, &msb);
+		vbuf = parser.nboUnpackUInt(vbuf, &lsb);
+		const gint64 netTime = ((gint64)msb << 32) + (gint64)lsb;
+		Glib::ustring str(msg_view.Color(OrangeFg));
+		str += ">>> ";
+		str += msg_view.Color(RedFg);
+		str += "Game Time: ";
+		str += msg_view.Color(BlueFg);
+		str += Glib::ustring::compose("%1\n", netTime);
+		msg_view.add_text(str);
+	}
+}
+
 Glib::ustring gbzadmin::colorize(Player *player)
 {
-//	Glib::ustring color;
     return msg_view.get_color(player->get_team());
 }
 
@@ -1989,18 +2017,14 @@ gint gbzadmin::get_message()
     return NoMessage;
 }
 
+// diagnostic function
 void gbzadmin::print_message_code(guint16 code)
 {
-    std::cout << std::showbase 		// show the 0x prefix
-              << std::internal 		// show leading zeroes
-              << std::setfill('0'); // fill with zeroes
-
-    if (code != MsgShotBegin && code != MsgShotEnd) { // we don't care about shot begin/end
-//    	Glib::ustring msg("<<*>>");
-//    	msg += parse_message_code(code);
-//    	msg += " message code received\n";
-//    	msg_view.add_text(msg, Glib::ustring("red"));
-        std::cout << std::hex << std::setw(6) << code << std::endl;
+    if (code != MsgShotBegin && code != MsgShotEnd && code != MsgPlayerUpdateSmall && MsgGMUpdate) {
+    	Glib::ustring msg("<<*>> Received ()");
+    	msg += Glib::ustring::compose("0X%1", Glib::ustring::format(std::hex, std::setw(6), code));
+    	msg += ") message code\n";
+    	msg_view.add_text(msg, Glib::ustring("red"));
     }
 }
 

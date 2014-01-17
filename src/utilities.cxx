@@ -24,22 +24,26 @@
 #include "utilities.h"
 
 
-char *getAppVersion()
+//char *getAppVersion()
+//{
+//    char buf[128];
+//    Glib::ustring os_name, machine;
+//    os_name = getOsInfo("sysname");
+//    machine = getOsInfo("machine");
+
+//	snprintf(buf, sizeof(buf), "gbzadmin-%s.%d-%s-%s-%s", VERSION, getBuildDate(), Gbzadmin_Build_Type, os_name.c_str(), machine.c_str());
+
+//    return ::strdup(buf);
+//}
+
+Glib::ustring getAppVersion()
 {
-    char buf[128];
-    Glib::ustring os_name, machine;
-    os_name = getOsInfo("sysname");
-    machine = getOsInfo("machine");
-//    char *os_name = getOsName();
-//    char *machine = getMachine();
-
-//    snprintf(buf, sizeof(buf), "gbzadmin-%s.%d-%s-%s-gtkmm", VERSION, getBuildDate(), Gbzadmin_Build_Type, os_name.c_str());
-	snprintf(buf, sizeof(buf), "gbzadmin-%s.%d-%s-%s-%s", VERSION, getBuildDate(), Gbzadmin_Build_Type, os_name.c_str(), machine.c_str());
-
-//    free(os_name);
-//    free(machine);
-
-    return ::strdup(buf);
+	Glib::ustring str("");
+	Glib::ustring osName(getOsInfo("sysname"));
+	Glib::ustring machine(getOsInfo("machine"));
+	
+	str = Glib::ustring::compose("gbzadmin-%1.%2-%3-%4-%5", VERSION, getBuildDate(), Gbzadmin_Build_Type, osName, machine);
+	return str;
 }
 
 int getBuildDate()
@@ -69,51 +73,54 @@ Glib::ustring getOsInfo(Glib::ustring info)
 	return value;
 }
 
-char *getOsName()
-{
-    struct utsname os;
-    if (uname(&os)) {
-        return ::strdup("Unknown");
-    }
-
-    return ::strdup(os.sysname);
-}
-
-char *getMachine()
-{
-    struct utsname os;
-    if (uname(&os)) {
-        return ::strdup("Unknown");
-    }
-
-    return ::strdup(os.machine);
-}
-
 const char *getServerVersion()
 {
     return ServerVersion;
 }
 
-char *url_encode(const char *text)
-{
-    char hex[5];
-    int text_size = strlen(text);
-    char *destination = g_new0(char, text_size + 20);
-    g_assert(destination != NULL);
+//char *url_encode(const char *text)
+//{
+//    char hex[5];
+//    int text_size = strlen(text);
+//    char *destination = g_new0(char, text_size + 20);
+//    g_assert(destination != NULL);
 
-    for (int j = 0, i = 0; i < text_size; i++) {
-        char c = text[i];
-        if (g_ascii_isalnum(c)) {
-            memset(&destination[j++], c, sizeof(char));
-        } else if (g_ascii_isspace(c)) {
-            memset(&destination[j++], '+', sizeof(char));
-        } else {
-            memset(&destination[j++], '%', sizeof(char));
-            snprintf(hex, sizeof(hex), "%-2.2X", c);
-            memcpy(&destination[j], hex, strlen(hex));
-            j += strlen(hex);
-        }
-    }
-    return destination;
+//    for (int j = 0, i = 0; i < text_size; i++) {
+//        char c = text[i];
+//        if (g_ascii_isalnum(c)) {
+//            memset(&destination[j++], c, sizeof(char));
+//        } else if (g_ascii_isspace(c)) {
+//            memset(&destination[j++], '+', sizeof(char));
+//        } else {
+//            memset(&destination[j++], '%', sizeof(char));
+//            snprintf(hex, sizeof(hex), "%-2.2X", c);
+//            memcpy(&destination[j], hex, strlen(hex));
+//            j += strlen(hex);
+//        }
+//    }
+//    return destination;
+//}
+
+Glib::ustring UrlEncode(Glib::ustring text)
+{
+	Glib::ustring hex("");
+	Glib::ustring destination("");
+//	int len = text.size();
+	
+	Glib::ustring::iterator it = text.begin();
+	while (it != text.end()) {
+		if (Glib::Ascii::isalnum(*it)) {
+			destination += *it;
+			it++;
+		} else if (Glib::Ascii::isspace(*it)) {
+			destination += "+";
+			it++;
+		} else {
+			destination += "%";
+			destination += Glib::ustring::compose("%1", Glib::ustring::format(std::hex, std::setw(2), std::setprecision(2), std::left, *it));
+			it++;
+		}
+	}
+	return destination;
 }
 

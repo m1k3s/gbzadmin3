@@ -197,8 +197,10 @@ class gbzadmin : public Gtk::Window
         void handle_ping_message(void *vbuf);
         void handle_game_query_message(void *vbuf);
         void handle_teamupdate_message(void *vbuf);
-        void handle_joinserver_message(void *vbuf);
+//        void handle_joinserver_message(void *vbuf);
         void handle_teleport_message(void *vbuf);
+        void handle_time_update_message(void *vbuf);
+        void handle_game_time_message(void *vbuf);
 
     private:
         Gtk::Window *app;
@@ -237,7 +239,6 @@ class gbzadmin : public Gtk::Window
         Glib::ustring path; // to the config file
         Glib::ustring msg_self;
         Glib::ustring serverName;
-        Glib::ustring referrer;
         guint8 me;
         gint current_cmd_type;
         gint count, prev_count;

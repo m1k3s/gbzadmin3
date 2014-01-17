@@ -1140,7 +1140,7 @@ gListServer.o: gListServer.cxx /usr/include/stdc-predef.h \
  /usr/include/gtkmm-2.4/gtkmm/uimanager.h \
  /usr/include/gtkmm-2.4/gtkmm/actiongroup.h \
  /usr/include/gtkmm-2.4/gtkmm/viewport.h /usr/include/c++/4.8/iostream \
- utilities.h /usr/include/fcntl.h \
+ utilities.h /usr/include/c++/4.8/iomanip /usr/include/fcntl.h \
  /usr/include/x86_64-linux-gnu/bits/fcntl.h \
  /usr/include/x86_64-linux-gnu/bits/fcntl-linux.h \
  /usr/include/x86_64-linux-gnu/bits/uio.h \
@@ -3679,6 +3679,8 @@ gListServer.h:
 /usr/include/c++/4.8/iostream:
 
 utilities.h:
+
+/usr/include/c++/4.8/iomanip:
 
 /usr/include/fcntl.h:
 
