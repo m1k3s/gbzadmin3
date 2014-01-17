@@ -301,20 +301,20 @@ void gbzadmin::connect_dialog_setup()
         w_callsign->set_text(_callsign);
         w_password->set_text(_password);
         w_motto->set_text(_motto);
-        
+
         // add the server:port strings
         server_combo.clear_items();
         std::list<Glib::ustring>::iterator iter;
         int nLines = 1;
         for (iter = server_mru_str.begin(); iter != server_mru_str.end(); iter++) {
-        	server_combo.append_text(*iter);
-        	nLines++;
-        	if (nLines >= maxServersList) {
-        		break;
-        	}
+            server_combo.append_text(*iter);
+            nLines++;
+            if (nLines >= maxServersList) {
+                break;
+            }
         }
-		iter = server_mru_str.begin();
-		server_combo.set_active_text(*iter);
+        iter = server_mru_str.begin();
+        server_combo.set_active_text(*iter);
         connect_dialog->show_all();
     }
 }
@@ -328,26 +328,26 @@ void gbzadmin::on_connect_dialog_response(gint response_id)
         refBuilder->get_widget("password_entry", w_password);
         refBuilder->get_widget("motto_entry", w_motto);
 
-		Glib::ustring addr = server_combo.get_entry_text();
-		parse_host_port(addr);
-		
-		bool found = false;
-		std::list<Glib::ustring>::iterator iter = server_mru_str.begin();
+        Glib::ustring addr = server_combo.get_entry_text();
+        parse_host_port(addr);
+
+        bool found = false;
+        std::list<Glib::ustring>::iterator iter = server_mru_str.begin();
         while (iter != server_mru_str.end()) {
-        	if (*iter == addr) {
-        		found = true;
-        		break; // server:port already in list
-        	}
-        	iter++;
+            if (*iter == addr) {
+                found = true;
+                break; // server:port already in list
+            }
+            iter++;
         }
         if (!found) { // add server:port string to MRU list
-        	server_mru_str.push_front(addr);
+            server_mru_str.push_front(addr);
         }
-        
+
         _callsign.assign(w_callsign->get_text(), 0, CallSignLen);
         _password.assign(w_password->get_text(), 0, PasswordLen);
         _motto.assign(w_motto->get_text(), 0, MottoLen);
-        
+
         logon();
     } else {
         // only hide the connect dialog if canceled.
@@ -502,7 +502,7 @@ Gtk::Window *gbzadmin::init_gbzadmin(Glib::RefPtr<Gtk::Builder> _refBuilder)
     if (!app) {
         return 0;
     }
-    
+
     app->set_title(Glib::ustring(windowTitle));
 
     Glib::ustring configPath(Glib::get_home_dir());
@@ -549,7 +549,7 @@ Gtk::Window *gbzadmin::init_gbzadmin(Glib::RefPtr<Gtk::Builder> _refBuilder)
 
     // replace the input dialog comboboxes with combotextboxes
     replace_input_placeholders();
-    
+
     // replace the connect dlg combobox
     replace_connect_placeholders();
 
@@ -995,8 +995,8 @@ void gbzadmin::parse_config_file(Glib::ustring filename)
             } else if (g_ascii_strcasecmp(variable, "msg_teleport") == 0) {
                 msg_mask["teleport"] = atoi(value) ? true : false;
             } else if (g_ascii_strcasecmp(variable, "server_mru") == 0) {
-            	Glib::ustring str(value);
-            	server_mru_str = parse_server_mru(str, ";", maxServersList);
+                Glib::ustring str(value);
+                server_mru_str = parse_server_mru(str, ";", maxServersList);
             } else {
                 continue;
             }
@@ -1038,22 +1038,22 @@ void gbzadmin::save_config_file(Glib::ustring filename)
             buf = Glib::ustring::compose("port=%1\n", _port_str);
             os.write(buf.c_str(), buf.length());
         }
-        
+
         // write the server list MRU
         std::list<Glib::ustring>::iterator it = server_mru_str.begin();
         while (it != server_mru_str.end()) {
-        	if (it == server_mru_str.begin()) {
-		    	buf = Glib::ustring::compose("server_mru=%1", *it);
-		    	os.write(buf.c_str(), buf.length());
-		    } else {
-		    	buf = Glib::ustring::compose(";%1", *it);
-		    	os.write(buf.c_str(), buf.length());
-		    }
-        	it++;
+            if (it == server_mru_str.begin()) {
+                buf = Glib::ustring::compose("server_mru=%1", *it);
+                os.write(buf.c_str(), buf.length());
+            } else {
+                buf = Glib::ustring::compose(";%1", *it);
+                os.write(buf.c_str(), buf.length());
+            }
+            it++;
         }
         buf = Glib::ustring("\n");
-    	os.write(buf.c_str(), buf.length());
-        
+        os.write(buf.c_str(), buf.length());
+
         buf = Glib::ustring::compose("window_x=%1\n", win_x);
         os.write(buf.c_str(), buf.length());
 
@@ -1702,11 +1702,11 @@ void gbzadmin::handle_message_message(void *vbuf)
     vbuf = parser.nboUnpackUByte(vbuf, &src);
     vbuf = parser.nboUnpackUByte(vbuf, &dst);
     vbuf = parser.nboUnpackUByte(vbuf, &type);
-    
+
     // Only bother processing the message if we know how to handle it
     if (MessageType(type) != ChatMessage && MessageType(type) != ActionMessage) {
-		return;
-	}
+        return;
+    }
 
     // format the message depending on source and destination
     TeamColor dstTeam = PlayerIdToTeam(dst);
@@ -2326,7 +2326,6 @@ void gbzadmin::show_help(Glib::ustring what)
 void gbzadmin::on_variable_changed(Glib::ustring cmd)
 {
     // update the variable data
-
     cmd_str = cmd;
     process_command();
 }
@@ -2756,14 +2755,14 @@ void gbzadmin::replace_input_placeholders()
 
 void gbzadmin::replace_connect_placeholders()
 {
-	Gtk::VBox *box;
-	refBuilder->get_widget("vbox5", box);
-	
-	Gtk::Entry *crap;
-	refBuilder->get_widget("server_entry", crap);
-	
-	box->remove(*crap);
-	box->pack_start(server_combo);
+    Gtk::VBox *box;
+    refBuilder->get_widget("vbox5", box);
+
+    Gtk::Entry *crap;
+    refBuilder->get_widget("server_entry", crap);
+
+    box->remove(*crap);
+    box->pack_start(server_combo);
     box->reorder_child(server_combo, 7);
 }
 
@@ -3091,65 +3090,65 @@ void gbzadmin::show_mottos()
 
 std::list<Glib::ustring> gbzadmin::parse_server_mru(const Glib::ustring& in, const Glib::ustring &delims, int lines_max)
 {
-	std::list<Glib::ustring> tokens;
-	Glib::ustring currentToken("");
-	const Glib::ustring::size_type len = in.size();
-	Glib::ustring::size_type pos = in.find_first_not_of(delims);
-	int currentChar = (pos == Glib::ustring::npos) ? -1 : in[pos];
-	int nLines = 1;
+    std::list<Glib::ustring> tokens;
+    Glib::ustring currentToken("");
+    const Glib::ustring::size_type len = in.size();
+    Glib::ustring::size_type pos = in.find_first_not_of(delims);
+    int currentChar = (pos == Glib::ustring::npos) ? -1 : in[pos];
+    int nLines = 1;
 
-	while (pos < len && pos != Glib::ustring::npos) {
-		if (nLines >= lines_max) {
-			break;
-		}
-		bool tokenDone = false;
-		currentChar = (pos < len) ? in[pos] : -1;
-		while ((currentChar != -1) && !tokenDone) {
-			tokenDone = false;
-			if (delims.find(char(currentChar)) != Glib::ustring::npos) {
-				pos ++;
-				break;
-			}
-			currentToken += char(currentChar);
-			pos++;
-			currentChar = (pos < len) ? in[pos] : -1;
-		}
-		if (currentToken.size() > 0) {
-			tokens.push_back(currentToken);
-			currentToken.clear();
-		}
-		if ((pos < len) && (pos != std::string::npos)) {
-			pos = in.find_first_not_of(delims, pos);
-		}
-		nLines++;
-	}
-	if (pos != std::string::npos) {
-		std::string lastToken = in.substr(pos);
-		if (lastToken.size() > 0) {
-			tokens.push_back(lastToken);
-		}
-	}
-	return tokens;
+    while (pos < len && pos != Glib::ustring::npos) {
+        if (nLines >= lines_max) {
+            break;
+        }
+        bool tokenDone = false;
+        currentChar = (pos < len) ? in[pos] : -1;
+        while ((currentChar != -1) && !tokenDone) {
+            tokenDone = false;
+            if (delims.find(char(currentChar)) != Glib::ustring::npos) {
+                pos ++;
+                break;
+            }
+            currentToken += char(currentChar);
+            pos++;
+            currentChar = (pos < len) ? in[pos] : -1;
+        }
+        if (currentToken.size() > 0) {
+            tokens.push_back(currentToken);
+            currentToken.clear();
+        }
+        if ((pos < len) && (pos != std::string::npos)) {
+            pos = in.find_first_not_of(delims, pos);
+        }
+        nLines++;
+    }
+    if (pos != std::string::npos) {
+        std::string lastToken = in.substr(pos);
+        if (lastToken.size() > 0) {
+            tokens.push_back(lastToken);
+        }
+    }
+    return tokens;
 }
 
 //gint16 dstTeam = (LastRealPlayer < dst && dst <= FirstTeam ? TeamColor(FirstTeam - dst) : NoTeam);
 TeamColor gbzadmin::PlayerIdToTeam(guint8 id)
 {
-  return (LastRealPlayer < id && id <= FirstTeam ? TeamColor(FirstTeam - id) : NoTeam);
+    return (LastRealPlayer < id && id <= FirstTeam ? TeamColor(FirstTeam - id) : NoTeam);
 }
 
-void gbzadmin::parse_host_port(Glib::ustring addr) 
+void gbzadmin::parse_host_port(Glib::ustring addr)
 {
-	size_t idx = addr.find_last_of(":");
+    size_t idx = addr.find_last_of(":");
     if (idx == std::string::npos) { // host:port separator ":" is missing
-		_server = addr;
-		_port_str = "5154";
-		_port = 5154; // use default port
-	} else { // parse the server name and port
-		_server = addr.substr(0, idx);
-		_port_str = addr.substr(idx + 1);
-		_port = atoi(_port_str.c_str());
-	}
+        _server = addr;
+        _port_str = "5154";
+        _port = 5154; // use default port
+    } else { // parse the server name and port
+        _server = addr.substr(0, idx);
+        _port_str = addr.substr(idx + 1);
+        _port = atoi(_port_str.c_str());
+    }
 }
 
 //Glib::ustring gbzadmin::parse_message_code(guint16 code)
@@ -3225,6 +3224,6 @@ void gbzadmin::parse_host_port(Glib::ustring addr)
 //		{ "MsgServerControl", "0x6f69" },		// 'oi'
 //		{ "MsgLagPing", "0x7069" },				// 'pi'
 //	};
-//	
+//
 //}
 

@@ -3,7 +3,7 @@
 // gbzadmin
 // GTKmm bzadmin
 // Copyright (c) 2005 - 2012 Michael Sheppard
-//  
+//
 // Code based on BZFlag-2.0.x
 // Portions Copyright (c) 1993 - 2009 Tim Riker
 //
@@ -11,12 +11,12 @@
 //  This program is free software; you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
 //  the Free Software Foundation; version 2 dated June, 1991.
-// 
-//  This program is distributed in the hope that it will be useful, 
+//
+//  This program is distributed in the hope that it will be useful,
 //  but WITHOUT ANY WARRANTY; without even the implied warranty of
 //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //  GNU General Public License for more details.
-// 
+//
 //  You should have received a copy of the GNU General Public License
 //  along with this program;  if not, write to the Free Software
 //  Foundation, Inc., 675 Mass Ave., Cambridge, MA 02139, USA.
@@ -43,9 +43,9 @@
 
 // notebook pages
 enum {
-	Page_Players = 0,
-	Page_ServerVars,
-	Page_ServerList
+    Page_Players = 0,
+    Page_ServerVars,
+    Page_ServerList
 };
 
 const int BlockTime = 100;	// milliseconds
@@ -71,36 +71,36 @@ const int DefaultPort = 5154;
 
 // types of text messages
 enum MessageType {
-  ChatMessage,
-  ActionMessage
+    ChatMessage,
+    ActionMessage
 };
 
 // types of updates we can receive
 enum NetworkUpdates {
-  NoUpdates       = 0, // receive no player data and no chats
-  PlayerUpdates   = 1, // receive only player updates
-  ChatUpdates     = 2, // receive only chats
-  AllUpdates      = 3  // receive player data and chats
+    NoUpdates       = 0, // receive no player data and no chats
+    PlayerUpdates   = 1, // receive only player updates
+    ChatUpdates     = 2, // receive only chats
+    AllUpdates      = 3  // receive player data and chats
 };
 
 // Player allow attributes for MsgAllow
 enum PlayerAllow {
-  AllowNone = 0x00,
-  AllowShoot = 0x01,
-  AllowJump = 0x02,
-  AllowTurnLeft = 0x04,
-  AllowTurnRight = 0x08,
-  AllowMoveForward = 0x10,
-  AllowMoveBackward = 0x20,
-  AllowAll = 0xFF
+    AllowNone = 0x00,
+    AllowShoot = 0x01,
+    AllowJump = 0x02,
+    AllowTurnLeft = 0x04,
+    AllowTurnRight = 0x08,
+    AllowMoveForward = 0x10,
+    AllowMoveBackward = 0x20,
+    AllowAll = 0xFF
 };
 
 // pause codes
 enum PauseCodes {
-  PauseCodeDisable     = 0,
-  PauseCodeEnable      = 1,
-  PauseCodeCancel      = 2,
-  PauseCodeAcknowledge = 3
+    PauseCodeDisable     = 0,
+    PauseCodeEnable      = 1,
+    PauseCodeCancel      = 2,
+    PauseCodeAcknowledge = 3
 };
 
 // protocol version
@@ -210,31 +210,30 @@ const uint32_t  PingPacketHexPackedSize	= (4 * 8 + 2 * 13);
 
 typedef int ServerCode;
 
-enum GameType
-{
-  TeamFFA,    // normal teamed FFA
-  ClassicCTF, // your normal CTF
-  OpenFFA,    // teamless FFA
-  RabbitChase // hunt the rabbit mode
+enum GameType {
+    TeamFFA,    // normal teamed FFA
+    ClassicCTF, // your normal CTF
+    OpenFFA,    // teamless FFA
+    RabbitChase // hunt the rabbit mode
 };
 // game styles
 enum GameOptions {
-  SuperFlagGameStyle =	 0x0002, // superflags allowed
-  JumpingGameStyle =	 0x0008, // jumping allowed
-  InertiaGameStyle =	 0x0010, // momentum for all
-  RicochetGameStyle =	 0x0020, // all shots ricochet
-  ShakableGameStyle =	 0x0040, // can drop bad flags
-  AntidoteGameStyle =	 0x0080, // anti-bad flags
-  HandicapGameStyle =	 0x0100, // handicap players based on score (eek! was TimeSyncGameStyle)
-  NoTeamKillsGameStyle = 0x0400
+    SuperFlagGameStyle =	 0x0002, // superflags allowed
+    JumpingGameStyle =	 0x0008, // jumping allowed
+    InertiaGameStyle =	 0x0010, // momentum for all
+    RicochetGameStyle =	 0x0020, // all shots ricochet
+    ShakableGameStyle =	 0x0040, // can drop bad flags
+    AntidoteGameStyle =	 0x0080, // anti-bad flags
+    HandicapGameStyle =	 0x0100, // handicap players based on score (eek! was TimeSyncGameStyle)
+    NoTeamKillsGameStyle = 0x0400
 };
 
 enum {
-	GotMessage=0,
-	NoMessage,
-	Superkilled,
-	CommError,
-	Disconnect
+    GotMessage = 0,
+    NoMessage,
+    Superkilled,
+    CommError,
+    Disconnect
 };
 
 const unsigned char IsRegistered = 1 << 0;
@@ -242,18 +241,18 @@ const unsigned char IsVerified   = 1 << 1;
 const unsigned char IsAdmin      = 1 << 2;
 
 enum TeamColor {
-	AutomaticTeam = -2, NoTeam = -1, RogueTeam = 0, RedTeam = 1,
-	GreenTeam = 2, BlueTeam = 3, PurpleTeam = 4, ObserverTeam = 5,
-	RabbitTeam = 6, HunterTeam = 7
+    AutomaticTeam = -2, NoTeam = -1, RogueTeam = 0, RedTeam = 1,
+    GreenTeam = 2, BlueTeam = 3, PurpleTeam = 4, ObserverTeam = 5,
+    RabbitTeam = 6, HunterTeam = 7
 };
 
 enum {
-	LastRealPlayer = 243,
-	FirstTeam = 251,
-	AdminPlayers = 252,
-	ServerPlayer = 253,
-	AllPlayers = 254,
-	NoPlayer = 255
+    LastRealPlayer = 243,
+    FirstTeam = 251,
+    AdminPlayers = 252,
+    ServerPlayer = 253,
+    AllPlayers = 254,
+    NoPlayer = 255
 };
 
 const int MyTeam = (FirstTeam - ObserverTeam);

@@ -195,12 +195,13 @@ void serverListView::display_listServers(std::vector<serverInfo*> & si)
         guint16 timeLimit = (*it)->sih.maxTime;
         if (timeLimit != 0) {
             char buf[60];
-            if (timeLimit >= 3600)
+            if (timeLimit >= 3600) {
                 sprintf(buf, " %d:%02d:%02d", timeLimit / 3600, (timeLimit / 60) % 60, timeLimit % 60);
-            else if (timeLimit >= 60)
+            } else if (timeLimit >= 60) {
                 sprintf(buf, " %d:%02d", timeLimit / 60, timeLimit % 60);
-            else
+            } else {
                 sprintf(buf, " 0:%02d", timeLimit);
+            }
 
             options += buf;
             options += " Time Limit";

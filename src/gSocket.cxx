@@ -35,8 +35,9 @@ gSocket::~gSocket()
 
 void gSocket::disconnect()
 {
-    if ( state != Okay )
+    if ( state != Okay ) {
         return;
+    }
 
     tcp_read.disconnect();
 
@@ -57,8 +58,9 @@ void gSocket::disconnect()
 
 bool gSocket::connect( Glib::ustring host, int p )
 {
-    if ( state == Okay ) // already connected
+    if ( state == Okay ) { // already connected
         return false;
+    }
 
     int recvd;
     urecvfd = -1;
@@ -86,8 +88,9 @@ bool gSocket::connect( Glib::ustring host, int p )
 
     // open connection to server.
     int query = socket( AF_INET, SOCK_STREAM, 0 );
-    if ( query < 0 )
+    if ( query < 0 ) {
         return false;
+    }
 
     // this is where we actually connect. Hopefully.
     if ( ::connect( query, ( struct sockaddr * )&sockaddr, sizeof( sockaddr ) ) < 0 ) {
@@ -168,8 +171,9 @@ bool gSocket::connect( Glib::ustring host, int p )
         return false;
     }
     recvd = ::recv( query, ( char * ) &id, sizeof( id ), 0 );
-    if ( recvd < ( int ) sizeof( id ) )
+    if ( recvd < ( int ) sizeof( id ) ) {
         return false;
+    }
 
     if ( id == 0xff ) {
         state = Rejected;
@@ -350,8 +354,9 @@ int gSocket::select( int _fd, int blockTime )
 
 int gSocket::send( guint16 code, guint16 len,	const void* msg )
 {
-    if ( state != Okay )
+    if ( state != Okay ) {
         return -1;
+    }
     //std::cerr << "Sending packet size: " << len << std::endl;
 
     bool useUDP = false;
@@ -362,8 +367,9 @@ int gSocket::send( guint16 code, guint16 len,	const void* msg )
     buf = parser.nboPackUShort( buf, len );
     buf = parser.nboPackUShort( buf, code );
 
-    if ( msg && len != 0 )
+    if ( msg && len != 0 ) {
         buf = parser.nboPackString( buf, msg, len );
+    }
 
     if ( ( urecvfd >= 0 ) && ulinkup ) {
         switch ( code ) {
@@ -393,8 +399,9 @@ int gSocket::read( uint16_t& code, uint16_t& len, void* msg, int blockTime )
     code = MsgNull;
     len = 0;
 
-    if ( state != Okay )
+    if ( state != Okay ) {
         return -1;
+    }
 
     if ( ( urecvfd >= 0 ) ) {
         int n;
@@ -442,10 +449,12 @@ int gSocket::read( uint16_t& code, uint16_t& len, void* msg, int blockTime )
     // only check server
     int nfound = select( fd, blockTime );
 
-    if ( nfound == 0 )
+    if ( nfound == 0 ) {
         return 0;
-    if ( nfound < 0 )
+    }
+    if ( nfound < 0 ) {
         return -1;
+    }
 
     // FIXME: don't really want to take the chance of waiting forever
     // on the remaining select() calls, but if the server and network
@@ -461,13 +470,16 @@ int gSocket::read( uint16_t& code, uint16_t& len, void* msg, int blockTime )
     int tlen = rlen;
     while ( rlen >= 1 && tlen < 4 ) {
         nfound = select( fd, -1 );
-        if ( nfound == 0 )
+        if ( nfound == 0 ) {
             continue;
-        if ( nfound < 0 )
+        }
+        if ( nfound < 0 ) {
             return -1;
+        }
         rlen = ::recv( fd, ( char* )headerBuffer + tlen, 4 - tlen, 0 );
-        if ( rlen >= 0 )
+        if ( rlen >= 0 ) {
             tlen += rlen;
+        }
     }
     if ( tlen < 4 ) {
         return -1;
@@ -485,13 +497,14 @@ int gSocket::read( uint16_t& code, uint16_t& len, void* msg, int blockTime )
     if ( len > MaxPacketLen ) {
         return -1;
     }
-    if ( len > 0 )
+    if ( len > 0 ) {
         rlen = ::recv( fd, ( char* )msg, int( len ), 0 );
-    else
+    } else {
         rlen = 0;
-
-    if ( rlen == int( len ) )	// got the whole thing, DONE!
+    }
+    if ( rlen == int( len ) ) {	// got the whole thing, DONE!
         return 1;
+    }
 
     if ( netStats && rlen >= 0 ) {
         bytesReceived += rlen;
@@ -500,13 +513,16 @@ int gSocket::read( uint16_t& code, uint16_t& len, void* msg, int blockTime )
     tlen = rlen;
     while ( rlen >= 1 && tlen < int( len ) ) {
         nfound = select( fd, -1 );
-        if ( nfound == 0 )
+        if ( nfound == 0 ) {
             continue;
-        if ( nfound < 0 )
+        }
+        if ( nfound < 0 ) {
             return -1;
+        }
         rlen = ::recv( fd, ( char* )msg + tlen, int( len ) - tlen, 0 );
-        if ( rlen >= 0 )
+        if ( rlen >= 0 ) {
             tlen += rlen;
+        }
     }
 
     if ( netStats && rlen >= 0 ) {
@@ -523,8 +539,9 @@ int gSocket::read( uint16_t& code, uint16_t& len, void* msg, int blockTime )
 void gSocket::sendEnter( unsigned char type, unsigned int team, Glib::ustring callsign,
                          Glib::ustring motto, Glib::ustring token )
 {
-    if ( state != Okay )
+    if ( state != Okay ) {
         return;
+    }
     char msg[PlayerIdPLen + 4 + CallSignLen + MottoLen + TokenLen + VersionLen] = {0};
     void* buf = msg;
 
@@ -618,8 +635,9 @@ void gSocket::sendUDPlinkRequest()
 // heard back from server that we can send udp
 void gSocket::enableOutboundUDP()
 {
-    if ( ulinkup == false )
+    if ( ulinkup == false ) {
         ulinkup = true;
+    }
 }
 
 // confirm that server can send us UDP
@@ -628,8 +646,9 @@ void gSocket::confirmIncomingUDP()
     // enableOutboundUDP will be setting this but frequently
     // the udp handshake will finish first so might as
     // well start with udp as soon as we can
-    if ( ulinkup == false )
+    if ( ulinkup == false ) {
         ulinkup = true;
+    }
 
     this->send( MsgUDPLinkEstablished, 0, NULL );
 }
@@ -637,16 +656,18 @@ void gSocket::confirmIncomingUDP()
 int gSocket::setNonBlocking( int fd )
 {
     int mode = fcntl( fd, F_GETFL, 0 );
-    if ( mode == -1 || fcntl( fd, F_SETFL, mode | O_NDELAY ) < 0 )
+    if ( mode == -1 || fcntl( fd, F_SETFL, mode | O_NDELAY ) < 0 ) {
         return -1;
+    }
     return 0;
 }
 
 int gSocket::setBlocking( int fd )
 {
     int mode = fcntl( fd, F_GETFL, 0 );
-    if ( mode == -1 || fcntl( fd, F_SETFL, mode & ~O_NDELAY ) < 0 )
+    if ( mode == -1 || fcntl( fd, F_SETFL, mode & ~O_NDELAY ) < 0 ) {
         return -1;
+    }
     return 0;
 }
 
@@ -655,8 +676,9 @@ void gSocket::setTcpNoDelay( int fd )
     gint off = 0;
     struct protoent *p = ::getprotobyname( "tcp" );
 
-    if ( p )
+    if ( p ) {
         ::setsockopt( fd, p->p_proto, TCP_NODELAY, &off, sizeof( off ) );
+    }
 }
 
 void gSocket::sendCaps( bool downloads, bool sounds )
@@ -673,8 +695,9 @@ void gSocket::sendCaps( bool downloads, bool sounds )
 
 void gSocket::sendCustomData( const Glib::ustring key, const Glib::ustring value )
 {
-    if ( key.size() + value.size() >= ( guint )MaxPacketLen )
+    if ( key.size() + value.size() >= ( guint )MaxPacketLen ) {
         return;
+    }
 
     char msg[MaxPacketLen];
     void* buf = msg;

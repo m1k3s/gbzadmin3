@@ -9,12 +9,12 @@
 //  This program is free software; you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
 //  the Free Software Foundation; version 2 dated June, 1991.
-// 
-//  This program is distributed in the hope that it will be useful, 
+//
+//  This program is distributed in the hope that it will be useful,
 //  but WITHOUT ANY WARRANTY; without even the implied warranty of
 //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //  GNU General Public License for more details.
-// 
+//
 //  You should have received a copy of the GNU General Public License
 //  along with this program;  if not, write to the Free Software
 //  Foundation, Inc., 675 Mass Ave., Cambridge, MA 02139, USA.
@@ -26,74 +26,94 @@
 
 char *getAppVersion()
 {
-	char buf[128];
-	char *os_name = getOsName();
-	char *machine = getMachine();
-	
-	snprintf(buf, sizeof(buf), "gbzadmin-%s.%d-%s-%s-gtkmm", VERSION,
-			getBuildDate(), Gbzadmin_Build_Type, os_name);
-			
-	free(os_name);
-	free(machine);
-	
-	return ::strdup(buf);
+    char buf[128];
+    Glib::ustring os_name, machine;
+    os_name = getOsInfo("sysname");
+    machine = getOsInfo("machine");
+//    char *os_name = getOsName();
+//    char *machine = getMachine();
+
+//    snprintf(buf, sizeof(buf), "gbzadmin-%s.%d-%s-%s-gtkmm", VERSION, getBuildDate(), Gbzadmin_Build_Type, os_name.c_str());
+	snprintf(buf, sizeof(buf), "gbzadmin-%s.%d-%s-%s-%s", VERSION, getBuildDate(), Gbzadmin_Build_Type, os_name.c_str(), machine.c_str());
+
+//    free(os_name);
+//    free(machine);
+
+    return ::strdup(buf);
 }
 
 int getBuildDate()
 {
-	Glib::Date d;
-	d.set_time_current();	
-	
-	Glib::Date::Year year = d.get_year();
-	Glib::Date::Month month = d.get_month();
-	Glib::Date::Day day = d.get_day();
+    Glib::Date d;
+    d.set_time_current();
 
-	return (year*10000) + (month*100) + day;
+    Glib::Date::Year year = d.get_year();
+    Glib::Date::Month month = d.get_month();
+    Glib::Date::Day day = d.get_day();
+
+    return (year * 10000) + (month * 100) + day;
+}
+
+Glib::ustring getOsInfo(Glib::ustring info)
+{
+	struct utsname os;
+	Glib::ustring value("unknown");
+	
+	if (uname(&os)) {
+		return value;
+	} else if (info == "sysname") {
+		value = Glib::ustring(os.sysname);
+	} else if (info == "machine") {
+		value = Glib::ustring(os.machine);
+	}
+	return value;
 }
 
 char *getOsName()
 {
-	struct utsname os;
-	if (uname(&os))
-		return ::strdup("Unknown");
+    struct utsname os;
+    if (uname(&os)) {
+        return ::strdup("Unknown");
+    }
 
-	return ::strdup(os.sysname);
+    return ::strdup(os.sysname);
 }
 
 char *getMachine()
 {
-	struct utsname os;
-	if (uname(&os))
-		return ::strdup("Unknown");
+    struct utsname os;
+    if (uname(&os)) {
+        return ::strdup("Unknown");
+    }
 
-	return ::strdup(os.machine);
+    return ::strdup(os.machine);
 }
 
 const char *getServerVersion()
-{	
-	return ServerVersion;
+{
+    return ServerVersion;
 }
 
 char *url_encode(const char *text)
 {
-	char hex[5];
-	int text_size = strlen(text);
-	char *destination = g_new0(char, text_size+20);
-	g_assert(destination != NULL);
-	
-	for (int j=0, i=0; i < text_size; i++) {
-		char c = text[i];
-		if (g_ascii_isalnum(c)) {
-			memset(&destination[j++], c, sizeof(char));
-	  } else if (g_ascii_isspace(c)) {
-			memset(&destination[j++], '+', sizeof(char));
-	  } else {
-			memset(&destination[j++], '%', sizeof(char));
-			snprintf(hex, sizeof(hex), "%-2.2X", c);
-			memcpy(&destination[j], hex, strlen(hex));
-			j+= strlen(hex);
-	  }
-	}
-	return destination;
+    char hex[5];
+    int text_size = strlen(text);
+    char *destination = g_new0(char, text_size + 20);
+    g_assert(destination != NULL);
+
+    for (int j = 0, i = 0; i < text_size; i++) {
+        char c = text[i];
+        if (g_ascii_isalnum(c)) {
+            memset(&destination[j++], c, sizeof(char));
+        } else if (g_ascii_isspace(c)) {
+            memset(&destination[j++], '+', sizeof(char));
+        } else {
+            memset(&destination[j++], '%', sizeof(char));
+            snprintf(hex, sizeof(hex), "%-2.2X", c);
+            memcpy(&destination[j], hex, strlen(hex));
+            j += strlen(hex);
+        }
+    }
+    return destination;
 }
 

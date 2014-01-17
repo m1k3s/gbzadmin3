@@ -3,7 +3,7 @@
 // gbzadmin
 // GTKmm bzadmin
 // Copyright (c) 2005 - 2012 Michael Sheppard
-//  
+//
 // Code based on BZFlag-2.0.x
 // Portions Copyright (c) 1993 - 2009 Tim Riker
 //
@@ -11,12 +11,12 @@
 //  This program is free software; you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
 //  the Free Software Foundation; version 2 dated June, 1991.
-// 
-//  This program is distributed in the hope that it will be useful, 
+//
+//  This program is distributed in the hope that it will be useful,
 //  but WITHOUT ANY WARRANTY; without even the implied warranty of
 //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //  GNU General Public License for more details.
-// 
+//
 //  You should have received a copy of the GNU General Public License
 //  along with this program;  if not, write to the Free Software
 //  Foundation, Inc., 675 Mass Ave., Cambridge, MA 02139, USA.
@@ -53,6 +53,7 @@ const char* const Gbzadmin_Build_Type	=	"DEVEL";	// DEVEL | STABLE | MAINT
 char* getAppVersion();
 char* getOsName();
 char *getMachine();
+Glib::ustring getOsInfo(Glib::ustring info);
 const char* getServerVersion();
 char *url_encode(const char *text);
 

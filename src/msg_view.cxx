@@ -51,10 +51,10 @@ Glib::ustring msgView::colorBullet()
 }
 
 void msgView::format(Glib::ustring& formatted, Glib::ustring msg, MessageType type, guint8 src, guint8 dst,
-                      TeamColor dstTeam, guint8 me, Glib::ustring src_callsign, Glib::ustring dst_callsign)
+                     TeamColor dstTeam, guint8 me, Glib::ustring src_callsign, Glib::ustring dst_callsign)
 {
     Glib::ustring message("");
-    
+
     bool fromServer = (src == ServerPlayer);
     bool toAdmin = (dst == AdminPlayers);
 
@@ -62,11 +62,11 @@ void msgView::format(Glib::ustring& formatted, Glib::ustring msg, MessageType ty
     Glib::ustring srcName(fromServer ? "SERVER" : (src_callsign.size() ? src_callsign : "(UNKNOWN)"));
     Glib::ustring dstName((dst_callsign.size() ? dst_callsign : "(UNKNOWN)"));
 
-	if (type == ActionMessage) {
-		message = msg.substr(2, msg.size() - 4);
-	} else {
-		message = msg;
-	}
+    if (type == ActionMessage) {
+        message = msg.substr(2, msg.size() - 4);
+    } else {
+        message = msg;
+    }
 
     if ((dst == me) || (dst_callsign.size())) { // direct message to or from me
         if (!(src == me && dst == me)) {        // but I'm not talking to my self
@@ -96,7 +96,7 @@ void msgView::format(Glib::ustring& formatted, Glib::ustring msg, MessageType ty
         } else if (dstTeam != NoTeam) {
             formatted = "[Team] ";
         }
-		formatted += srcName;
+        formatted += srcName;
         if (type != ActionMessage) {
             formatted += ": ";
         }
