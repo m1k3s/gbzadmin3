@@ -155,9 +155,6 @@ void gbzadmin::logoff()
         conn_timer.disconnect();
         wd_timer.disconnect();
         tcp_data_pending.disconnect();
-//        if (useUDP) {
-//            udp_data_pending.disconnect();
-//        }
         sock.sendExit();
         sock.disconnect();
     } else {
@@ -384,9 +381,6 @@ void gbzadmin::pref_dialog_setup()
         refBuilder->get_widget("connect_at_startup", check);
         check->set_active(connect_at_startup);
 
-//        refBuilder->get_widget("use_udp", check);
-//        check->set_active(useUDP);
-
         refBuilder->get_widget("line_numbers", check);
         check->set_active(line_numbers);
         
@@ -456,11 +450,6 @@ void gbzadmin::on_pref_dialog_response(gint response_id)
         checked = w->get_active();
         connect_at_startup = checked;
 
-//        refBuilder->get_widget("use_udp", w);
-//        checked = w->get_active();
-//        // force UDP off for now. no real need for it in this app
-//        useUDP = false; //checked;
-
         refBuilder->get_widget("net_stats", w);
         checked = w->get_active();
         sock.setNetStats(checked);
@@ -502,7 +491,6 @@ Gtk::Window *gbzadmin::init_gbzadmin(Glib::RefPtr<Gtk::Builder> _refBuilder)
 
     // some defaults
     capturing = false;
-//    useUDP = false;
     leaving = false;
     dump_players = false;
     auto_cmd = false;
@@ -602,8 +590,6 @@ void gbzadmin::init_message_handler_map()
     handler_map[MsgKilled]				= &gbzadmin::handle_killed_message;
     handler_map[MsgScore]				= &gbzadmin::handle_score_message;
     handler_map[MsgAlive]				= &gbzadmin::handle_alive_message;
-//    handler_map[MsgUDPLinkEstablished]	= &gbzadmin::handle_udplinkestablished_message;
-//    handler_map[MsgUDPLinkRequest]		= &gbzadmin::handle_udplinkrequest_message;
     handler_map[MsgSetVar]				= &gbzadmin::handle_setvar_message;
     handler_map[MsgGrabFlag]			= &gbzadmin::handle_grabflag_message;
     handler_map[MsgDropFlag]			= &gbzadmin::handle_dropflag_message;
@@ -1750,24 +1736,6 @@ void gbzadmin::handle_message_message(void *vbuf)
     }
 }
 
-//void gbzadmin::handle_udplinkestablished_message(void *vbuf)
-//{
-    // server got our initial UDP packet
-//    sock.enableOutboundUDP();
-    // connect the UDP signal handler
-//    udp_data_pending = sock.on_udp_data_pending.connect(sigc::mem_fun(*this, &gbzadmin::on_read_data));
-
-//    msg_view.add_text("--- Enabled outbound UDP\n", Glib::ustring("rogue"));
-//}
-
-//void gbzadmin::handle_udplinkrequest_message(void *vbuf)
-//{
-    // we got server's initial UDP packet
-    // the UDP signal handler should be installed now
-//    sock.confirmIncomingUDP();
-//    msg_view.add_text("--- Confirmed incoming UDP\n", Glib::ustring("rogue"));
-//}
-
 void gbzadmin::handle_setvar_message(void *vbuf)
 {
     guint16 numVars;
@@ -1967,7 +1935,7 @@ Glib::ustring gbzadmin::colorize(Player *player)
 
 // Pending data signal handler - an alternative to the idle loop
 // message processing. This one uses signals. This
-// handler will get called by both TCP and UDP signals.
+// handler will get called by the TCP signal.
 void gbzadmin::on_read_data()
 {
     gint what = get_message();
@@ -2092,15 +2060,6 @@ void gbzadmin::logon()
             watchdog_timer.reset();
             // add callsign@server:port to the title
             app->set_title(Glib::ustring(Glib::ustring(windowTitle) + " - " + _callsign + "@" + _server + ":" + _port_str));
-
-            // send UDP request - this isn't strictly necessary since we won't be shooting
-            // FIXME: using UDP seems to cause problems. Not sure what is going on yet.
-            // The app starts using 100% CPU after a few minutes. Gets stuck in a loop?
-            // Perhaps a race condition due to improper handing of the signals?
-//            if (useUDP) {
-//                sock.sendUDPlinkRequest();
-//            }
-
             // enable the connected only items
             enable_connected_items(true);
         } else {	// failed to join
@@ -2211,18 +2170,11 @@ bool gbzadmin::confirm_quit_and_save()
             if (!save_dialog) {
                 refBuilder->get_widget("save_dialog", save_dialog);
             }
-
-            switch (save_dialog->run()) {
-                case GTK_RESPONSE_YES:
-                    save_the_buffer();
-                    result = true;
-                    break;
-
-                default:
-                    result = true;
-                    break;
+            if (save_dialog->run() == GTK_RESPONSE_YES) {
+            	save_the_buffer();
             }
-            break;
+            result = true;
+           	break;
 
         case GTK_RESPONSE_NO:
             result = true;
@@ -2565,7 +2517,6 @@ void gbzadmin::on_playerlist_button_clicked()
 {
     do_command_send(PlayerList);
 }
-
 
 void gbzadmin::on_clientquery_button_clicked()
 {
@@ -3199,80 +3150,4 @@ void gbzadmin::parse_host_port(Glib::ustring addr)
         _port = atoi(_port_str.c_str());
     }
 }
-
-//Glib::ustring gbzadmin::parse_message_code(guint16 code)
-//{
-//	char *messages[] = {
-//		{ "MsgAccept", "0x6163" },				// 'ac'
-//		{ "MsgAdminInfo", "0x6169" },			// 'ai'
-//		{ "MsgAlive", "0x616c" },				// 'al'
-//		{ "MsgAllow", "0x696f }", 				// 'ao'
-//		{ "MsgAddPlayer", "0x6170" },			// 'ap'
-//		{ "MsgAutoPilot", "0x6175" },			// 'au'
-//		{ "MsgCapBits", "0x6362 }", 			// 'cb'
-//		{ "MsgCaptureFlag", "0x6366" },		    // 'cf'
-//		{ "MsgCustomSound", "0x6373" },			// 'cs'
-//		{ "MsgCacheURL", "0x6375" },			// 'cu'
-//		{ "MsgDropFlag", "0x6466" },			// 'df'
-//		{ "MsgEnter", "0x656e" },				// 'en'
-//		{ "MsgExit", "0x6578" },				// 'ex'
-//		{ "MsgFlagUpdate", "0x6675" },			// 'fu'
-//		{ "MsgFetchResources", "0x6672" },		// 'fr'
-//		{ "MsgGrabFlag", "0x6766" },			// 'gf'
-//		{ "MsgGMUpdate", "0x676d" },			// 'gm'
-//		{ "MsgGetWorld", "0x6777" },			// 'gw'
-//		{ "MsgGameSettings", "0x6773" },		// 'gs'
-//		{ "MsgGameTime", "0x6774" },			// 'gt'
-//		{ "MsgHit", "0x6869 }", 				// 'hi'
-//		{ "MsgJoinServer", "0x6a73 }", 			// 'js'
-//		{ "MsgKilled", "0x6b6c" },				// 'kl'
-//		{ "MsgKrbPrincipal", "0x6b70" },		// 'kp'
-//		{ "MsgKrbTicket   ", "0x6b74" },		// 'kt'
-//		{ "MsgLagState", "0x6c73" },			// 'ls'
-//		{ "MsgLimboMessage", "0x6c6d }", 		// 'lm'
-//		{ "MsgMessage", "0x6d67" },				// 'mg'
-//		{ "MsgNewPlayer", "0x6e70 }", 			// 'np'
-//		{ "MsgNearFlag", "0x4e66 }", 			// 'Nf'
-//		{ "MsgNewRabbit", "0x6e52" },			// 'nR'
-//		{ "MsgNegotiateFlags", "0x6e66" },		// 'nf'
-//		{ "MsgPause", "0x7061" },				// 'pa'
-//		{ "MsgPlayerInfo", "0x7062" },			// 'pb'
-//		{ "MsgPlayerData", "0x7064 }", 			// 'pd'
-//		{ "MsgPlayerUpdate", "0x7075" },		// 'pu'
-//		{ "MsgPlayerUpdateSmall", "0x7073" },	// 'ps'
-//		{ "MsgQueryGame", "0x7167" },			// 'qg'
-//		{ "MsgQueryPlayers", "0x7170" },		// 'qp'
-//		{ "MsgReject", "0x726a" },				// 'rj'
-//		{ "MsgRemovePlayer", "0x7270" },		// 'rp'
-//		{ "MsgReplayReset", "0x7272" },			// 'rr'
-//		{ "MsgShotBegin", "0x7362" },			// 'sb'
-//		{ "MsgScore", "0x7363" },				// 'sc'
-//		{ "MsgScoreOver", "0x736f" },			// 'so'
-//		{ "MsgShotEnd", "0x7365" },				// 'se'
-//		{ "MsgSuperKill", "0x736b" },			// 'sk'
-//		{ "MsgSetTeam", "0x7374 }", 			// 'st'
-//		{ "MsgSetVar", "0x7376" },				// 'sv'
-//		{ "MsgTangibilityUpdate", "0x746e" },	// 'tn'
-//		{ "MsgTangibilityReset ", "0x7472" },	// 'tr'
-//		{ "MsgTimeUpdate", "0x746f" },			// 'to'
-//		{ "MsgTeleport", "0x7470" },			// 'tp'
-//		{ "MsgTransferFlag", "0x7466" },		// 'tf'
-//		{ "MsgTeamUpdate", "0x7475" },			// 'tu'
-//		{ "MsgWantWHash", "0x7768" },			// 'wh'
-//		{ "MsgWhatTimeIsIt", "0x7774" },		// 'wt'
-//		{ "MsgWantSettings", "0x7773" },		// 'ws'
-//		{ "MsgPortalAdd", "0x5061" },			// 'Pa'
-//		{ "MsgPortalRemove", "0x5072" },		// 'Pr'
-//		{ "MsgPortalUpdate", "0x5075" },		// 'Pu'
-//		{ "MsgPingCodeReply", "0x0303" },
-//		{ "MsgPingCodeRequest", "0x0404" },
-//		{ "MsgEchoRequest ", "0x6572 }", 		// 'er'
-//		{ "MsgEchoResponse", "0x6570 }", 		// 'ep'
-//		{ "MsgUDPLinkRequest", "0x6f66" },		// 'of'
-//		{ "MsgUDPLinkEstablished", "0x6f67" },	// 'og'
-//		{ "MsgServerControl", "0x6f69" },		// 'oi'
-//		{ "MsgLagPing", "0x7069" },				// 'pi'
-//	};
-//
-//}
 

@@ -23,7 +23,7 @@
 
 
 gSocket::gSocket()
-    :	state( SocketError ),	fd( -1 ), netStats( true )//, udpLength( 0 )
+    :	state( SocketError ),	fd( -1 ), netStats( true )
 {
     prev_flow = 0.0;
 }
@@ -45,14 +45,6 @@ void gSocket::disconnect()
     ::close( fd );
     fd = -1;
 
-//    if ( urecvfd >= 0 ) {
-//        udp_read.disconnect();
-//        ::close( urecvfd );
-//    }
-
-//    udpLength = 0;
-//    urecvfd = -1;
-//    ulinkup = false;
     state = SocketError;
 }
 
@@ -63,12 +55,9 @@ bool gSocket::connect( Glib::ustring host, int p )
     }
 
     int recvd;
-//    urecvfd = -1;
     serverName = host;
     port = p;
     const char* const BanRefusalString = "REFUSED:";
-
-//    ulinkup = false;
 
     // initialize version string
     ::strcpy( version, "BZFS0000" );
@@ -82,9 +71,6 @@ bool gSocket::connect( Glib::ustring host, int p )
     sockaddr.sin_family = AF_INET;
     sockaddr.sin_port = htons( port );
     serverIP = inet_ntoa( sockaddr.sin_addr );
-
-    // for UDP, used later
-//    ::memcpy( ( unsigned char * )&usendaddr, ( unsigned char * )&sockaddr, sizeof( sockaddr ) );
 
     // open connection to server.
     int query = socket( AF_INET, SOCK_STREAM, 0 );
@@ -268,12 +254,6 @@ bool gSocket::tcp_data_pending( Glib::IOCondition )
     return true;
 }
 
-//bool gSocket::udp_data_pending( Glib::IOCondition )
-//{
-//    on_udp_data_pending();
-//    return true;
-//}
-
 bool gSocket::select( int _fd )
 {
     fd_set set;
@@ -310,7 +290,6 @@ int gSocket::send( guint16 code, guint16 len,	const void* msg )
     }
     //std::cerr << "Sending packet size: " << len << std::endl;
 
-//    bool useUDP = false;
     char msgbuf[MaxPacketLen];
     void* buf = msgbuf;
     ssize_t sent = 0, usent = 0;
@@ -321,21 +300,6 @@ int gSocket::send( guint16 code, guint16 len,	const void* msg )
     if ( msg && len != 0 ) {
         buf = parser.nboPackString( buf, msg, len );
     }
-
-//    if ( ( urecvfd >= 0 ) && ulinkup ) {
-//        switch ( code ) {
-//            case MsgUDPLinkRequest:
-//            case MsgUDPLinkEstablished:
-//                useUDP = true;
-//                break;
-//        }
-//    }
-
-//    if ( useUDP ) {
-//        usent = ::sendto( urecvfd, ( const char * )msgbuf, ( char* )buf - msgbuf, 0, &usendaddr, sizeof( usendaddr ) );
-//        // we don't care about errors yet, but I'm sure we will...
-//        return 1;
-//    }
     sent = ::send( fd, ( const char* )msgbuf, len + 4, 0 );
     if ( netStats ) {
         bytesSent += sent;
@@ -353,40 +317,6 @@ int gSocket::read( uint16_t& code, uint16_t& len, void* msg, int blockTime )
     if ( state != Okay ) {
         return -1;
     }
-
-//    if ( ( urecvfd >= 0 ) ) {
-//        int n;
-//        if ( !udpLength ) {
-//            socklen_t recvlen = sizeof( urecvaddr );
-//            n = ::recvfrom( urecvfd, ubuf, MaxPacketLen, 0, &urecvaddr, ( socklen_t* ) &recvlen );
-//            if ( n > 0 ) {
-//                udpLength = n;
-//                udpBufferPtr = ubuf;
-//            }
-//        }
-//        if ( udpLength ) {
-//            // unpack header and get message
-//            udpLength -= 4;
-//            if ( udpLength < 0 ) {
-//                udpLength = 0;
-//                return -1;
-//            }
-//            udpBufferPtr = ( char * )parser.nboUnpackUShort( udpBufferPtr, &len );
-//            udpBufferPtr = ( char * )parser.nboUnpackUShort( udpBufferPtr, &code );
-//            if ( len > udpLength ) {
-//                udpLength = 0;
-//                return -1;
-//            }
-//            ::memcpy( ( char * )msg, udpBufferPtr, len );
-//            udpBufferPtr += len;
-//            udpLength -= len;
-//            return 1;
-//        }
-//        len = 0;
-//        code = MsgNull;
-
-//        blockTime = 0;
-//    }
 
     /////////////////////////////////////////////////////////////////////
     // In this version the Gtkmm framework is emitting a signal when the
@@ -406,11 +336,6 @@ int gSocket::read( uint16_t& code, uint16_t& len, void* msg, int blockTime )
     if ( nfound < 0 ) {
         return -1;
     }
-
-    // FIXME: don't really want to take the chance of waiting forever
-    // on the remaining select() calls, but if the server and network
-    // haven't been hosed then the data will get here soon. And if the
-    // server or network is down then we don't really care anyway.
 
     // get packet header
     char headerBuffer[4];
@@ -542,69 +467,6 @@ bool gSocket::readEnter ( Glib::ustring& reason, uint16_t& code, uint16_t& rejco
     return true;
 }
 
-//void gSocket::sendUDPlinkRequest()
-//{
-//    char msg[1];
-//    unsigned short localPort;
-//    void* buf = msg;
-
-//    struct sockaddr_in serv_addr;
-
-//    if ( ( urecvfd = socket( AF_INET, SOCK_DGRAM, 0 ) ) < 0 ) {
-//        return; // we cannot comply
-//    }
-
-//    socklen_t addr_len = sizeof( serv_addr );
-//    if ( ::getsockname( fd, ( struct sockaddr* )&serv_addr, ( socklen_t* ) &addr_len ) < 0 ) {
-//        std::cerr << "Error: getsockname() failed, cannot retrieve socket from fd" << std::endl;
-//        urecvfd = -1;
-//        return;
-//    }
-//    if ( ::bind( urecvfd, ( struct sockaddr * ) &serv_addr, sizeof( serv_addr ) ) != 0 ) {
-//        std::cerr << "Error: bind() failed (UDP)" << std::endl;
-//        ulinkup = false;
-//        ::close( urecvfd );
-//        urecvfd = -1;
-//        return;  // we cannot get a UDP connection, bail out
-//    }
-
-//    localPort = ntohs( serv_addr.sin_port );
-//    ::memcpy( ( char * )&urecvaddr, ( char * )&serv_addr, sizeof( serv_addr ) );
-//    std::cerr << "Created local downlink port " << localPort << "\n";
-
-//    buf = parser.nboPackUByte( buf, id );
-
-//    if ( setNonBlocking( urecvfd ) < 0 ) {
-//        std::cerr << "Error: Unable to set NonBlocking for UDP socket" << std::endl;
-//    }
-//    // setup the UDP signaling channel
-//    udp_read = Glib::signal_io().connect( sigc::mem_fun( *this, &gSocket::udp_data_pending ),
-//                                          urecvfd, Glib::IO_IN | Glib::IO_ERR | Glib::IO_HUP | Glib::IO_NVAL );
-
-//    this->send( MsgUDPLinkRequest, sizeof( msg ), msg );
-//}
-
-//// heard back from server that we can send udp
-//void gSocket::enableOutboundUDP()
-//{
-//    if ( ulinkup == false ) {
-//        ulinkup = true;
-//    }
-//}
-
-//// confirm that server can send us UDP
-//void gSocket::confirmIncomingUDP()
-//{
-//    // enableOutboundUDP will be setting this but frequently
-//    // the udp handshake will finish first so might as
-//    // well start with udp as soon as we can
-//    if ( ulinkup == false ) {
-//        ulinkup = true;
-//    }
-
-//    this->send( MsgUDPLinkEstablished, 0, NULL );
-//}
-
 int gSocket::setNonBlocking( int fd )
 {
     int mode = fcntl( fd, F_GETFL, 0 );
@@ -632,33 +494,6 @@ void gSocket::setTcpNoDelay( int fd )
         ::setsockopt( fd, p->p_proto, TCP_NODELAY, &off, sizeof( off ) );
     }
 }
-
-//void gSocket::sendCaps( bool downloads, bool sounds )
-//{
-//    char msg[3] = {0};
-//    void* buf = msg;
-
-//    buf = parser.nboPackUByte( buf, id );
-//    buf = parser.nboPackUByte( buf, downloads ? 1 : 0 );
-//    buf = parser.nboPackUByte( buf, sounds ? 1 : 0 );
-
-//    this->send( MsgCapBits, ( guint16 )( ( char* )buf - msg ), msg );
-//}
-
-//void gSocket::sendCustomData( const Glib::ustring key, const Glib::ustring value )
-//{
-//    if ( key.size() + value.size() >= ( guint )MaxPacketLen ) {
-//        return;
-//    }
-
-//    char msg[MaxPacketLen];
-//    void* buf = msg;
-//    buf = parser.nboPackUByte( buf, id );
-//    buf = parser.nboPackStdString( buf, key );
-//    buf = parser.nboPackStdString( buf, value );
-
-//    this->send( MsgPlayerData, ( guint16 )( ( char* )buf - msg ), msg );
-//}
 
 void gSocket::resetNetStats()
 {
