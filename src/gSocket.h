@@ -126,7 +126,7 @@ class gSocket : public sigc::trackable
         }
         float bitFlow();
 
-        bool resolveHost(const Glib::ustring& host);
+        bool resolveHost(const Glib::ustring& host, const Glib::ustring& port);
 
         sigc::signal<void> on_tcp_data_pending;
 
@@ -148,8 +148,8 @@ class gSocket : public sigc::trackable
         Parser parser;
         gListServer listServer;
 
-        struct sockaddr_in sockaddr;
-        struct sockaddr	usendaddr;
+//        struct sockaddr_in sockaddr;
+        struct addrinfo server_info;
         bool netStats;
         float prev_flow;
 
