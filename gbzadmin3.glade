@@ -1963,7 +1963,7 @@
                 <property name="label" translatable="yes">Ban Subnet/24</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
-                <property name="tooltip_text" translatable="yes">Bans the 24-bit subnet, i. e., 192.168.1.*</property>
+                <property name="tooltip_text" translatable="yes">Bans the 24-bit subnet, e. g., 174.231.15.*</property>
                 <property name="draw_indicator">True</property>
               </object>
               <packing>

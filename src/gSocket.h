@@ -88,13 +88,13 @@ class gSocket : public sigc::trackable
         Glib::ustring reverseResolve(Glib::ustring ip, Glib::ustring callsign);
 
         State getState() const;
-        const unsigned char&	getId() const;
+        const unsigned char& getId() const;
         const char* getVersion() const;
         const Glib::ustring& get_server_IP() const;
         const Glib::ustring& get_server_name() const;
         const Glib::ustring& getRejectionMessage() const;
         int get_port() const;
-
+        
         time_t get_startTime() {
             return startTime;
         }
@@ -146,6 +146,7 @@ class gSocket : public sigc::trackable
         void setTcpNoDelay(int fd);
         bool select(int _fd);
         int select(int _fd, int blockTime);
+        int check_for_error(int error_code);
 
     private:
         State state;

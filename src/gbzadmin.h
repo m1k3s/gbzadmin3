@@ -265,7 +265,7 @@ class gbzadmin : public Gtk::Window
         void add_flag(flag_info *fi);
         void remove_flag(flag_info *fi);
 
-        // TODO: server:port MRU arrays
+        // server:port MRU array
         std::list<Glib::ustring> server_mru_str;
 
         // preferences data

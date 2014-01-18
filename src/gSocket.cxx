@@ -211,57 +211,8 @@ bool gSocket::resolveHost( const Glib::ustring& host )
     hints.ai_flags |= AI_CANONNAME;
 
     int error = getaddrinfo( host.c_str(), NULL, &hints, &res );
-    switch ( error ) {
-        default: // no error (error == 0)
-            break;
-
-        case EAI_ADDRFAMILY:
-            std::cerr << "The specified network host does not have any network addresses in the requested address family.\n";
-            return false;
-
-        case EAI_AGAIN:
-            std::cerr << "The name could not be resolved at this time.\n";
-            return false;
-
-        case EAI_BADFLAGS:
-            std::cerr << "The flags had an invalid value.\n";
-            return false;
-
-        case EAI_FAIL:
-            std::cerr << "A non-recoverable error occurred.\n";
-            return false;
-
-        case EAI_FAMILY:
-            std::cerr << "The address family was not recognized or the address length was invalid.\n";
-            return false;
-
-        case EAI_MEMORY:
-            std::cerr << "There was a memory allocation failure.\n";
-            return false;
-
-        case EAI_NONAME:
-            std::cerr << "The name does not resolve for the supplied parameters.\n";
-            return false;
-
-        case EAI_NODATA:
-            std::cerr << "The specified network host exists, but does not have any network addresses defined.\n";
-            return false;
-
-        case EAI_OVERFLOW:
-            std::cerr << "An argument buffer overflowed.\n";
-            return false;
-
-        case EAI_SYSTEM:
-            std::cerr << "A system error occurred. The error code can be found in errno. \n";
-            return false;
-
-        case EAI_SERVICE:
-            std::cerr << "The requested service is not available for the requested socket type.\n";
-            return false;
-
-        case EAI_SOCKTYPE:
-            std::cerr << "The requested socket type is not supported at all.\n";
-            return false;
+    if (check_for_error(error)) {
+    	return false;
     }
 
     while ( res ) {
@@ -765,44 +716,69 @@ Glib::ustring gSocket::reverseResolve( Glib::ustring ip, Glib::ustring callsign 
     Glib::ustring result( "" );
 
     int error = getnameinfo( ( struct sockaddr* )&addr, sizeof( addr ), host, 256, ( char* )NULL, 0, 0 );
-    switch ( error ) {
-        default: // no error (error == 0)
-            result = callsign + "'s IP resolved to " + host + "\n";
+    if (check_for_error(error)) {
+	    result = Glib::ustring::compose("An error has occured, could not resolve IP! (%1)\n", error);
+    } else {
+    	result = callsign + "'s IP resolved to " + host + "\n";
+    }
+    return result;
+}
+
+int gSocket::check_for_error(int error_code)
+{
+	switch ( error_code ) {
+        default: // no error (error_code == 0)
+            break;
+
+        case EAI_ADDRFAMILY:
+            std::cerr << "The specified network host does not have any network addresses in the requested address family.\n";
             break;
 
         case EAI_AGAIN:
-            result = "The name could not be resolved at this time.\n";
+            std::cerr << "The name could not be resolved at this time.\n";
             break;
 
         case EAI_BADFLAGS:
-            result = "The flags had an invalid value.\n";
+            std::cerr << "The flags had an invalid value.\n";
             break;
 
         case EAI_FAIL:
-            result = "A non-recoverable error occurred.\n";
+            std::cerr << "A non-recoverable error occurred.\n";
             break;
 
         case EAI_FAMILY:
-            result = "The address family was not recognized or the address length was invalid.\n";
+            std::cerr << "The address family was not recognized or the address length was invalid.\n";
             break;
 
         case EAI_MEMORY:
-            result = "There was a memory allocation failure.\n";
+            std::cerr << "There was a memory allocation failure.\n";
             break;
 
         case EAI_NONAME:
-            result = "The name does not resolve for the supplied parameters.\n";
+            std::cerr << "The name does not resolve for the supplied parameters.\n";
+            break;
+
+        case EAI_NODATA:
+            std::cerr << "The specified network host exists, but does not have any network addresses defined.\n";
             break;
 
         case EAI_OVERFLOW:
-            result = "An argument buffer overflowed.\n";
+            std::cerr << "An argument buffer overflowed.\n";
             break;
 
         case EAI_SYSTEM:
-            result = "A system error occurred. The error code can be found in errno. \n";
+            std::cerr << "A system error occurred. The error code can be found in errno. \n";
+            break;
+
+        case EAI_SERVICE:
+            std::cerr << "The requested service is not available for the requested socket type.\n";
+            break;
+
+        case EAI_SOCKTYPE:
+            std::cerr << "The requested socket type is not supported at all.\n";
             break;
     }
-    return result;
+    return error_code;
 }
 
 

@@ -2800,9 +2800,6 @@ void gbzadmin::replace_input_placeholders()
     while (reasons[k]) {
         reason_combo.append_text(Glib::ustring(reasons[k++]));
     }
-
-    // TODO: add combo text boxes and save 4 MRU entries
-    // for server:port on the connect dialog.
 }
 
 void gbzadmin::replace_connect_placeholders()
