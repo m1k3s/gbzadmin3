@@ -138,8 +138,8 @@ class gSocket : public sigc::trackable
         void sendEnter(unsigned char type, unsigned int team, Glib::ustring callsign,
                        Glib::ustring motto, Glib::ustring token);
         bool readEnter(Glib::ustring& reason, uint16_t& code, uint16_t& rejcode);
-        void sendCaps(bool downloads, bool sounds);
-        void sendCustomData (const Glib::ustring key, const Glib::ustring value);
+//        void sendCaps(bool downloads, bool sounds);
+//        void sendCustomData (const Glib::ustring key, const Glib::ustring value);
 
         int setNonBlocking(int fd);
         int setBlocking(int fd);

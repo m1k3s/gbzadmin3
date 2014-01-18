@@ -682,32 +682,32 @@ void gSocket::setTcpNoDelay( int fd )
     }
 }
 
-void gSocket::sendCaps( bool downloads, bool sounds )
-{
-    char msg[3] = {0};
-    void* buf = msg;
+//void gSocket::sendCaps( bool downloads, bool sounds )
+//{
+//    char msg[3] = {0};
+//    void* buf = msg;
 
-    buf = parser.nboPackUByte( buf, id );
-    buf = parser.nboPackUByte( buf, downloads ? 1 : 0 );
-    buf = parser.nboPackUByte( buf, sounds ? 1 : 0 );
+//    buf = parser.nboPackUByte( buf, id );
+//    buf = parser.nboPackUByte( buf, downloads ? 1 : 0 );
+//    buf = parser.nboPackUByte( buf, sounds ? 1 : 0 );
 
-    this->send( MsgCapBits, ( guint16 )( ( char* )buf - msg ), msg );
-}
+//    this->send( MsgCapBits, ( guint16 )( ( char* )buf - msg ), msg );
+//}
 
-void gSocket::sendCustomData( const Glib::ustring key, const Glib::ustring value )
-{
-    if ( key.size() + value.size() >= ( guint )MaxPacketLen ) {
-        return;
-    }
+//void gSocket::sendCustomData( const Glib::ustring key, const Glib::ustring value )
+//{
+//    if ( key.size() + value.size() >= ( guint )MaxPacketLen ) {
+//        return;
+//    }
 
-    char msg[MaxPacketLen];
-    void* buf = msg;
-    buf = parser.nboPackUByte( buf, id );
-    buf = parser.nboPackStdString( buf, key );
-    buf = parser.nboPackStdString( buf, value );
+//    char msg[MaxPacketLen];
+//    void* buf = msg;
+//    buf = parser.nboPackUByte( buf, id );
+//    buf = parser.nboPackStdString( buf, key );
+//    buf = parser.nboPackStdString( buf, value );
 
-    this->send( MsgPlayerData, ( guint16 )( ( char* )buf - msg ), msg );
-}
+//    this->send( MsgPlayerData, ( guint16 )( ( char* )buf - msg ), msg );
+//}
 
 void gSocket::resetNetStats()
 {
