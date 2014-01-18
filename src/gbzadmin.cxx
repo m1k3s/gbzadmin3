@@ -155,9 +155,9 @@ void gbzadmin::logoff()
         conn_timer.disconnect();
         wd_timer.disconnect();
         tcp_data_pending.disconnect();
-        if (useUDP) {
-            udp_data_pending.disconnect();
-        }
+//        if (useUDP) {
+//            udp_data_pending.disconnect();
+//        }
         sock.sendExit();
         sock.disconnect();
     } else {
@@ -371,6 +371,9 @@ void gbzadmin::pref_dialog_setup()
         }
         refBuilder->get_widget("pref_auto_cmd", check);
         check->set_active(auto_cmd);
+        
+        refBuilder->get_widget("pref_small_toolbar", check);
+        check->set_active(small_toolbar);
 
         refBuilder->get_widget("pref_pings", check);
         check->set_active(echo_pings);
@@ -381,11 +384,14 @@ void gbzadmin::pref_dialog_setup()
         refBuilder->get_widget("connect_at_startup", check);
         check->set_active(connect_at_startup);
 
-        refBuilder->get_widget("use_udp", check);
-        check->set_active(useUDP);
+//        refBuilder->get_widget("use_udp", check);
+//        check->set_active(useUDP);
 
         refBuilder->get_widget("line_numbers", check);
         check->set_active(line_numbers);
+        
+        refBuilder->get_widget("debugmsgs", check);
+        check->set_active(debugMsgs);
 
         Glib::ustring sp = "";
         refBuilder->get_widget("pref_dump_players", check);
@@ -408,6 +414,8 @@ void gbzadmin::pref_dialog_setup()
 
         refBuilder->get_widget("pref_motto_entry", entry);
         entry->set_text(_motto);
+        
+        
 
         dlg->show();
     }
@@ -427,6 +435,14 @@ void gbzadmin::on_pref_dialog_response(gint response_id)
         refBuilder->get_widget("pref_auto_cmd", w);
         checked = w->get_active();
         auto_cmd = checked;
+        
+        refBuilder->get_widget("pref_small_toolbar", w);
+        checked = w->get_active();
+        small_toolbar = checked;
+        // change the style here
+        Gtk::Toolbar *toolbar;
+        refBuilder->get_widget("toolbar", toolbar);
+        toolbar->set_toolbar_style(small_toolbar ? Gtk::TOOLBAR_ICONS : Gtk::TOOLBAR_BOTH);
 
         refBuilder->get_widget("pref_pings", w);
         checked = w->get_active();
@@ -440,10 +456,10 @@ void gbzadmin::on_pref_dialog_response(gint response_id)
         checked = w->get_active();
         connect_at_startup = checked;
 
-        refBuilder->get_widget("use_udp", w);
-        checked = w->get_active();
-        // force UDP off for now. no real need for it in this app
-        useUDP = false; //checked;
+//        refBuilder->get_widget("use_udp", w);
+//        checked = w->get_active();
+//        // force UDP off for now. no real need for it in this app
+//        useUDP = false; //checked;
 
         refBuilder->get_widget("net_stats", w);
         checked = w->get_active();
@@ -457,6 +473,10 @@ void gbzadmin::on_pref_dialog_response(gint response_id)
         checked = w->get_active();
         line_numbers = checked;
         msg_view.set_line_numbers(line_numbers);
+        
+        refBuilder->get_widget("debugmsgs", w);
+        checked = w->get_active();
+        debugMsgs = checked;
 
         Gtk::Entry *e;
         refBuilder->get_widget("pref_callsign_entry", e);
@@ -482,7 +502,7 @@ Gtk::Window *gbzadmin::init_gbzadmin(Glib::RefPtr<Gtk::Builder> _refBuilder)
 
     // some defaults
     capturing = false;
-    useUDP = false;
+//    useUDP = false;
     leaving = false;
     dump_players = false;
     auto_cmd = false;
@@ -490,6 +510,7 @@ Gtk::Window *gbzadmin::init_gbzadmin(Glib::RefPtr<Gtk::Builder> _refBuilder)
     save_password = true;
     connect_at_startup = false;
     line_numbers = false;
+    debugMsgs = false;
 
     win_x = 0;
     win_y = 0;
@@ -581,8 +602,8 @@ void gbzadmin::init_message_handler_map()
     handler_map[MsgKilled]				= &gbzadmin::handle_killed_message;
     handler_map[MsgScore]				= &gbzadmin::handle_score_message;
     handler_map[MsgAlive]				= &gbzadmin::handle_alive_message;
-    handler_map[MsgUDPLinkEstablished]	= &gbzadmin::handle_udplinkestablished_message;
-    handler_map[MsgUDPLinkRequest]		= &gbzadmin::handle_udplinkrequest_message;
+//    handler_map[MsgUDPLinkEstablished]	= &gbzadmin::handle_udplinkestablished_message;
+//    handler_map[MsgUDPLinkRequest]		= &gbzadmin::handle_udplinkrequest_message;
     handler_map[MsgSetVar]				= &gbzadmin::handle_setvar_message;
     handler_map[MsgGrabFlag]			= &gbzadmin::handle_grabflag_message;
     handler_map[MsgDropFlag]			= &gbzadmin::handle_dropflag_message;
@@ -959,6 +980,8 @@ void gbzadmin::parse_config_file(Glib::ustring filename)
                 _port = atoi(_port_str.c_str());
             } else if (g_ascii_strcasecmp(variable, "auto_cmd") == 0) {
                 auto_cmd = atoi(value) ? true : false;
+            } else if (g_ascii_strcasecmp(variable, "small_toolbar") == 0) {
+                small_toolbar = atoi(value) ? true : false;
             } else if (g_ascii_strcasecmp(variable, "echo_pings") == 0) {
                 echo_pings = atoi(value) ? true : false;
             } else if (g_ascii_strcasecmp(variable, "dump_players") == 0) {
@@ -1080,6 +1103,9 @@ void gbzadmin::save_config_file(Glib::ustring filename)
         os.write(buf.c_str(), buf.length());
 
         buf = Glib::ustring::compose("auto_cmd=%1\n", auto_cmd);
+        os.write(buf.c_str(), buf.length());
+        
+        buf = Glib::ustring::compose("small_toolbar=%1\n", small_toolbar);
         os.write(buf.c_str(), buf.length());
 
         buf = Glib::ustring::compose("echo_pings=%1\n", echo_pings);
@@ -1289,7 +1315,7 @@ void gbzadmin::handle_add_player_message(void *vbuf)
         return;
     }
 
-    // add the player to the list
+    // add the player to the target list
     Player *player = new Player;
     player->add(p, type, team, wins, losses, tks, Glib::ustring(callsign), Glib::ustring(motto));
     player_view.add(player);
@@ -1691,7 +1717,7 @@ void gbzadmin::handle_message_message(void *vbuf)
     vbuf = parser.nboUnpackUByte(vbuf, &dst);
     vbuf = parser.nboUnpackUByte(vbuf, &type);
 
-    // Only bother processing the message if we know how to handle it
+    // process the message if it's chat or action
     if (MessageType(type) != ChatMessage && MessageType(type) != ActionMessage) {
         return;
     }
@@ -1724,23 +1750,23 @@ void gbzadmin::handle_message_message(void *vbuf)
     }
 }
 
-void gbzadmin::handle_udplinkestablished_message(void *vbuf)
-{
+//void gbzadmin::handle_udplinkestablished_message(void *vbuf)
+//{
     // server got our initial UDP packet
-    sock.enableOutboundUDP();
+//    sock.enableOutboundUDP();
     // connect the UDP signal handler
-    udp_data_pending = sock.on_udp_data_pending.connect(sigc::mem_fun(*this, &gbzadmin::on_read_data));
+//    udp_data_pending = sock.on_udp_data_pending.connect(sigc::mem_fun(*this, &gbzadmin::on_read_data));
 
-    msg_view.add_text("--- Enabled outbound UDP\n", Glib::ustring("rogue"));
-}
+//    msg_view.add_text("--- Enabled outbound UDP\n", Glib::ustring("rogue"));
+//}
 
-void gbzadmin::handle_udplinkrequest_message(void *vbuf)
-{
+//void gbzadmin::handle_udplinkrequest_message(void *vbuf)
+//{
     // we got server's initial UDP packet
     // the UDP signal handler should be installed now
-    sock.confirmIncomingUDP();
-    msg_view.add_text("--- Confirmed incoming UDP\n", Glib::ustring("rogue"));
-}
+//    sock.confirmIncomingUDP();
+//    msg_view.add_text("--- Confirmed incoming UDP\n", Glib::ustring("rogue"));
+//}
 
 void gbzadmin::handle_setvar_message(void *vbuf)
 {
@@ -2008,7 +2034,9 @@ gint gbzadmin::get_message()
             ((this)->*handler)(vbuf);
         } else {
             // print unhandled codes, we may want to monitor some of them
-//        	print_message_code(code);
+            if (debugMsgs) {
+        		print_message_code(code);
+			}
             return NoMessage;
         }
         return GotMessage;
@@ -2020,11 +2048,16 @@ gint gbzadmin::get_message()
 // diagnostic function
 void gbzadmin::print_message_code(guint16 code)
 {
-    if (code != MsgShotBegin && code != MsgShotEnd && code != MsgPlayerUpdateSmall && MsgGMUpdate) {
-    	Glib::ustring msg("<<*>> Received ()");
-    	msg += Glib::ustring::compose("0X%1", Glib::ustring::format(std::hex, std::setw(6), code));
-    	msg += ") message code\n";
-    	msg_view.add_text(msg, Glib::ustring("red"));
+    if (code != MsgShotBegin && code != MsgShotEnd && code != MsgPlayerUpdateSmall && code != MsgGMUpdate) {
+    	Glib::ustring msg(msg_view.Color(GoldenFg));
+    	msg += "###";
+    	msg += msg_view.Color(GreenFg);
+    	msg += " MSG DEBUG: Received ";
+    	msg += msg_view.Color(RedFg);
+    	msg += Glib::ustring::compose("(0X%1)", Glib::ustring::format(std::hex, std::setw(4), code));
+    	msg += msg_view.Color(GreenFg);
+    	msg += " message code\n";
+    	msg_view.add_text(msg);
     }
 }
 
@@ -2037,21 +2070,16 @@ void gbzadmin::logon()
 
     if (sock.connect(_server, _port)) {
         if (sock.join(_callsign, _password, _motto)) {
-            //display some server info
+            // display some server info
             Glib::ustring id_str = Glib::ustring::compose("%1", sock.getId());
             Glib::ustring str(msg_view.Color(GoldenFg));
             str += "--- Server version: " + msg_view.Color(YellowFg) + sock.getVersion() + "\n";
-            msg_view.add_text(str);
-            str = msg_view.Color(GoldenFg) + "--- My player ID: " + msg_view.Color(RedFg) + id_str + "\n";
-            msg_view.add_text(str);
-            str = msg_view.Color(GoldenFg) + "--- Connected to " + msg_view.Color(RedFg) + _server + ":";
+            str += msg_view.Color(GoldenFg) + "--- My player ID: " + msg_view.Color(RedFg) + id_str + "\n";
+            str += msg_view.Color(GoldenFg) + "--- Connected to " + msg_view.Color(RedFg) + _server + ":";
             str += msg_view.Color(BlueFg) + _port_str + msg_view.Color(YellowFg) + " (" + sock.get_server_IP() + ")\n";
-            msg_view.add_text(str);
-            str = msg_view.Color(GoldenFg) + "--- ";
+            str += msg_view.Color(GoldenFg) + "--- ";
             str += msg_view.Color(GreenFg) + _server + " has ACCEPTED me\n";
-            msg_view.add_text(str);
-            // display the client version
-            str = msg_view.Color(BlueFg) + "--- " + getAppVersion() + "\n";
+            str += msg_view.Color(BlueFg) + "--- " + getAppVersion() + "\n";
             msg_view.add_text(str);
 
             // connect the TCP data pending signal from the socket object
@@ -2069,9 +2097,9 @@ void gbzadmin::logon()
             // FIXME: using UDP seems to cause problems. Not sure what is going on yet.
             // The app starts using 100% CPU after a few minutes. Gets stuck in a loop?
             // Perhaps a race condition due to improper handing of the signals?
-            if (useUDP) {
-                sock.sendUDPlinkRequest();
-            }
+//            if (useUDP) {
+//                sock.sendUDPlinkRequest();
+//            }
 
             // enable the connected only items
             enable_connected_items(true);

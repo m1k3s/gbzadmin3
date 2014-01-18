@@ -2200,25 +2200,12 @@
                   <placeholder/>
                 </child>
                 <child>
-                  <object class="GtkCheckButton" id="use_udp">
-                    <property name="label" translatable="yes">Use UDP</property>
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="receives_default">False</property>
-                    <property name="draw_indicator">True</property>
-                  </object>
-                  <packing>
-                    <property name="top_attach">5</property>
-                    <property name="bottom_attach">6</property>
-                    <property name="y_options"/>
-                  </packing>
-                </child>
-                <child>
                   <object class="GtkCheckButton" id="connect_at_startup">
                     <property name="label" translatable="yes">Connect at startup</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">False</property>
+                    <property name="tooltip_text" translatable="yes">automatically connect to server at startup</property>
                     <property name="draw_indicator">True</property>
                   </object>
                   <packing>
@@ -2275,6 +2262,7 @@
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">False</property>
+                    <property name="tooltip_text" translatable="yes">command auto completion</property>
                     <property name="draw_indicator">True</property>
                   </object>
                   <packing>
@@ -2289,6 +2277,7 @@
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">False</property>
+                    <property name="tooltip_text" translatable="yes">echo server ping messages</property>
                     <property name="draw_indicator">True</property>
                   </object>
                   <packing>
@@ -2358,6 +2347,7 @@
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">False</property>
+                    <property name="tooltip_text" translatable="yes">save plain text password to config</property>
                     <property name="draw_indicator">True</property>
                   </object>
                   <packing>
@@ -2391,16 +2381,17 @@
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">False</property>
+                    <property name="tooltip_text" translatable="yes">show network statistics in status bar</property>
                     <property name="draw_indicator">True</property>
                   </object>
                   <packing>
-                    <property name="top_attach">6</property>
-                    <property name="bottom_attach">7</property>
+                    <property name="top_attach">5</property>
+                    <property name="bottom_attach">6</property>
                     <property name="y_options"/>
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkCheckButton" id="small_toolbar">
+                  <object class="GtkCheckButton" id="pref_small_toolbar">
                     <property name="label" translatable="yes">Small Toolbar</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
@@ -2422,6 +2413,21 @@
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">False</property>
+                    <property name="tooltip_text" translatable="yes">display line numbers in message view</property>
+                    <property name="draw_indicator">True</property>
+                  </object>
+                  <packing>
+                    <property name="top_attach">6</property>
+                    <property name="bottom_attach">7</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkCheckButton" id="debugmsgs">
+                    <property name="label" translatable="yes">Debug Messages</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">False</property>
+                    <property name="tooltip_text" translatable="yes">print unhandled messages in message view</property>
                     <property name="draw_indicator">True</property>
                   </object>
                   <packing>

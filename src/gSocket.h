@@ -78,9 +78,9 @@ class gSocket : public sigc::trackable
         bool connect(Glib::ustring host, int p = 5154);
         bool join(Glib::ustring callsign, Glib::ustring password, Glib::ustring motto);
         void disconnect();
-        void sendUDPlinkRequest();
-        void enableOutboundUDP();
-        void confirmIncomingUDP();
+//        void sendUDPlinkRequest();
+//        void enableOutboundUDP();
+//        void confirmIncomingUDP();
         int send(guint16 code, guint16 len, const void* msg);
         int read(guint16& code, guint16& len, void* msg, int millisecondsToBlock = 0);
         void sendLagPing(char pingRequest[2]);
@@ -132,7 +132,7 @@ class gSocket : public sigc::trackable
         bool resolveHost(const Glib::ustring& host);
 
         sigc::signal<void> on_tcp_data_pending;
-        sigc::signal<void> on_udp_data_pending;
+//        sigc::signal<void> on_udp_data_pending;
 
     protected:
         void sendEnter(unsigned char type, unsigned int team, Glib::ustring callsign,
@@ -155,9 +155,9 @@ class gSocket : public sigc::trackable
 
         struct sockaddr_in sockaddr;
         struct sockaddr	usendaddr;
-        int urecvfd;
-        struct sockaddr	urecvaddr; // the clients udp listen address
-        bool ulinkup;
+//        int urecvfd;
+//        struct sockaddr	urecvaddr; // the clients udp listen address
+//        bool ulinkup;
         bool netStats;
         float prev_flow;
 
@@ -169,14 +169,14 @@ class gSocket : public sigc::trackable
         Glib::ustring serverIP;
         int port;
 
-        int udpLength;
-        char *udpBufferPtr;
-        char ubuf[MaxPacketLen];
+//        int udpLength;
+//        char *udpBufferPtr;
+//        char ubuf[MaxPacketLen];
 
         sigc::connection tcp_read;
-        sigc::connection udp_read;
+//        sigc::connection udp_read;
         bool tcp_data_pending(Glib::IOCondition);
-        bool udp_data_pending(Glib::IOCondition);
+//        bool udp_data_pending(Glib::IOCondition);
 
         // net stats
         time_t	startTime;
@@ -188,7 +188,7 @@ class gSocket : public sigc::trackable
 
 class gSocketException : public std::exception
 {
-        const char *error;
+    const char *error;
     public:
         gSocketException(const char *e) : error(e) { }
         const char * what() const throw() {

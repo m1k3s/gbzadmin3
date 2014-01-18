@@ -188,8 +188,8 @@ class gbzadmin : public Gtk::Window
         void handle_dropflag_message(void *vbuf);
         void handle_transferflag_message(void *vbuf);
         void handle_autopilot_message(void *vbuf);
-        void handle_udplinkestablished_message(void *vbuf);
-        void handle_udplinkrequest_message(void *vbuf);
+//        void handle_udplinkestablished_message(void *vbuf);
+//        void handle_udplinkrequest_message(void *vbuf);
         void handle_message_message(void *vbuf);
         void handle_score_message(void *vbuf);
         void handle_setvar_message(void *vbuf);
@@ -246,6 +246,7 @@ class gbzadmin : public Gtk::Window
         gint wd_counter;
         bool capturing;
         bool leaving;
+        bool debugMsgs;
         int _team;
         float rank;
         gint win_x, win_y;
@@ -275,7 +276,7 @@ class gbzadmin : public Gtk::Window
         Glib::ustring _motto;
         int _port;
         bool auto_cmd;
-        bool useUDP;
+//        bool useUDP;
         bool dump_players;
         std::map<Glib::ustring, bool> msg_mask;
         std::map<Glib::ustring, int> target_map;
@@ -283,11 +284,12 @@ class gbzadmin : public Gtk::Window
         bool save_password;
         bool connect_at_startup;
         bool line_numbers;
+        bool small_toolbar;
 
         sigc::connection conn_timer;
         sigc::connection wd_timer;
         sigc::connection tcp_data_pending;
-        sigc::connection udp_data_pending;
+//        sigc::connection udp_data_pending;
         sigc::connection capture_signal;
 
         enum { // command enumerators
