@@ -110,6 +110,7 @@ class gbzadmin : public Gtk::Window
         void on_query_listserver_activate();
         void on_query_listserver_clicked();
         void on_save_config_activate();
+        void on_icon_pressed(Gtk::EntryIconPosition icon_pos, const GdkEventButton* event);
 
         // signal callback function
         void on_read_data();
@@ -157,6 +158,8 @@ class gbzadmin : public Gtk::Window
         std::list<Glib::ustring> parse_server_mru(const Glib::ustring& in, const Glib::ustring &delims, int lines_max);
         TeamColor PlayerIdToTeam(guint8 id);
         void parse_host_port(Glib::ustring addr);
+        void server_mru_delete(Glib::ustring line);
+        void server_mru_populate();
 
         // timer functions
         bool update_timer();

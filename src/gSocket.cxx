@@ -74,15 +74,9 @@ bool gSocket::connect(Glib::ustring host, int p)
     if ((sockfd = ::socket(server_info.ai_family, server_info.ai_socktype, server_info.ai_protocol)) == -1) {
         return false;
     }
-    setNonBlocking(sockfd); // go non blocking to allow timeout
-    select(sockfd, 10); 	// set a timeout of 10 seconds
-
+    
     // try to connect
 	if (::connect(sockfd, server_info.ai_addr, server_info.ai_addrlen) < 0) {
-		if (errno == EINTR) {
-			::close(sockfd);
-			return false;
-		}
         if (errno != EINPROGRESS) {
             ::close(sockfd);
             return false;
@@ -103,7 +97,6 @@ bool gSocket::connect(Glib::ustring host, int p)
             return false;
         }
     }
-    setBlocking(sockfd); // back to blocking
     
     // send the bzflag connection header
     ::send(sockfd, BZ_CONNECT_HEADER, (int)strlen(BZ_CONNECT_HEADER), 0);

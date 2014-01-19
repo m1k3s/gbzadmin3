@@ -2764,6 +2764,23 @@ void gbzadmin::replace_connect_placeholders()
     box->remove(*crap);
     box->pack_start(server_combo);
     box->reorder_child(server_combo, 7);
+    // add a delete icon and callback
+    Gtk::Entry *entry = server_combo.get_entry();
+    entry->set_icon_from_stock(Gtk::Stock::CLOSE);
+//    entry->set_icon_sensitive();
+    entry->signal_icon_press().connect(sigc::mem_fun(*this, &gbzadmin::on_icon_pressed));
+}
+
+void gbzadmin::on_icon_pressed(Gtk::EntryIconPosition icon_pos, const GdkEventButton* event)
+{
+	// get the active text
+	Glib::ustring addr = server_combo.get_entry_text();
+	// delete this text entry
+	server_mru_delete(addr);
+	// re-populate the combo
+	server_mru_populate();
+	// set the active index
+	server_combo.set_active(0);
 }
 
 void gbzadmin::populate_player_combo()
@@ -3129,6 +3146,34 @@ std::list<Glib::ustring> gbzadmin::parse_server_mru(const Glib::ustring& in, con
         }
     }
     return tokens;
+}
+
+void gbzadmin::server_mru_populate()
+{
+	server_combo.clear_items();
+    std::list<Glib::ustring>::iterator iter;
+    int nLines = 1;
+    for (iter = server_mru_str.begin(); iter != server_mru_str.end(); iter++) {
+        server_combo.append_text(*iter);
+        nLines++;
+        if (nLines >= maxServersList) {
+            break;
+        }
+    }
+    iter = server_mru_str.begin();
+    server_combo.set_active_text(*iter);
+}
+
+void gbzadmin::server_mru_delete(Glib::ustring line)
+{
+    std::list<Glib::ustring>::iterator it = server_mru_str.begin();
+    while(it != server_mru_str.end() ) {
+        std::list<Glib::ustring>::iterator thisone = it;
+        it++;
+        if (*thisone == line) {
+            server_mru_str.erase(thisone);
+        }
+    }
 }
 
 //gint16 dstTeam = (LastRealPlayer < dst && dst <= FirstTeam ? TeamColor(FirstTeam - dst) : NoTeam);
