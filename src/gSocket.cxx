@@ -64,19 +64,25 @@ bool gSocket::connect(Glib::ustring host, int p)
     // resolve the host name address
     if (!resolve_host(host, Glib::ustring::compose("%1", port))) {
         state = ResolveFailure;
-        rejectionMessage = "DNS: Failed to resolve host name\n";
+        rejectionMessage = errorMsg;
         return false;
     }
-
+	// get the server IP string
 	serverIP = get_ip_str(&server_info);
 
-    // open connection to server.
+    // create a socket connection to server
     if ((sockfd = ::socket(server_info.ai_family, server_info.ai_socktype, server_info.ai_protocol)) == -1) {
         return false;
     }
+    setNonBlocking(sockfd); // go non blocking to allow timeout
+    select(sockfd, 10); 	// set a timeout of 10 seconds
 
-    // this is where we actually connect. Hopefully.
+    // try to connect
 	if (::connect(sockfd, server_info.ai_addr, server_info.ai_addrlen) < 0) {
+		if (errno == EINTR) {
+			::close(sockfd);
+			return false;
+		}
         if (errno != EINPROGRESS) {
             ::close(sockfd);
             return false;
@@ -97,11 +103,12 @@ bool gSocket::connect(Glib::ustring host, int p)
             return false;
         }
     }
-    // send the connection header
+    setBlocking(sockfd); // back to blocking
+    
+    // send the bzflag connection header
     ::send(sockfd, BZ_CONNECT_HEADER, (int)strlen(BZ_CONNECT_HEADER), 0);
 
     bool got_version = false;
-
     int loopCount = 0;
     ssize_t recvd;
     while (!got_version) {
@@ -127,7 +134,7 @@ bool gSocket::connect(Glib::ustring host, int p)
 //    }
 
     if (setNonBlocking(sockfd) < 0) {
-        close(sockfd);
+        ::close(sockfd);
         return false;
     }
 
@@ -148,11 +155,11 @@ bool gSocket::connect(Glib::ustring host, int p)
         return false;
     }
 
-    // read local player's id
     if (!select(sockfd)) {
         ::close(sockfd);
         return false;
     }
+    // read local player's id
     recvd = ::recv(sockfd, (char *) &id, sizeof(id), 0);
     if (recvd < (int) sizeof(id)) {
         return false;
@@ -227,8 +234,8 @@ bool gSocket::join(Glib::ustring callsign, Glib::ustring password, Glib::ustring
     // now see if we were accepted
     if (readEnter(reason, code, rejCode)) {
         // we're in! connect the TCP signal
-        tcp_read = Glib::signal_io().connect(sigc::mem_fun(*this, &gSocket::tcp_data_pending),
-                                              sockfd, Glib::IO_IN | Glib::IO_ERR | Glib::IO_HUP | Glib::IO_NVAL);
+        Glib::IOCondition flags = Glib::IO_IN | Glib::IO_ERR | Glib::IO_HUP | Glib::IO_NVAL;
+        tcp_read = Glib::signal_io().connect(sigc::mem_fun(*this, &gSocket::tcp_data_pending), sockfd, flags);
 
         return true;
     }
@@ -365,37 +372,32 @@ int gSocket::read(uint16_t& code, uint16_t& len, void* msg, int blockTime)
     } else {
         rlen = 0;
     }
-    if (rlen == int(len)) {	// got the whole thing, DONE!
-        return 1;
+    if (rlen == int(len)) {	// got the whole message, done
+    	if (netStats) {
+		    bytesReceived += rlen;
+		}
+    } else { // keep reading until we get the whole message
+		tlen = rlen;
+		while (rlen >= 1 && tlen < int(len)) {
+		    nfound = select(sockfd, -1);
+		    if (nfound == 0) {
+		        continue;
+		    }
+		    if (nfound < 0) {
+		        return -1;
+		    }
+		    rlen = ::recv(sockfd, (char*)msg + tlen, int(len) - tlen, 0);
+		    if (rlen >= 0) {
+		        tlen += rlen;
+		    }
+		}
+		if (netStats && rlen >= 0) {
+		    bytesReceived += rlen;
+		}
+		if (tlen < int(len)) {
+		    return -1;
+		}
     }
-
-    if (netStats && rlen >= 0) {
-        bytesReceived += rlen;
-    }
-    // keep reading until we get the whole message
-    tlen = rlen;
-    while (rlen >= 1 && tlen < int(len)) {
-        nfound = select(sockfd, -1);
-        if (nfound == 0) {
-            continue;
-        }
-        if (nfound < 0) {
-            return -1;
-        }
-        rlen = ::recv(sockfd, (char*)msg + tlen, int(len) - tlen, 0);
-        if (rlen >= 0) {
-            tlen += rlen;
-        }
-    }
-
-    if (netStats && rlen >= 0) {
-        bytesReceived += rlen;
-    }
-
-    if (tlen < int(len)) {
-        return -1;
-    }
-
     return 1;
 }
 
@@ -539,7 +541,7 @@ Glib::ustring gSocket::reverseResolve(Glib::ustring ip, Glib::ustring callsign)
 
     int status = getnameinfo((struct sockaddr*)&addr, sizeof(addr), host, 256, (char*)NULL, 0, 0);
     if (check_status(status)) {
-	    result = Glib::ustring::compose("An error has occured, could not resolve IP! (%1)\n", status);
+	    result = errorMsg;
     } else {
     	result = callsign + "'s IP resolved to " + host + "\n";
     }
@@ -553,51 +555,51 @@ int gSocket::check_status(int status_code)
             break;
 
         case EAI_ADDRFAMILY:
-            std::cerr << "The specified network host does not have any network addresses in the requested address family.\n";
+            errorMsg = "The specified network host does not have any network addresses in the requested address family.\n";
             break;
 
         case EAI_AGAIN:
-            std::cerr << "The name could not be resolved at this time.\n";
+            errorMsg = "The name could not be resolved at this time.\n";
             break;
 
         case EAI_BADFLAGS:
-            std::cerr << "The flags had an invalid value.\n";
+            errorMsg = "The flags had an invalid value.\n";
             break;
 
         case EAI_FAIL:
-            std::cerr << "A non-recoverable error occurred.\n";
+            errorMsg = "A non-recoverable error occurred.\n";
             break;
 
         case EAI_FAMILY:
-            std::cerr << "The address family was not recognized or the address length was invalid.\n";
+            errorMsg = "The address family was not recognized or the address length was invalid.\n";
             break;
 
         case EAI_MEMORY:
-            std::cerr << "There was a memory allocation failure.\n";
+            errorMsg = "There was a memory allocation failure.\n";
             break;
 
         case EAI_NONAME:
-            std::cerr << "The name does not resolve for the supplied parameters.\n";
+            errorMsg = "The name does not resolve for the supplied parameters.\n";
             break;
 
         case EAI_NODATA:
-            std::cerr << "The specified network host exists, but does not have any network addresses defined.\n";
+            errorMsg = "The specified network host exists, but does not have any network addresses defined.\n";
             break;
 
         case EAI_OVERFLOW:
-            std::cerr << "An argument buffer overflowed.\n";
+            errorMsg = "An argument buffer overflowed.\n";
             break;
 
         case EAI_SYSTEM:
-            std::cerr << "A system error occurred. The error code can be found in errno. \n";
+            errorMsg = "A system error occurred. The error code can be found in errno. \n";
             break;
 
         case EAI_SERVICE:
-            std::cerr << "The requested service is not available for the requested socket type.\n";
+            errorMsg = "The requested service is not available for the requested socket type.\n";
             break;
 
         case EAI_SOCKTYPE:
-            std::cerr << "The requested socket type is not supported at all.\n";
+            errorMsg = "The requested socket type is not supported at all.\n";
             break;
     }
     return status_code;

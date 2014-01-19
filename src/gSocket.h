@@ -160,6 +160,7 @@ class gSocket : public sigc::trackable
         Glib::ustring rejectionMessage;
         Glib::ustring serverName;
         Glib::ustring serverIP;
+        Glib::ustring errorMsg;
         int port;
 
         sigc::connection tcp_read;
