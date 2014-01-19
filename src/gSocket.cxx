@@ -23,7 +23,7 @@
 
 
 gSocket::gSocket()
-    :	state(SocketError), fd(-1), netStats(true)
+    :	state(SocketError), sockfd(-1), netStats(true)
 {
     prev_flow = 0.0;
 }
@@ -41,9 +41,9 @@ void gSocket::disconnect()
 
     tcp_read.disconnect();
 
-    ::shutdown(fd, 2);
-    ::close(fd);
-    fd = -1;
+    ::shutdown(sockfd, 2);
+    ::close(sockfd);
+    sockfd = -1;
 
     state = SocketError;
 }
@@ -54,93 +54,89 @@ bool gSocket::connect(Glib::ustring host, int p)
         return false;
     }
 
-    int recvd;
     serverName = host;
     port = p;
     const char* const BanRefusalString = "REFUSED:";
 
     // initialize version string
-    ::strcpy(version, "BZFS0000");
+	version = "BZFS0000";
 
     // resolve the host name address
-    if (!resolveHost(host, Glib::ustring::compose("%1", port))) {
+    if (!resolve_host(host, Glib::ustring::compose("%1", port))) {
         state = ResolveFailure;
         rejectionMessage = "DNS: Failed to resolve host name\n";
         return false;
     }
 
-	char addrStr[32];
-	inet_ntop(server_info.ai_family, server_info.ai_addr, addrStr, 32);
-	serverIP = addrStr;
+	serverIP = get_ip_str(&server_info);
 
     // open connection to server.
-    int query = ::socket(server_info.ai_family, server_info.ai_socktype, 0);
-    if (query < 0) {
+    if ((sockfd = ::socket(server_info.ai_family, server_info.ai_socktype, server_info.ai_protocol)) == -1) {
         return false;
     }
 
     // this is where we actually connect. Hopefully.
-	if (::connect(query, server_info.ai_addr, server_info.ai_addrlen) < 0) {
+	if (::connect(sockfd, server_info.ai_addr, server_info.ai_addrlen) < 0) {
         if (errno != EINPROGRESS) {
-            ::close(query);
+            ::close(sockfd);
             return false;
         }
-        if (!select(query)) {
-            ::close(query);
+        if (!select(sockfd)) {
+            ::close(sockfd);
             return false;
         }
         // check for connection errors
         int connectError;
         socklen_t errorLen = sizeof(int);
-        if (::getsockopt(query, SOL_SOCKET, SO_ERROR, &connectError, &errorLen)	< 0) {
-            ::close(query);
+        if (::getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &connectError, &errorLen) < 0) {
+            ::close(sockfd);
             return false;
         }
         if (connectError != 0) {
-            ::close(query);
+            ::close(sockfd);
             return false;
         }
     }
     // send the connection header
-    ::send(query, BZ_CONNECT_HEADER, (int)strlen(BZ_CONNECT_HEADER), 0);
+    ::send(sockfd, BZ_CONNECT_HEADER, (int)strlen(BZ_CONNECT_HEADER), 0);
 
-    bool gotNetData = false;
+    bool got_version = false;
 
     int loopCount = 0;
-    while (!gotNetData) {
+    ssize_t recvd;
+    while (!got_version) {
         loopCount++;
         // get server version and verify
-        if (!select(query)) {
-            ::close(query);
+        if (!select(sockfd)) {
+            ::close(sockfd);
             return false;
         }
-        recvd = ::recv(query, (char*)version, 8, 0);
-        if (recvd > 0) {
-            gotNetData = true;
+        recvd = ::recv(sockfd, (char*)version.c_str(), 8, 0);
+        if (recvd == 8) {
+            got_version = true;
         } else if (loopCount > 20) {
-            ::close(query);
+            ::close(sockfd);
             return false;
         }
         Glib::usleep(G_USEC_PER_SEC / 4); // 1/4 second
     }
 
-    if (recvd < 8) {
-        close(query);
+//    if (recvd < 8) {
+//        close(sockfd);
+//        return false;
+//    }
+
+    if (setNonBlocking(sockfd) < 0) {
+        close(sockfd);
         return false;
     }
 
-    if (setNonBlocking(query) < 0) {
-        close(query);
-        return false;
-    }
-
-    if (::strcmp(version, ServerVersion) != 0) {
-        std::cerr << "BAD VERSION: " << version << std::endl;
+	if (ServerVersion != version) {
         state = BadVersion;
-        if (::strcmp(version, BanRefusalString) == 0) {
+		if (BanRefusalString == version) {
             state = Refused;
             char message[512];
-            int len = ::recv(query, (char*)message, 512, 0);
+            int len = ::recv(sockfd, (char*)message, 512, 0);
             if (len > 0) {
                 message[len - 1] = 0;
             } else {
@@ -148,35 +144,33 @@ bool gSocket::connect(Glib::ustring host, int p)
             }
             rejectionMessage = message;
         }
-        ::close(query);
+        ::close(sockfd);
         return false;
     }
 
     // read local player's id
-    if (!select(query)) {
-        ::close(query);
+    if (!select(sockfd)) {
+        ::close(sockfd);
         return false;
     }
-    recvd = ::recv(query, (char *) &id, sizeof(id), 0);
+    recvd = ::recv(sockfd, (char *) &id, sizeof(id), 0);
     if (recvd < (int) sizeof(id)) {
         return false;
     }
 
     if (id == 0xff) {
         state = Rejected;
-        ::close(query);
+        ::close(sockfd);
         return false;
     }
 
-    if (setBlocking(query) < 0) {
-        ::close(query);
+    if (setBlocking(sockfd) < 0) {
+        ::close(sockfd);
         return false;
     }
-
-    fd = query;
 
     // turn on TCP no delay
-    setTcpNoDelay(fd);
+    setTcpNoDelay(sockfd);
 
     if (netStats) {
         resetNetStats();
@@ -186,37 +180,37 @@ bool gSocket::connect(Glib::ustring host, int p)
     return true;
 }
 
-bool gSocket::resolveHost(const Glib::ustring& host, const Glib::ustring& port)
+bool gSocket::resolve_host(const Glib::ustring& host, const Glib::ustring& port)
 {
-    struct addrinfo hints, *res;
-    char addrstr[100];
+    struct addrinfo hints, *res, *p;
+    bool result = false;
 
     ::memset(&hints, 0, sizeof (hints));
-    hints.ai_family = PF_UNSPEC;
+    hints.ai_family = PF_UNSPEC; // future support of ipv6
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags |= AI_CANONNAME;
+    hints.ai_protocol = IPPROTO_TCP;
 
-    int error = getaddrinfo(host.c_str(), port.c_str(), &hints, &res);
-    if (check_for_error(error)) {
+    int status = getaddrinfo(host.c_str(), port.c_str(), &hints, &res);
+    if (check_status(status)) {
     	return false;
     }
-
-    while (res) {
-        inet_ntop (res->ai_family, res->ai_addr->sa_data, addrstr, 100);
-
-        switch (res->ai_family) {
-            case AF_INET:
-                ::memcpy(&server_info, res, sizeof(struct addrinfo));
-                break;
-            case AF_INET6:
-                // we don't support IPV6 at this time
-                //::memcpy(&server_info, res, sizeof(struct addrinfo));
-                return false;
+	p = res;
+    while (p) {
+        if (p->ai_family == AF_INET) {
+        	::memcpy(&server_info, p, sizeof(struct addrinfo));
+        	result = true;
+            break;
+        } else if (p->ai_family == AF_INET6) {
+        	// we don't support IPV6 at this time
+            result = false;
+        	break;
         }
-        res = res->ai_next;
+        p = p->ai_next;
     }
     freeaddrinfo(res);
-    return true;
+    
+    return result;
 }
 
 bool gSocket::join(Glib::ustring callsign, Glib::ustring password, Glib::ustring motto)
@@ -225,7 +219,7 @@ bool gSocket::join(Glib::ustring callsign, Glib::ustring password, Glib::ustring
     Glib::ustring reason;
     Glib::ustring token("");
 
-    // query the list server to get a token
+    // sockfd the list server to get a token
     listServer.queryListServer(callsign, password, token);
     // request to enter the game -- sending callsign and token
     sendEnter(TankPlayer, ObserverTeam, callsign, motto, token);
@@ -234,7 +228,7 @@ bool gSocket::join(Glib::ustring callsign, Glib::ustring password, Glib::ustring
     if (readEnter(reason, code, rejCode)) {
         // we're in! connect the TCP signal
         tcp_read = Glib::signal_io().connect(sigc::mem_fun(*this, &gSocket::tcp_data_pending),
-                                              fd, Glib::IO_IN | Glib::IO_ERR | Glib::IO_HUP | Glib::IO_NVAL);
+                                              sockfd, Glib::IO_IN | Glib::IO_ERR | Glib::IO_HUP | Glib::IO_NVAL);
 
         return true;
     }
@@ -249,33 +243,33 @@ bool gSocket::tcp_data_pending(Glib::IOCondition)
     return true;
 }
 
-bool gSocket::select(int _fd)
+bool gSocket::select(int _sockfd)
 {
     fd_set set;
     struct timeval timeout;
 
     FD_ZERO(&set);
-    FD_SET((unsigned int)_fd, &set);
+    FD_SET((unsigned int)_sockfd, &set);
     timeout.tv_sec = long(5);
     timeout.tv_usec = 0;
-    int nfound = ::select(_fd + 1, (fd_set*)&set, NULL, NULL, &timeout);
+    int nfound = ::select(_sockfd + 1, (fd_set*)&set, NULL, NULL, &timeout);
     if (nfound <= 0) {
-        std::cerr << "gSocket::select(int _fd) Failed!\n";
+        std::cerr << "gSocket::select(int _sockfd) Failed!\n";
         return false;
     }
     return true;
 }
 
-int gSocket::select(int _fd, int blockTime)
+int gSocket::select(int _sockfd, int blockTime)
 {
     fd_set set;
     struct timeval timeout;
 
     FD_ZERO(&set);
-    FD_SET((unsigned int)_fd, &set);
+    FD_SET((unsigned int)_sockfd, &set);
     timeout.tv_sec = blockTime / 1000;
     timeout.tv_usec = blockTime - 1000 * timeout.tv_sec;
-    return ::select(_fd + 1, (fd_set*)&set, NULL, NULL, (struct timeval*)(blockTime >= 0 ? &timeout : NULL));
+    return ::select(_sockfd + 1, (fd_set*)&set, NULL, NULL, (struct timeval*)(blockTime >= 0 ? &timeout : NULL));
 }
 
 int gSocket::send(guint16 code, guint16 len,	const void* msg)
@@ -293,7 +287,7 @@ int gSocket::send(guint16 code, guint16 len,	const void* msg)
     if (msg && len != 0) {
         buf = parser.nboPackString(buf, msg, len);
     }
-    sent = ::send(fd, (const char*)msgbuf, len + 4, 0);
+    sent = ::send(sockfd, (const char*)msgbuf, len + 4, 0);
     if (netStats) {
         bytesSent += sent;
         bytesSent += usent;
@@ -321,7 +315,7 @@ int gSocket::read(uint16_t& code, uint16_t& len, void* msg, int blockTime)
     // block for specified period. default is no blocking (polling)
 
     // only check server
-    int nfound = select(fd, blockTime);
+    int nfound = select(sockfd, blockTime);
 
     if (nfound == 0) {
         return 0;
@@ -334,18 +328,18 @@ int gSocket::read(uint16_t& code, uint16_t& len, void* msg, int blockTime)
     char headerBuffer[4];
 
     int rlen = 0;
-    rlen = ::recv(fd, (char*)headerBuffer, 4, 0);
+    rlen = ::recv(sockfd, (char*)headerBuffer, 4, 0);
 
     int tlen = rlen;
     while (rlen >= 1 && tlen < 4) {
-        nfound = select(fd, -1);
+        nfound = select(sockfd, -1);
         if (nfound == 0) {
             continue;
         }
         if (nfound < 0) {
             return -1;
         }
-        rlen = ::recv(fd, (char*)headerBuffer + tlen, 4 - tlen, 0);
+        rlen = ::recv(sockfd, (char*)headerBuffer + tlen, 4 - tlen, 0);
         if (rlen >= 0) {
             tlen += rlen;
         }
@@ -367,7 +361,7 @@ int gSocket::read(uint16_t& code, uint16_t& len, void* msg, int blockTime)
         return -1;
     }
     if (len > 0) {
-        rlen = ::recv(fd, (char*)msg, int(len), 0);
+        rlen = ::recv(sockfd, (char*)msg, int(len), 0);
     } else {
         rlen = 0;
     }
@@ -381,14 +375,14 @@ int gSocket::read(uint16_t& code, uint16_t& len, void* msg, int blockTime)
     // keep reading until we get the whole message
     tlen = rlen;
     while (rlen >= 1 && tlen < int(len)) {
-        nfound = select(fd, -1);
+        nfound = select(sockfd, -1);
         if (nfound == 0) {
             continue;
         }
         if (nfound < 0) {
             return -1;
         }
-        rlen = ::recv(fd, (char*)msg + tlen, int(len) - tlen, 0);
+        rlen = ::recv(sockfd, (char*)msg + tlen, int(len) - tlen, 0);
         if (rlen >= 0) {
             tlen += rlen;
         }
@@ -460,31 +454,31 @@ bool gSocket::readEnter (Glib::ustring& reason, uint16_t& code, uint16_t& rejcod
     return true;
 }
 
-int gSocket::setNonBlocking(int fd)
+int gSocket::setNonBlocking(int sockfd)
 {
-    int mode = fcntl(fd, F_GETFL, 0);
-    if (mode == -1 || fcntl(fd, F_SETFL, mode | O_NDELAY) < 0) {
+    int mode = fcntl(sockfd, F_GETFL, 0);
+    if (mode == -1 || fcntl(sockfd, F_SETFL, mode | O_NDELAY) < 0) {
         return -1;
     }
     return 0;
 }
 
-int gSocket::setBlocking(int fd)
+int gSocket::setBlocking(int sockfd)
 {
-    int mode = fcntl(fd, F_GETFL, 0);
-    if (mode == -1 || fcntl(fd, F_SETFL, mode & ~O_NDELAY) < 0) {
+    int mode = fcntl(sockfd, F_GETFL, 0);
+    if (mode == -1 || fcntl(sockfd, F_SETFL, mode & ~O_NDELAY) < 0) {
         return -1;
     }
     return 0;
 }
 
-void gSocket::setTcpNoDelay(int fd)
+void gSocket::setTcpNoDelay(int sockfd)
 {
     gint off = 0;
     struct protoent *p = ::getprotobyname("tcp");
 
     if (p) {
-        ::setsockopt(fd, p->p_proto, TCP_NODELAY, &off, sizeof(off));
+        ::setsockopt(sockfd, p->p_proto, TCP_NODELAY, &off, sizeof(off));
     }
 }
 
@@ -543,19 +537,19 @@ Glib::ustring gSocket::reverseResolve(Glib::ustring ip, Glib::ustring callsign)
     char host[256];
     Glib::ustring result("");
 
-    int error = getnameinfo((struct sockaddr*)&addr, sizeof(addr), host, 256, (char*)NULL, 0, 0);
-    if (check_for_error(error)) {
-	    result = Glib::ustring::compose("An error has occured, could not resolve IP! (%1)\n", error);
+    int status = getnameinfo((struct sockaddr*)&addr, sizeof(addr), host, 256, (char*)NULL, 0, 0);
+    if (check_status(status)) {
+	    result = Glib::ustring::compose("An error has occured, could not resolve IP! (%1)\n", status);
     } else {
     	result = callsign + "'s IP resolved to " + host + "\n";
     }
     return result;
 }
 
-int gSocket::check_for_error(int error_code)
+int gSocket::check_status(int status_code)
 {
-	switch (error_code) {
-        default: // no error (error_code == 0)
+	switch (status_code) {
+        default: // no error (status_code == 0)
             break;
 
         case EAI_ADDRFAMILY:
@@ -606,7 +600,21 @@ int gSocket::check_for_error(int error_code)
             std::cerr << "The requested socket type is not supported at all.\n";
             break;
     }
-    return error_code;
+    return status_code;
 }
 
+Glib::ustring gSocket::get_ip_str(const struct addrinfo *ai)
+{
+	char addr_str[INET_ADDRSTRLEN];
+	inet_ntop(ai->ai_family, get_in_addr((struct sockaddr*)ai->ai_addr), addr_str, INET_ADDRSTRLEN);
+	return Glib::ustring(addr_str);
+}
+
+void* gSocket::get_in_addr(struct sockaddr *sa)
+{
+	if (sa->sa_family == AF_INET) {
+		return &(((struct sockaddr_in*)sa)->sin_addr);
+	}
+	return &(((struct sockaddr_in6*)sa)->sin6_addr);
+}
 

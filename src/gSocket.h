@@ -126,7 +126,7 @@ class gSocket : public sigc::trackable
         }
         float bitFlow();
 
-        bool resolveHost(const Glib::ustring& host, const Glib::ustring& port);
+        bool resolve_host(const Glib::ustring& host, const Glib::ustring& port);
 
         sigc::signal<void> on_tcp_data_pending;
 
@@ -140,21 +140,22 @@ class gSocket : public sigc::trackable
         void setTcpNoDelay(int fd);
         bool select(int _fd);
         int select(int _fd, int blockTime);
-        int check_for_error(int error_code);
+        int check_status(int status_code);
+        Glib::ustring get_ip_str(const struct addrinfo *ai);
+        void* get_in_addr(struct sockaddr *sa);
 
     private:
         State state;
-        int fd;
+        int sockfd;
         Parser parser;
         gListServer listServer;
 
-//        struct sockaddr_in sockaddr;
         struct addrinfo server_info;
         bool netStats;
         float prev_flow;
 
         unsigned char id;
-        char version[9];
+        Glib::ustring version;
 
         Glib::ustring rejectionMessage;
         Glib::ustring serverName;
@@ -199,7 +200,7 @@ inline const unsigned char& gSocket::getId() const
 
 inline const char* gSocket::getVersion() const
 {
-    return version;
+    return version.c_str();
 }
 
 inline const Glib::ustring& gSocket::get_server_IP() const
