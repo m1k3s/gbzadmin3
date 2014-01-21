@@ -312,8 +312,8 @@ void gbzadmin::connect_dialog_setup()
                 break;
             }
         }
-        iter = server_mru_str.begin();
-        server_combo.set_active_text(*iter);
+		server_combo.set_active_text(server_mru_find(current_server));
+        
         connect_dialog->show_all();
     }
 }
@@ -328,8 +328,9 @@ void gbzadmin::on_connect_dialog_response(gint response_id)
         refBuilder->get_widget("motto_entry", w_motto);
 
         Glib::ustring addr = server_combo.get_entry_text();
-        parse_host_port(addr);
+        parse_host_port(addr); // this sets the _server and _port variables
 
+		// check to see if this server is already in the list
         bool found = false;
         std::list<Glib::ustring>::iterator iter = server_mru_str.begin();
         while (iter != server_mru_str.end()) {
@@ -341,8 +342,9 @@ void gbzadmin::on_connect_dialog_response(gint response_id)
         }
         if (!found) { // add server:port string to MRU list
             server_mru_str.push_front(addr);
+			current_server = addr;
         }
-
+		// get the rest of the story
         _callsign.assign(w_callsign->get_text(), 0, CallSignLen);
         _password.assign(w_password->get_text(), 0, PasswordLen);
         _motto.assign(w_motto->get_text(), 0, MottoLen);
@@ -506,6 +508,7 @@ Gtk::Window *gbzadmin::init_gbzadmin(Glib::RefPtr<Gtk::Builder> _refBuilder)
     win_height = 600;
     msg_pane = 300;
     game_pane = 400;
+	current_server = "";
 
     current_cmd_type = NoCommand;
 
@@ -713,6 +716,8 @@ void gbzadmin::add_callbacks()
     if (connect_dialog) {
         connect_dialog->signal_response().connect(sigc::mem_fun(*this, &gbzadmin::on_connect_dialog_response));
     }
+    // connect dialog server mru combo_changed callback
+    server_combo.signal_changed().connect(sigc::mem_fun(*this, &gbzadmin::on_server_combo_changed), false);
 
     refBuilder->get_widget("pref_dialog", pref_dialog);
     if (pref_dialog) {
@@ -741,6 +746,12 @@ void gbzadmin::add_callbacks()
 
     // connect the server variable changed signal
     server_vars_view.on_variable_changed.connect(sigc::mem_fun(*this, &gbzadmin::on_variable_changed));
+}
+
+void gbzadmin::on_server_combo_changed()
+{
+	// update the current server:port string
+	current_server = server_combo.get_active_text();
 }
 
 void gbzadmin::on_player_window_activate()
@@ -976,6 +987,11 @@ void gbzadmin::parse_config_file(Glib::ustring filename)
                 line_numbers = atoi(value) ? true : false;
             } else if (g_ascii_strcasecmp(variable, "save_password") == 0) {
                 save_password = atoi(value) ? true : false;
+            } else if (g_ascii_strcasecmp(variable, "server_mru") == 0) {
+                Glib::ustring str(value);
+                server_mru_str = parse_server_mru(str, ";", maxServersList);
+            } else if (g_ascii_strcasecmp(variable, "current_server") == 0) {
+				current_server = value;
             } else if (g_ascii_strcasecmp(variable, "msg_new_rabbit") == 0) {
                 msg_mask["rabbit"] = atoi(value) ? true : false;
             } else if (g_ascii_strcasecmp(variable, "msg_pause") == 0) {
@@ -1006,9 +1022,6 @@ void gbzadmin::parse_config_file(Glib::ustring filename)
                 msg_mask["flags"] = atoi(value) ? true : false;
             } else if (g_ascii_strcasecmp(variable, "msg_teleport") == 0) {
                 msg_mask["teleport"] = atoi(value) ? true : false;
-            } else if (g_ascii_strcasecmp(variable, "server_mru") == 0) {
-                Glib::ustring str(value);
-                server_mru_str = parse_server_mru(str, ";", maxServersList);
             } else if (g_ascii_strcasecmp(variable, "msg_time_update") == 0) {
                 msg_mask["tupdate"] = atoi(value) ? true : false;
             } else if (g_ascii_strcasecmp(variable, "msg_game_time") == 0) {
@@ -1068,6 +1081,9 @@ void gbzadmin::save_config_file(Glib::ustring filename)
             it++;
         }
         buf = Glib::ustring("\n");
+        os.write(buf.c_str(), buf.length());
+        
+        buf = Glib::ustring::compose("current_server=%1\n", current_server);
         os.write(buf.c_str(), buf.length());
 
         buf = Glib::ustring::compose("window_x=%1\n", win_x);
@@ -1452,7 +1468,12 @@ void gbzadmin::handle_admininfo_message(void* vbuf)
                     Glib::ustring str(msg_view.Color(YellowFg));
                     Glib::ustring ipstr = player->get_IP();
                     Glib::ustring color = msg_view.get_color(player->get_team());
-                    str += "*** IPINFO: " + color + player->get_callsign() + msg_view.Color(CyanFg) + "\tFrom: " + color + ipstr;
+                    Glib::ustring callsign = player->get_callsign();
+                    str += "*** IPINFO: " + color + callsign + msg_view.Color(CyanFg);
+                    for (int i = 0; i < (CallSignLen - (int)callsign.size()); i++) {
+                    	str += " ";
+                    }
+                    str += "From: " + color + ipstr;
                     for (int i = 0; i < (17 - (int)ipstr.size()); i++) {
                         str += " ";
                     }
@@ -2249,7 +2270,7 @@ void gbzadmin::on_send_button_pressed()
             }
         }
     } else if (tmp_cmd.substr(0, 1) == "/") { // check if is command
-        if (!isConnected() && tmp_cmd == "/quit") {
+        if (!isConnected() && tmp_cmd == "/quit") { // offline quit command
             shut_down();
             return;
         }
@@ -2261,11 +2282,19 @@ void gbzadmin::on_send_button_pressed()
 void gbzadmin::process_command()
 {
     Glib::ustring substr;
+    Glib::ustring part_msg;
     // check for local commands first
     if (cmd_str.size()) {
         // add this cmd to the history buffer
         cmd.historyAdd(cmd_str);
-        if (cmd_str == "/quit") {
+        // test command string for quit with a message
+        if (cmd_str.substr(0, cmd_str.find_first_of(" ")) == "/quit") {
+        	if (cmd_str.length() > 5) { // found a parting message
+        		part_msg = cmd_str.substr(6);
+        		if (part_msg.length()) { // only send if there is an actual message
+	        		send_message(part_msg, cmd.get_current_target_id());
+	        	}
+        	}
             cmd_str.clear();
             if (confirm_quit_and_save()) {
                 shut_down();
@@ -2764,10 +2793,10 @@ void gbzadmin::replace_connect_placeholders()
     box->remove(*crap);
     box->pack_start(server_combo);
     box->reorder_child(server_combo, 7);
+    
     // add a delete icon and callback
     Gtk::Entry *entry = server_combo.get_entry();
     entry->set_icon_from_stock(Gtk::Stock::CLOSE);
-//    entry->set_icon_sensitive();
     entry->signal_icon_press().connect(sigc::mem_fun(*this, &gbzadmin::on_icon_pressed));
 }
 
@@ -3105,6 +3134,9 @@ void gbzadmin::show_mottos()
     msg_view.add_text(str);
 }
 
+// server MRU stuff
+
+// parse the config file MRU string
 std::list<Glib::ustring> gbzadmin::parse_server_mru(const Glib::ustring& in, const Glib::ustring &delims, int lines_max)
 {
     std::list<Glib::ustring> tokens;
@@ -3148,6 +3180,7 @@ std::list<Glib::ustring> gbzadmin::parse_server_mru(const Glib::ustring& in, con
     return tokens;
 }
 
+// populate the server combo box
 void gbzadmin::server_mru_populate()
 {
 	server_combo.clear_items();
@@ -3164,6 +3197,7 @@ void gbzadmin::server_mru_populate()
     server_combo.set_active_text(*iter);
 }
 
+// delete an entry from the server combo box and server_mru list
 void gbzadmin::server_mru_delete(Glib::ustring line)
 {
     std::list<Glib::ustring>::iterator it = server_mru_str.begin();
@@ -3176,12 +3210,29 @@ void gbzadmin::server_mru_delete(Glib::ustring line)
     }
 }
 
-//gint16 dstTeam = (LastRealPlayer < dst && dst <= FirstTeam ? TeamColor(FirstTeam - dst) : NoTeam);
+// find an entry in the server mru list
+Glib::ustring gbzadmin::server_mru_find(Glib::ustring find)
+{
+	Glib::ustring result("");
+	std::list<Glib::ustring>::iterator it = server_mru_str.begin();
+    while(it != server_mru_str.end() ) {
+        std::list<Glib::ustring>::iterator thisone = it;
+        it++;
+        if (*thisone == find) {
+            result = *thisone;
+        }
+    }
+    return result;
+}
+
+// END server MRU stuff
+
 TeamColor gbzadmin::PlayerIdToTeam(guint8 id)
 {
     return (LastRealPlayer < id && id <= FirstTeam ? TeamColor(FirstTeam - id) : NoTeam);
 }
 
+// parse the address string (server:port) and populate the _server, _port_str and _port variables
 void gbzadmin::parse_host_port(Glib::ustring addr)
 {
     size_t idx = addr.find_last_of(":");

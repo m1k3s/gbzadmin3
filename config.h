@@ -68,7 +68,7 @@
 #define PACKAGE_NAME "gbzadmin3"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "gbzadmin3 2.4.0"
+#define PACKAGE_STRING "gbzadmin3 2.4.2"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "gbzadmin3"
@@ -77,10 +77,10 @@
 #define PACKAGE_URL ""
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "2.4.0"
+#define PACKAGE_VERSION "2.4.2"
 
 /* Define to 1 if you have the ANSI C header files. */
 #define STDC_HEADERS 1
 
 /* Version number of package */
-#define VERSION "2.4.0"
+#define VERSION "2.4.2"

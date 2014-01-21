@@ -14,7 +14,7 @@
 
 GETTEXT_PACKAGE = gbzadmin3
 PACKAGE = gbzadmin3
-VERSION = 2.4.0
+VERSION = 2.4.2
 
 SHELL = /bin/bash
 
@@ -25,7 +25,7 @@ top_srcdir = ..
 
 prefix = /home/mike
 exec_prefix = ${prefix}
-datarootdir = /home/mike/.local/share
+datarootdir = ${prefix}/share
 datadir = ${datarootdir}
 libdir = ${exec_prefix}/lib
 localedir = $(libdir)/locale

@@ -111,6 +111,7 @@ class gbzadmin : public Gtk::Window
         void on_query_listserver_clicked();
         void on_save_config_activate();
         void on_icon_pressed(Gtk::EntryIconPosition icon_pos, const GdkEventButton* event);
+        void on_server_combo_changed();
 
         // signal callback function
         void on_read_data();
@@ -160,6 +161,7 @@ class gbzadmin : public Gtk::Window
         void parse_host_port(Glib::ustring addr);
         void server_mru_delete(Glib::ustring line);
         void server_mru_populate();
+        Glib::ustring server_mru_find(Glib::ustring find);
 
         // timer functions
         bool update_timer();
@@ -267,6 +269,7 @@ class gbzadmin : public Gtk::Window
 
         // server:port MRU array
         std::list<Glib::ustring> server_mru_str;
+		Glib::ustring current_server;
 
         // preferences data
         Glib::ustring _callsign;

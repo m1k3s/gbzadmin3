@@ -52,6 +52,7 @@ class cmdLine : public Gtk::Entry
         void historyReset();
 
     protected:
+    	void on_icon_pressed(Gtk::EntryIconPosition icon_pos, const GdkEventButton* event);
         Glib::RefPtr<Gtk::TreeModel> create_completion_model();
 
         struct cmdColumn : public Gtk::TreeModel::ColumnRecord {

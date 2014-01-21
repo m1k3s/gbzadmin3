@@ -49,6 +49,9 @@ void cmdLine::init(Glib::RefPtr <Gtk::Builder> _refBuilder)
     history.clear();
     hist_it = history.begin();
     hist_reset = true;
+    
+    // add an icon pressed callback
+    command->signal_icon_press().connect(sigc::mem_fun(*this, &cmdLine::on_icon_pressed));
 
     // default message targets
     // players will be added as they join
@@ -60,6 +63,14 @@ void cmdLine::init(Glib::RefPtr <Gtk::Builder> _refBuilder)
     _targets.set_has_tooltip();
     _targets.set_active(0);
     _targets.show();
+}
+
+// TODO: not sure what this is for yet, cool but is it necessary
+void cmdLine::on_icon_pressed(Gtk::EntryIconPosition icon_pos, const GdkEventButton* event)
+{
+	// get the active text
+//	Glib::ustring cmd = command.get_entry_text();
+	clear();
 }
 
 void cmdLine::grab_focus()
