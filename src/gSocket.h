@@ -149,7 +149,7 @@ class gSocket : public sigc::trackable
         int sockfd;
         Parser parser;
         gListServer listServer;
-
+        
         struct addrinfo server_info;
         bool netStats;
         float prev_flow;

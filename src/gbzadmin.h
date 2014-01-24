@@ -30,7 +30,12 @@
 #include <sys/types.h>
 #include <sys/utsname.h>
 #include <cstdio>
-#include <map>
+
+#if defined(__GXX_EXPERIMENTAL_CXX0X__) || __cplusplus >= 201103L
+	#include <unordered_map>
+#else
+	#include <map>
+#endif
 
 #include "config.h"
 #include "utilities.h"
@@ -257,7 +262,11 @@ class gbzadmin : public Gtk::Window
 
         // message handler function map
         typedef void (gbzadmin::*messagehandler)(void*);
-        typedef std::map<guint16, messagehandler> msg_handler_map;
+        #if defined(__GXX_EXPERIMENTAL_CXX0X__) || __cplusplus >= 201103L
+        	typedef std::unordered_map<guint16, messagehandler> msg_handler_map;
+        #else
+        	typedef std::map<guint16, messagehandler> msg_handler_map;
+        #endif
         msg_handler_map handler_map;
 
         // need to have a flag list in order to
@@ -287,6 +296,7 @@ class gbzadmin : public Gtk::Window
         bool connect_at_startup;
         bool line_numbers;
         bool small_toolbar;
+        bool display_wd_time;
 
         sigc::connection conn_timer;
         sigc::connection wd_timer;

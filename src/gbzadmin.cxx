@@ -292,6 +292,10 @@ void gbzadmin::connect_dialog_setup()
 {
     refBuilder->get_widget("connect_dialog", connect_dialog);
     if (connect_dialog) {
+    	Gtk::Button *button;
+    	refBuilder->get_widget("cancelbutton3", button);
+    	button->set_sensitive();
+    	
         Gtk::Entry *w_callsign, *w_password, *w_motto;
         refBuilder->get_widget("callsign_entry", w_callsign);
         refBuilder->get_widget("password_entry", w_password);
@@ -323,6 +327,9 @@ void gbzadmin::on_connect_dialog_response(gint response_id)
     Gtk::Entry *w_callsign, *w_password, *w_motto;
 
     if (response_id == Gtk::RESPONSE_OK) {
+    	Gtk::Button *button;
+    	refBuilder->get_widget("cancelbutton3", button);
+    	button->set_sensitive(false);
         refBuilder->get_widget("callsign_entry", w_callsign);
         refBuilder->get_widget("password_entry", w_password);
         refBuilder->get_widget("motto_entry", w_motto);
@@ -398,6 +405,9 @@ void gbzadmin::pref_dialog_setup()
         }
         refBuilder->get_widget("net_stats", check);
         check->set_active(sock.netStatsEnabled());
+        
+        refBuilder->get_widget("pref_wd_time", check);
+        check->set_active(display_wd_time);
 
         Gtk::Entry *entry;
         refBuilder->get_widget("pref_callsign_entry", entry);
@@ -411,8 +421,6 @@ void gbzadmin::pref_dialog_setup()
         refBuilder->get_widget("pref_motto_entry", entry);
         entry->set_text(_motto);
         
-        
-
         dlg->show();
     }
 }
@@ -429,45 +437,39 @@ void gbzadmin::on_pref_dialog_response(gint response_id)
         }
 
         refBuilder->get_widget("pref_auto_cmd", w);
-        checked = w->get_active();
-        auto_cmd = checked;
+        auto_cmd = w->get_active();
         
         refBuilder->get_widget("pref_small_toolbar", w);
-        checked = w->get_active();
-        small_toolbar = checked;
+        small_toolbar = w->get_active();
         // change the style here
         Gtk::Toolbar *toolbar;
         refBuilder->get_widget("toolbar", toolbar);
         toolbar->set_toolbar_style(small_toolbar ? Gtk::TOOLBAR_ICONS : Gtk::TOOLBAR_BOTH);
 
         refBuilder->get_widget("pref_pings", w);
-        checked = w->get_active();
-        echo_pings = checked;
+        echo_pings = w->get_active();
 
         refBuilder->get_widget("pref_save_password", w);
-        checked = w->get_active();
-        save_password = checked;
+        save_password = w->get_active();
 
         refBuilder->get_widget("connect_at_startup", w);
-        checked = w->get_active();
-        connect_at_startup = checked;
+        connect_at_startup = w->get_active();
 
         refBuilder->get_widget("net_stats", w);
-        checked = w->get_active();
-        sock.setNetStats(checked);
+        sock.setNetStats(w->get_active());
 
         refBuilder->get_widget("pref_dump_players", w);
-        checked = w->get_active();
-        dump_players = checked;
+        dump_players = w->get_active();
 
         refBuilder->get_widget("line_numbers", w);
-        checked = w->get_active();
-        line_numbers = checked;
+        line_numbers = w->get_active();
         msg_view.set_line_numbers(line_numbers);
         
         refBuilder->get_widget("debugmsgs", w);
-        checked = w->get_active();
-        debugMsgs = checked;
+        debugMsgs = w->get_active();
+        
+        refBuilder->get_widget("pref_wd_time", w);
+        display_wd_time = w->get_active();
 
         Gtk::Entry *e;
         refBuilder->get_widget("pref_callsign_entry", e);
@@ -501,6 +503,7 @@ Gtk::Window *gbzadmin::init_gbzadmin(Glib::RefPtr<Gtk::Builder> _refBuilder)
     connect_at_startup = false;
     line_numbers = false;
     debugMsgs = false;
+    display_wd_time = false;
 
     win_x = 0;
     win_y = 0;
@@ -1051,7 +1054,7 @@ void gbzadmin::save_config_file(Glib::ustring filename)
             buf = Glib::ustring::compose("callsign=%1\n", _callsign);
             os.write(buf.c_str(), buf.length());
         }
-        if (!_password.empty()) {
+        if (!_password.empty() && save_password) {
             buf = Glib::ustring::compose("password=%1\n", _password);
             os.write(buf.c_str(), buf.length());
         }
@@ -1080,8 +1083,7 @@ void gbzadmin::save_config_file(Glib::ustring filename)
             }
             it++;
         }
-        buf = Glib::ustring("\n");
-        os.write(buf.c_str(), buf.length());
+        os.write("\n", 1); // add newline to end of server mru string
         
         buf = Glib::ustring::compose("current_server=%1\n", current_server);
         os.write(buf.c_str(), buf.length());
@@ -2144,18 +2146,19 @@ bool gbzadmin::update_timer()
         hours = int(elapsed / 3600.0);
         mins = int(elapsed / 60.0) % 60;
         secs = int(elapsed) % 60;
-        ::snprintf(time_str, sizeof(time_str), "%02d:%02d:%02d", hours, mins, secs);
-        //::snprintf(time_str, sizeof(time_str), "%02d:%02d:%02d  [WD:%2d]", hours, mins, secs, wd_counter);
-
+        if (display_wd_time) {
+        	::snprintf(time_str, sizeof(time_str), "%02d:%02d:%02d  [WD:%2d]", hours, mins, secs, wd_counter);
+        } else {
+        	::snprintf(time_str, sizeof(time_str), "%02d:%02d:%02d", hours, mins, secs);
+        }
         set_status_message(StatusConnTime, time_str);
     } else {
         set_status_message(StatusConnTime, "Disconnected");
     }
 
     if (sock.netStatsEnabled()) {
-        float flow = sock.bitFlow();
         char str[64];
-        ::sprintf(str, "Flow rate: %5.2fkbps", flow);
+        ::sprintf(str, "Flow rate: %5.2fkbps", sock.bitFlow());
         set_status_message(StatusNetStats, str);
     } else {
         set_status_message(StatusNetStats, "");

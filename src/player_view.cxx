@@ -23,9 +23,17 @@
 #include "player_view.h"
 
 // score compare function to sort the player list
-bool score_cmp(Player * a, Player * b)
+// if scores are equal use the player id to sort
+bool score_cmp(Player *a, Player *b)
 {
-    return (a->get_score() > b->get_score());
+	bool result;
+	if (a->get_score() == b->get_score()) {
+		result = (a->get_id() < b->get_id());
+	} else {
+		result = (a->get_score() > b->get_score());
+	}
+	
+    return result;
 }
 
 playerView::playerView()
@@ -41,7 +49,7 @@ void playerView::init(Glib::RefPtr < Gtk::Builder > _refBuilder)
 }
 
 // add a player to the view
-void playerView::add(Player * player)
+void playerView::add(Player *player)
 {
     guint16 team = player->get_team();
     if (team == ObserverTeam) {
@@ -52,7 +60,7 @@ void playerView::add(Player * player)
 }
 
 // remove a player from the view
-void playerView::remove(Player * player)
+void playerView::remove(Player *player)
 {
     std::vector < Player * >::iterator it;
 
@@ -60,7 +68,7 @@ void playerView::remove(Player * player)
     if (team == ObserverTeam) {
         it = observers.begin();
         while (it != observers.end()) {
-            if ((*it)->get_callsign() == player->get_callsign()) {
+            if ((*it)->get_id() == player->get_id()) {
                 observers.erase(it);
                 break;
             }
@@ -69,7 +77,7 @@ void playerView::remove(Player * player)
     } else {
         it = players.begin();
         while (it != players.end()) {
-            if ((*it)->get_callsign() == player->get_callsign()) {
+            if ((*it)->get_id() == player->get_id()) {
                 players.erase(it);
                 break;
             }
@@ -142,32 +150,12 @@ Player *playerView::find_player(Glib::ustring callsign)
 
 Glib::ustring playerView::get_IP(Glib::ustring callsign)
 {
-    std::vector < Player * >::iterator it;
-    bool found = false;
-    Glib::ustring ip;
-
-    // search the players first
-    it = players.begin();
-    while (it != players.end()) {
-        if ((*it)->get_callsign() == callsign) {
-            found = true;
-            ip = (*it)->get_IP();
-            break;
-        }
-        it++;
-    }
-    // if we didn't find the player, must be an observer
-    if (!found) {
-        it = observers.begin();
-        while (it != observers.end()) {
-            if ((*it)->get_callsign() == callsign) {
-                found = true;
-                ip = (*it)->get_IP();
-                break;
-            }
-            it++;
-        }
-    }
+    std::vector <Player *>::iterator it;
+    Glib::ustring ip("");
+    
+    Player* p = find_player(callsign);
+    ip = p != NULL ? p->get_IP() : ip;
+    
     return ip;
 }
 
@@ -180,7 +168,6 @@ void playerView::update()
 
     // clear the text_view
     clear();
-
     // sort the players in descending order by score
     sort(players.begin(), players.end(), score_cmp);
     for (it = players.begin(); it != players.end(); it++) {
@@ -445,3 +432,4 @@ void playerView::clear_players()
     players.clear();
     observers.clear();
 }
+
