@@ -27,10 +27,12 @@
 bool score_cmp(Player *a, Player *b)
 {
 	bool result;
-	if (a->get_score() == b->get_score()) {
+	gint16 a_score = a->get_score();
+	gint16 b_score = b->get_score();
+	if (a_score == b_score) {
 		result = (a->get_id() < b->get_id());
 	} else {
-		result = (a->get_score() > b->get_score());
+		result = (a_score > b_score);
 	}
 	
     return result;
@@ -42,7 +44,7 @@ playerView::playerView()
 
 }
 
-void playerView::init(Glib::RefPtr < Gtk::Builder > _refBuilder)
+void playerView::init(Glib::RefPtr <Gtk::Builder> _refBuilder)
 {
     view::init(_refBuilder, "player_view");
     set_scroll(false);
@@ -62,7 +64,7 @@ void playerView::add(Player *player)
 // remove a player from the view
 void playerView::remove(Player *player)
 {
-    std::vector < Player * >::iterator it;
+    std::vector <Player *>::iterator it;
 
     guint16 team = player->get_team();
     if (team == ObserverTeam) {
@@ -89,7 +91,7 @@ void playerView::remove(Player *player)
 Player *playerView::find_player(int id)
 {
     Player *p = 0;
-    std::vector < Player * >::iterator it;
+    std::vector <Player *>::iterator it;
     bool found = false;
 
     // search the players first
@@ -107,7 +109,7 @@ Player *playerView::find_player(int id)
         it = observers.begin();
         while (it != observers.end()) {
             if ((*it)->get_id() == id) {
-                found = true;
+//                found = true;
                 p = (*it);
                 break;
             }
@@ -120,7 +122,7 @@ Player *playerView::find_player(int id)
 Player *playerView::find_player(Glib::ustring callsign)
 {
     Player *p = 0;
-    std::vector < Player * >::iterator it;
+    std::vector <Player *>::iterator it;
     bool found = false;
 
     // search the players first
@@ -138,7 +140,7 @@ Player *playerView::find_player(Glib::ustring callsign)
         it = observers.begin();
         while (it != observers.end()) {
             if ((*it)->get_callsign() == callsign) {
-                found = true;
+//                found = true;
                 p = (*it);
                 break;
             }
@@ -164,12 +166,12 @@ void playerView::update()
 {
     Glib::ustring tanks;
     Glib::ustring obs;
-    std::vector < Player * >::iterator it;
+    std::vector <Player *>::iterator it;
 
     // clear the text_view
     clear();
     // sort the players in descending order by score
-    sort(players.begin(), players.end(), score_cmp);
+    std::sort(players.begin(), players.end(), score_cmp);
     for (it = players.begin(); it != players.end(); it++) {
         tanks = format_player(*it);
         add_text(tanks);
@@ -396,7 +398,7 @@ Glib::ustring playerView::get_team_flag_desc(Glib::ustring abbrv)
 
 void playerView::change_all_to_hunter_except(guint8 id)
 {
-    std::vector < Player * >::iterator it;
+    std::vector <Player *>::iterator it;
 
     it = players.begin();
     while (it != players.end()) {

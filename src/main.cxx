@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
     Gtk::Main admin(argc, argv);
     Glib::ustring glade_file;
 
-    // find the glade file. If the program is launched from the devel
+    // find the glade file. If the program is launched from the dev
     // directory, use the local glade file. Otherwise if the program
     // is launched with an absolute path, use the glade file from
     // the PACKAGE_DATA_DIR / PACKAGE path.

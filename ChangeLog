@@ -1,7 +1,230 @@
-Changed to Gtk::Builder from LibGlade - 04.25.2009
-modifed to work with upcoming version 3.0 - 07.14.2009
-add tcp bits per second flow rate indicator to statusbar - 07.17.2009
-added per view font support - 07.18.2009
-added gconf support - 07.18.2009
-added reverse resolution command - 07.22.2009
-added command line history - 07-22-2009
+commit 6f731d86f4859a5ce2ea2f8687dd1c2480d8cf7d
+Author: m1k3s <pbrane0@gmail.com>
+Date:   Fri Jan 24 17:38:54 2014 -0500
+
+    changed playerView::get_IP to use already existing
+    playerView::find_player. changed playerView sort function; if the
+    scores are equal use the player id instead. This prevents equal
+    score lines from jumping around.
+
+commit 2a87a625bb8ec129c057adbba2c0914e05fa0822
+Author: m1k3s <pbrane0@gmail.com>
+Date:   Mon Jan 20 19:32:40 2014 -0500
+
+    connection dialog now remembers the last server you connected to.
+
+commit c5b29a234df0a20002f92227339186d02531d86b
+Author: m1k3s <pbrane0@gmail.com>
+Date:   Sun Jan 19 13:51:46 2014 -0500
+
+    added an icon to the connect dialog server entry that when clicked
+    will delete that entry. Needed a way to remove entries from the
+    server MRU list.
+
+commit 42071197e2eeb60f67592fcf9a75c36a75c5438b
+Author: m1k3s <pbrane0@gmail.com>
+Date:   Sun Jan 19 11:44:04 2014 -0500
+
+    added a timeout of 10 seconds to the connection phase.
+
+commit 83b4cd0a8dc5962811349aa1d3edc3623bb6c535
+Author: m1k3s <pbrane0@gmail.com>
+Date:   Sat Jan 18 20:16:16 2014 -0500
+
+    more work on the network code.
+
+commit 8f969654d647c8ff35d9d6885bcb812097669e9f
+Author: m1k3s <pbrane0@gmail.com>
+Date:   Sat Jan 18 16:13:32 2014 -0500
+
+    update network code (gSocket) to remove any deprecated functions. Also
+    use getaddrinfo to it's full potential. These changes should help
+    with IPV6 migration should it be needed.
+
+commit aece73ccc15b05b835b58d7596037f1895d0751c
+Author: m1k3s <pbrane0@gmail.com>
+Date:   Sat Jan 18 11:43:41 2014 -0500
+
+    remove UDP code and deprecated message handler code.
+
+commit f1f1f176a0c840049fc630971853baa3a581ab2e
+Author: m1k3s <pbrane0@gmail.com>
+Date:   Sat Jan 18 10:49:51 2014 -0500
+
+    Cleaned up resolve code; moved error checking to a seperate function.
+
+commit fb55be12a4a37bacf2ee26d58e9f5fc3f59fd47d
+Author: m1k3s <pbrane0@gmail.com>
+Date:   Sat Jan 18 08:55:13 2014 -0500
+
+    continue updating code to 2.4.2 bzfs version. Removed some messages
+    that are no longer present in latest bzflag/bzfs.
+
+commit 67f1312719d909ebd286c52f9392bc1c526e14a1
+Author: m1k3s <pbrane0@gmail.com>
+Date:   Sat Jan 18 08:40:00 2014 -0500
+
+    comment out all UDP code. We're not using it at all. Don't need
+    it. Also implement the toolbar style options in the prefs dialog;
+    icons with text below or just icons.
+
+commit f6c5a7de20efc380f2f885dd6f7793987e6eae17
+Author: m1k3s <pbrane0@gmail.com>
+Date:   Fri Jan 17 17:39:51 2014 -0500
+
+    removed MsgJoinServer code and supporting variables. Not used any
+    more apparently.
+
+commit 63dcb632d3d30ea654816174aea06443f76b82c9
+Author: m1k3s <pbrane0@gmail.com>
+Date:   Fri Jan 17 08:13:27 2014 -0500
+
+    updated copyright to 2014 in all source files
+
+commit 98913d075802ff99538db8f117954c2ec491a151
+Author: m1k3s <pbrane0@gmail.com>
+Date:   Fri Jan 17 08:11:22 2014 -0500
+
+    changed how getAppVersion works in utilities.cxx
+
+commit dcbc3ff782e99feb8df595682c41e128ca8aead7
+Author: m1k3s <pbrane0@gmail.com>
+Date:   Thu Jan 16 18:36:06 2014 -0500
+
+    removed some debug statements.
+
+commit 445c9ee62bb699ac5273bfbf9b1187837604471a
+Author: m1k3s <pbrane0@gmail.com>
+Date:   Thu Jan 16 18:31:30 2014 -0500
+
+    forced the UDP option to false; no need for UDP with gbzadmin and
+    it's buggy anyway.
+
+commit 2835f1465abf81f1ed7aefb8be43499ff2f460a1
+Author: m1k3s <pbrane0@gmail.com>
+Date:   Thu Jan 16 17:32:33 2014 -0500
+
+    modified prefs dialog in glade file, added motto entry, removed port
+    entry, combined server:port entry
+
+commit 5b6eef66a8527248fc23e818a1392e184d95cae6
+Author: m1k3s <pbrane0@gmail.com>
+Date:   Wed Jan 15 13:18:04 2014 -0500
+
+    Fixed a bug in the team message sending code. minor code changes in
+    the message system.
+
+commit 98296b85562691f6c64f3a871c2dd710b8e6cc4f
+Author: Michael Sheppard <pbrane0@gmail.com>
+Date:   Mon Dec 30 19:51:57 2013 -0500
+
+    added a recently visited server list to the connect dialog box. the
+    list is included in the config file.
+
+commit 0a2c07e6c376ed1cbb7ab5724681d823f090520b
+Author: Michael Sheppard <pbrane0@gmail.com>
+Date:   Thu Dec 26 09:03:40 2013 -0500
+
+    changed server/port handling. now server and port are entered in
+    connect dlg as a server:port string. if there is no port the default
+    port (5154) is used.
+
+commit 918380bd92fb5386c233a745ee1b0a1ccb6f8c71
+Author: Michael Sheppard <pbrane0@gmail.com>
+Date:   Tue Dec 24 21:32:26 2013 -0500
+
+    added a /mottos command to display the players mottos
+
+commit 7ca05263803a68d2ce3927f9aaf9f7acafb9eafd
+Author: Michael Sheppard <pbrane0@gmail.com>
+Date:   Tue Dec 24 13:26:56 2013 -0500
+
+    added teleport message handling. only to show that a player has
+    teleported. removed the giant switch/case from get_message.
+
+commit 55cd1ed5c5183745bd452e4db0daea23956f78ed
+Author: Michael Sheppard <pbrane0@gmail.com>
+Date:   Mon Dec 23 11:39:21 2013 -0500
+
+    changed gbzadmin::get_message to use use a function map instead of
+    switch/case statement. Aslo some minor color tweaks.
+
+commit 354ba4637a6a0981e72f4a676a198e7a454d2bdf
+Author: mike <mike@thor.(none)>
+Date:   Sat Jul 21 19:16:51 2012 -0400
+
+    removed all gconf code, added config file
+
+commit 060e7c96aee988c30044c53d3e1b212ecc894721
+Author: Michael Sheppard <mike@zeus>
+Date:   Mon Jul 2 16:10:46 2012 -0400
+
+    code cleanup and removed un-used images
+
+commit b4705514d73cdef7354e965ee97e4e2aa5ebc6d5
+Author: Michael Sheppard <mike@zeus>
+Date:   Mon Jul 2 15:53:48 2012 -0400
+
+    more code cleanup
+
+commit 287457fb2e6844c341299cfaf03468cd086bc3ff
+Author: Michael Sheppard <mike@zeus>
+Date:   Mon Jul 2 11:19:08 2012 -0400
+
+    code cleanup
+
+commit 427cfb6dcecb8849d9eed4ede8178b12c988f298
+Author: Michael Sheppard <mike@zeus>
+Date:   Mon Jul 2 11:15:07 2012 -0400
+
+    fix default server variable code
+
+commit 5853d255dc8e2283fc492451e73b19a7a94b5cbd
+Author: Michael Sheppard <mike@zeus>
+Date:   Sun Jul 1 15:48:07 2012 -0400
+
+    more bug fixes and code cleanup
+
+commit ed99d28fe353345722056ca0dc1750cb5a7fc8ab
+Author: Michael Sheppard <mike@zeus>
+Date:   Sun Jul 1 13:26:41 2012 -0400
+
+    fixed line numbering bug
+
+commit e00819d089d08584f6650a50e7f3cf3dde080bbd
+Author: Michael Sheppard <mike@zeus>
+Date:   Sun Jul 1 12:55:53 2012 -0400
+
+    line numbering option is now operational
+
+commit 7f8f8bb671d38b642d363ce4bc7eca15b20a1bf0
+Author: Michael Sheppard <mike@zeus>
+Date:   Sun Jul 1 12:32:21 2012 -0400
+
+    Fixed the view classes gconf code and added line number option
+    for the message view class, not finished yet. Does not update line
+    numbers yet.
+
+commit 5dcd88e7a58c4ca2be32c534556884bf90bb03b8
+Author: Michael Sheppard <mike@zeus>
+Date:   Sat Jun 30 19:28:55 2012 -0400
+
+    updated copyright, some code cleanup
+
+commit 6b9cf1244ad3d52da921cd29db6088ab4ed11e8c
+Author: Michael Sheppard <mike@zeus>
+Date:   Sat Jun 30 13:21:25 2012 -0400
+
+    fixed message filter show/hide
+
+commit d89d30d81d4eae48be7fbbe5c87925d79a8eff20
+Author: Michael Sheppard <mike@zeus>
+Date:   Sat Jun 30 11:06:41 2012 -0400
+
+    changed copyright date
+
+commit 15670d84666ba7c077fcfa20730bab3a15695daf
+Author: Michael Sheppard <mike@zeus>
+Date:   Sat Jun 30 10:51:24 2012 -0400
+
+    Initial commit

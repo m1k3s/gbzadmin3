@@ -220,7 +220,7 @@ bool gSocket::join(Glib::ustring callsign, Glib::ustring password, Glib::ustring
     Glib::ustring reason;
     Glib::ustring token("");
 
-    // sockfd the list server to get a token
+    // query the list server to get a token
     listServer.queryListServer(callsign, password, token);
     // request to enter the game -- sending callsign and token
     sendEnter(TankPlayer, ObserverTeam, callsign, motto, token);
@@ -280,7 +280,7 @@ int gSocket::send(guint16 code, guint16 len,	const void* msg)
     }
     char msgbuf[MaxPacketLen];
     void* buf = msgbuf;
-    ssize_t sent = 0, usent = 0;
+    ssize_t sent = 0;
 
     buf = parser.nboPackUShort(buf, len);
     buf = parser.nboPackUShort(buf, code);
@@ -291,7 +291,6 @@ int gSocket::send(guint16 code, guint16 len,	const void* msg)
     sent = ::send(sockfd, (const char*)msgbuf, len + 4, 0);
     if (netStats) {
         bytesSent += sent;
-        bytesSent += usent;
         packetsSent++;
     }
     return sent;
@@ -306,28 +305,18 @@ int gSocket::read(uint16_t& code, uint16_t& len, void* msg, int blockTime)
         return -1;
     }
 
-    /////////////////////////////////////////////////////////////////////
-    // In this version the Gtkmm framework is emitting a signal when the
-    // socket has pending data to be read. We know there is data when
-    // we get here. No need to check to see if that is true. Just read
-    // the data.
-    /////////////////////////////////////////////////////////////////////
-
-    // block for specified period. default is no blocking (polling)
-
-    // only check server
+    // wait for data
     int nfound = select(sockfd, blockTime);
 
-    if (nfound == 0) {
+    if (nfound == 0) { // timed out or no data
         return 0;
     }
-    if (nfound < 0) {
+    if (nfound < 0) { // an error occurred
         return -1;
     }
 
     // get packet header
     char headerBuffer[4];
-
     int rlen = 0;
     rlen = ::recv(sockfd, (char*)headerBuffer, 4, 0);
 
@@ -421,7 +410,6 @@ void gSocket::sendEnter(unsigned char type, unsigned int team, Glib::ustring cal
 
 bool gSocket::readEnter (Glib::ustring& reason, uint16_t& code, uint16_t& rejcode)
 {
-    // wait for response
     guint16 len;
     char msg[MaxPacketLen];
 
