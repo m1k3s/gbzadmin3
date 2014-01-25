@@ -147,7 +147,7 @@ class gbzadmin : public Gtk::Window
         void populate_player_combo();
         void enable_admin_items(bool set);
         void enable_connected_items(bool set);
-        void clean_up(bool);
+        void clean_up(bool clear_msg_view=true);
         void power_down();
         void process_command();
         gint get_message();

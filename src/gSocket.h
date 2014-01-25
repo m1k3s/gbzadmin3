@@ -83,6 +83,9 @@ class gSocket : public sigc::trackable
         void sendLagPing(char pingRequest[2]);
         void sendExit();
         Glib::ustring reverseResolve(Glib::ustring ip, Glib::ustring callsign);
+        void preFetchToken(Glib::ustring callsign, Glib::ustring password);
+        void set_prefetch(bool set) { prefetch_token = set; }
+        bool get_prefetch() { return prefetch_token; }
 
         State getState() const;
         const unsigned char& getId() const;
@@ -156,6 +159,9 @@ class gSocket : public sigc::trackable
 
         unsigned char id;
         Glib::ustring version;
+        
+        Glib::ustring token;
+        bool prefetch_token;
 
         Glib::ustring rejectionMessage;
         Glib::ustring serverName;

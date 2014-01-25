@@ -160,7 +160,7 @@ void gbzadmin::logoff()
     } else {
         return;
     }
-    clean_up(true);
+    clean_up();
 }
 
 void gbzadmin::clean_up(bool clear_msg_view)
@@ -191,6 +191,11 @@ void gbzadmin::clean_up(bool clear_msg_view)
 
     // disable the connected-only items
     enable_connected_items(false);
+    
+    // need to prefetch the login token again
+    if (sock.get_prefetch()) {
+    	sock.preFetchToken(_callsign, _password);
+    }
 }
 
 void gbzadmin::on_save_activate()
@@ -575,6 +580,11 @@ Gtk::Window *gbzadmin::init_gbzadmin(Glib::RefPtr<Gtk::Builder> _refBuilder)
     }
     // disable the connected-only items
     enable_connected_items(false);
+    
+    // prefetch the login token
+    if (sock.get_prefetch()) {
+    	sock.preFetchToken(_callsign, _password);
+    }
 
     if (connect_at_startup) {
         logon();
@@ -995,6 +1005,8 @@ void gbzadmin::parse_config_file(Glib::ustring filename)
                 server_mru_str = parse_server_mru(str, ";", maxServersList);
             } else if (g_ascii_strcasecmp(variable, "current_server") == 0) {
 				current_server = value;
+            } else if (g_ascii_strcasecmp(variable, "prefetch") == 0) {
+            	sock.set_prefetch(atoi(value) ? true : false);
             } else if (g_ascii_strcasecmp(variable, "msg_new_rabbit") == 0) {
                 msg_mask["rabbit"] = atoi(value) ? true : false;
             } else if (g_ascii_strcasecmp(variable, "msg_pause") == 0) {
@@ -1086,6 +1098,9 @@ void gbzadmin::save_config_file(Glib::ustring filename)
         os.write("\n", 1); // add newline to end of server mru string
         
         buf = Glib::ustring::compose("current_server=%1\n", current_server);
+        os.write(buf.c_str(), buf.length());
+        
+        buf = Glib::ustring::compose("prefetch=%1\n", sock.get_prefetch());
         os.write(buf.c_str(), buf.length());
 
         buf = Glib::ustring::compose("window_x=%1\n", win_x);
@@ -2425,6 +2440,7 @@ void gbzadmin::on_query_listserver_activate()
     } else {
         query_listServer();
     }
+    on_server_list_window_activate();
 }
 
 void gbzadmin::on_query_listserver_clicked()
@@ -2435,6 +2451,7 @@ void gbzadmin::on_query_listserver_clicked()
     } else {
         query_listServer();
     }
+    on_server_list_window_activate();
 }
 
 void gbzadmin::query_listServer()

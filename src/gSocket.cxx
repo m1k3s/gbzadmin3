@@ -26,11 +26,19 @@ gSocket::gSocket()
     :	state(SocketError), sockfd(-1), netStats(true)
 {
     prev_flow = 0.0;
+    prefetch_token = false;
+    token = "";
 }
 
 gSocket::~gSocket()
 {
     disconnect();
+}
+
+void gSocket::preFetchToken(Glib::ustring callsign, Glib::ustring password)
+{
+	token = ""; // clear the token
+	listServer.queryListServer(callsign, password, token);
 }
 
 void gSocket::disconnect()
@@ -218,10 +226,13 @@ bool gSocket::join(Glib::ustring callsign, Glib::ustring password, Glib::ustring
 {
     uint16_t code, rejCode;
     Glib::ustring reason;
-    Glib::ustring token("");
+//    Glib::ustring token("");
 
     // query the list server to get a token
-    listServer.queryListServer(callsign, password, token);
+    if (!prefetch_token) {
+    	token = "";
+    	listServer.queryListServer(callsign, password, token);
+    }
     // request to enter the game -- sending callsign and token
     sendEnter(TankPlayer, ObserverTeam, callsign, motto, token);
 
