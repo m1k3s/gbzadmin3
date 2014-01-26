@@ -54,6 +54,7 @@ class gListServer
         }
 
     protected:
+    	bool validateIP(gchar* address);
 
     private:
         Parser parser;

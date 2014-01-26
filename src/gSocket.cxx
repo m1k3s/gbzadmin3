@@ -21,6 +21,8 @@
 //  =====================================================================
 #include "gSocket.h"
 
+const char* const BZ_Connect_Header = "BZFLAG\r\n\r\n";
+const char* const BanRefusalString = "REFUSED:";
 
 gSocket::gSocket()
     :	state(SocketError), sockfd(-1), netStats(true)
@@ -64,7 +66,6 @@ bool gSocket::connect(Glib::ustring host, int p)
 
     serverName = host;
     port = p;
-    const char* const BanRefusalString = "REFUSED:";
 
     // initialize version string
 	version = "BZFS0000";
@@ -78,37 +79,66 @@ bool gSocket::connect(Glib::ustring host, int p)
 	// get the server IP string
 	serverIP = get_ip_str(&server_info);
 
-    // create a socket connection to server
-    int sock_type = server_info.ai_socktype;// | SOCK_NONBLOCK;
+    // create a non blocking socket connection to server
+    int sock_type = server_info.ai_socktype | SOCK_NONBLOCK;
     if ((sockfd = ::socket(server_info.ai_family, sock_type, server_info.ai_protocol)) == -1) {
         return false;
     }
-    
-    // try to connect
-	if (::connect(sockfd, server_info.ai_addr, server_info.ai_addrlen) < 0) {
-        if (errno != EINPROGRESS) {
-            ::close(sockfd);
-            return false;
-        }
-        if (!select(sockfd)) {
-            ::close(sockfd);
-            return false;
-        }
-        // check for connection errors
-        int connectError;
-        socklen_t errorLen = sizeof(int);
-        if (::getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &connectError, &errorLen) < 0) {
-            ::close(sockfd);
-            return false;
-        }
-        if (connectError) {
-            ::close(sockfd);
-            return false;
-        }
+    if (::connect(sockfd, server_info.ai_addr, server_info.ai_addrlen) < 0) {
+    	if (errno == EINPROGRESS) {
+    		do {
+				int result = select_write(sockfd, 10); // wait 10 seconds
+				if (result < 0 && errno != EINTR) {
+					::close(sockfd);
+					return false;
+				} else if (result > 0) {
+					int connectError;
+					socklen_t errorLen = sizeof(int);
+					if (::getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &connectError, &errorLen) < 0) {
+						::close(sockfd);
+						return false;
+					}
+					if (connectError) {
+						::close(sockfd);
+						return false;
+					}
+					break;
+				}
+			} while (true);
+    	} else {
+    		::close(sockfd);
+    		return false;
+    	}
     }
     
+    // return to a blocking state
+    setBlocking(sockfd);
+    
+    // try to connect
+//	if (::connect(sockfd, server_info.ai_addr, server_info.ai_addrlen) < 0) {
+//        if (errno != EINPROGRESS) {
+//            ::close(sockfd);
+//            return false;
+//        }
+//        if (!select(sockfd)) {
+//            ::close(sockfd);
+//            return false;
+//        }
+//        // check for connection errors
+//        int connectError;
+//        socklen_t errorLen = sizeof(int);
+//        if (::getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &connectError, &errorLen) < 0) {
+//            ::close(sockfd);
+//            return false;
+//        }
+//        if (connectError) {
+//            ::close(sockfd);
+//            return false;
+//        }
+//    }
+    
     // send the bzflag connection header
-    ::send(sockfd, BZ_CONNECT_HEADER, (int)strlen(BZ_CONNECT_HEADER), 0);
+    ::send(sockfd, BZ_Connect_Header, (int)strlen(BZ_Connect_Header), 0);
 
     bool got_version = false;
     int loopCount = 0;
@@ -282,6 +312,18 @@ int gSocket::select(int _sockfd, int blockTime)
     timeout.tv_sec = blockTime / 1000;
     timeout.tv_usec = blockTime - 1000 * timeout.tv_sec;
     return ::select(_sockfd + 1, (fd_set*)&set, NULL, NULL, (struct timeval*)(blockTime >= 0 ? &timeout : NULL));
+}
+
+int gSocket::select_write(int _sockfd, int blockTime)
+{
+    fd_set set;
+    struct timeval timeout;
+
+    FD_ZERO(&set);
+    FD_SET((unsigned int)_sockfd, &set);
+    timeout.tv_sec = (long)blockTime;
+    timeout.tv_usec = 0;
+    return ::select(_sockfd + 1, NULL, (fd_set*)&set, NULL, (struct timeval*)(blockTime >= 0 ? &timeout : NULL));
 }
 
 int gSocket::send(guint16 code, guint16 len,	const void* msg)

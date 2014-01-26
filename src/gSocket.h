@@ -56,8 +56,6 @@
 #include "parser.h"
 #include "gListServer.h"
 
-#define BZ_CONNECT_HEADER	"BZFLAG\r\n\r\n"
-
 
 class gSocket : public sigc::trackable
 {
@@ -143,6 +141,7 @@ class gSocket : public sigc::trackable
         void setTcpNoDelay(int fd);
         bool select(int _fd);
         int select(int _fd, int blockTime);
+        int select_write(int _fd, int blockTime);
         int check_status(int status_code);
         Glib::ustring get_ip_str(const struct addrinfo *ai);
         void* get_in_addr(struct sockaddr *sa);

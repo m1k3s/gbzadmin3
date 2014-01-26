@@ -311,8 +311,7 @@ void gListServer::parseServerList(std::vector<serverInfo*>& si_array)
             *scan2 = 0;
         }
         // check info
-        if ((g_ascii_strcasecmp(cversion, ServerVersion) == 0) &&
-                strlen(infoServer) == PingPacketHexPackedSize &&
+        if ((g_ascii_strcasecmp(cversion, ServerVersion) == 0) && strlen(infoServer) == PingPacketHexPackedSize &&
                 (port >= 1) && (port <= 65535)) {
             serverInfo *si = g_try_new0(serverInfo, 1);
             si->port = DefaultPort;
@@ -321,8 +320,9 @@ void gListServer::parseServerList(std::vector<serverInfo*>& si_array)
 
             gint dot[4] = {127, 0, 0, 1};
             if (sscanf(address, "%d.%d.%d.%d", dot + 0, dot + 1, dot + 2, dot + 3) == 4) {
-                if (dot[0] >= 0 && dot[0] <= 255 && dot[1] >= 0 && dot[1] <= 255 &&
-                        dot[2] >= 0 && dot[2] <= 255 && dot[3] >= 0 && dot[3] <= 255) {
+            	if (validateIP(address)) {
+//                if (dot[0] >= 0 && dot[0] <= 255 && dot[1] >= 0 && dot[1] <= 255 &&
+//                        dot[2] >= 0 && dot[2] <= 255 && dot[3] >= 0 && dot[3] <= 255) {
                     struct in_addr addr;
                     guchar* paddr = (guchar*)&addr.s_addr;
                     paddr[0] = (guchar)dot[0];
@@ -356,5 +356,12 @@ void gListServer::parseServerList(std::vector<serverInfo*>& si_array)
     // remove parsed replies
     curlDataLen -= (int)(base - (char *)curlData);
     ::memmove(curlData, base, curlDataLen);
+}
+
+bool gListServer::validateIP(gchar* address)
+{
+	struct sockaddr_in sa;
+	int result = inet_pton(AF_INET, address, &(sa.sin_addr));
+	return result != 0;
 }
 

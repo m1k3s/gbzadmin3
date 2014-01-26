@@ -1,3 +1,13 @@
+commit 0d5aab35bf7454929b0ed7b94665ea76d3d5ea9c
+Author: m1k3s <pbrane0@gmail.com>
+Date:   Sat Jan 25 14:13:14 2014 -0500
+
+    Experimenting with prefetching the login token. Currently can be
+    enabled in the
+    config file. Now when you query the list server the list server
+    window is
+    activated.
+
 commit 11c61093d2ffbe6252098f3e6a6915a55a143cd6
 Author: m1k3s <pbrane0@gmail.com>
 Date:   Sat Jan 25 10:34:10 2014 -0500
