@@ -1,3 +1,12 @@
+commit 9e62e708d687fdd7b6edfeaa4cce1bf6a271d9fc
+Author: m1k3s <pbrane0@gmail.com>
+Date:   Sun Jan 26 10:38:02 2014 -0500
+
+    changed gSocket::connect to use a nonblocking sock for
+    initial connect. Has the benefit of a timeout. Also added
+    gListServer::validateIP to use instead of the test for dot[x] < 0 &&
+    dot[x] > 255 in an if statement in gListServer::parseServerList.
+
 commit 0d5aab35bf7454929b0ed7b94665ea76d3d5ea9c
 Author: m1k3s <pbrane0@gmail.com>
 Date:   Sat Jan 25 14:13:14 2014 -0500

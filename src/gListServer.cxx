@@ -321,8 +321,6 @@ void gListServer::parseServerList(std::vector<serverInfo*>& si_array)
             gint dot[4] = {127, 0, 0, 1};
             if (sscanf(address, "%d.%d.%d.%d", dot + 0, dot + 1, dot + 2, dot + 3) == 4) {
             	if (validateIP(address)) {
-//                if (dot[0] >= 0 && dot[0] <= 255 && dot[1] >= 0 && dot[1] <= 255 &&
-//                        dot[2] >= 0 && dot[2] <= 255 && dot[3] >= 0 && dot[3] <= 255) {
                     struct in_addr addr;
                     guchar* paddr = (guchar*)&addr.s_addr;
                     paddr[0] = (guchar)dot[0];

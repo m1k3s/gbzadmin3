@@ -119,7 +119,8 @@ class gbzadmin : public Gtk::Window
         void on_server_combo_changed();
 
         // signal callback function
-        void on_read_data();
+//        void on_read_data();
+        bool on_read_data(Glib::IOCondition io_condition);
 
         // member functions
         void query_listServer();
@@ -167,6 +168,7 @@ class gbzadmin : public Gtk::Window
         void server_mru_delete(Glib::ustring line);
         void server_mru_populate();
         Glib::ustring server_mru_find(Glib::ustring find);
+        void check_errors(int result);
 
         // timer functions
         bool update_timer();

@@ -1007,6 +1007,8 @@ void gbzadmin::parse_config_file(Glib::ustring filename)
 				current_server = value;
             } else if (g_ascii_strcasecmp(variable, "prefetch") == 0) {
             	sock.set_prefetch(atoi(value) ? true : false);
+            } else if (g_ascii_strcasecmp(variable, "blocking") == 0) {
+            	sock.set_blocking(atoi(value) ? true : false);
             } else if (g_ascii_strcasecmp(variable, "msg_new_rabbit") == 0) {
                 msg_mask["rabbit"] = atoi(value) ? true : false;
             } else if (g_ascii_strcasecmp(variable, "msg_pause") == 0) {
@@ -1101,6 +1103,9 @@ void gbzadmin::save_config_file(Glib::ustring filename)
         os.write(buf.c_str(), buf.length());
         
         buf = Glib::ustring::compose("prefetch=%1\n", sock.get_prefetch());
+        os.write(buf.c_str(), buf.length());
+        
+        buf = Glib::ustring::compose("blocking=%1\n", sock.get_blocking());
         os.write(buf.c_str(), buf.length());
 
         buf = Glib::ustring::compose("window_x=%1\n", win_x);
@@ -1542,7 +1547,6 @@ void gbzadmin::handle_killed_message(void *vbuf)
         victimName = (player ? player->get_callsign() : "<unknown victim>");
 
         Glib::ustring str(msg_view.Color(YellowFg));
-//		str += "*** " + msg_view.Color(WhiteFg) + victimName + " ";
         str += msg_view.colorBullet() + colorize(player) + victimName + " " + defColor;
 
         Glib::ustring killer_str;
@@ -1974,47 +1978,24 @@ Glib::ustring gbzadmin::colorize(Player *player)
 // Pending data signal handler - an alternative to the idle loop
 // message processing. This one uses signals. This
 // handler will get called by the TCP signal.
-void gbzadmin::on_read_data()
+bool gbzadmin::on_read_data(Glib::IOCondition io_condition)
+//void gbzadmin::on_read_data()
 {
-    gint what = get_message();
-
-    Glib::ustring error(msg_view.Color(RedFg));
-    time_t now;
-    now = time(0);
-    struct tm *ts = localtime(&now);
-    char time_str[128];
-
-    switch (what) {
-        case Superkilled:
-            error += "--- ERROR: Server forced disconnect " + msg_view.Color(YellowFg) + "(Superkilled)\n";
-            msg_view.add_text(error);
-            app->set_title(windowTitle);
-            sock.disconnect();
-            clean_up(false);
-            break;
-
-        case CommError:
-            strftime(time_str, 128, " (%T)", ts);
-
-            if (wd_counter <= 0) {
-                error += "--- ERROR: Connection to server lost " + msg_view.Color(YellowFg) + "(WatchDog)\n";
-            } else {
-                error += "--- ERROR: Connection to server lost " + msg_view.Color(YellowFg) + "(CommError)\n";
-            }
-            error += " at";
-            error += time_str;
-            error += "\n";
-
-            msg_view.add_text(error);
-            app->set_title(windowTitle);
-            sock.disconnect();
-            clean_up(false);
-            break;
-
-        default:
-            // nothing to see here folks, move along...
-            break;
-    }
+	gint result = MsgNull;
+	if (((io_condition & Glib::IO_IN) != 0) || ((io_condition & Glib::IO_PRI) != 0)) {
+	    result = get_message();
+	} else if ((io_condition & Glib::IO_ERR) != 0) {
+		return true;
+	} else if ((io_condition & Glib::IO_HUP) != 0) {
+		// connection hung up
+		return false;
+	} else if ((io_condition & Glib::IO_NVAL) != 0) {
+		// invaid fd
+		return false;
+	}
+	check_errors(result);
+    
+    return true;
 }
 
 gint gbzadmin::get_message()
@@ -2049,6 +2030,47 @@ gint gbzadmin::get_message()
     }
 
     return NoMessage;
+}
+
+void gbzadmin::check_errors(int result)
+{
+	Glib::ustring error(msg_view.Color(RedFg));
+    time_t now;
+    now = time(0);
+    struct tm *ts = localtime(&now);
+    char time_str[128];
+
+    switch (result) {
+        case Superkilled:
+            error += "--- ERROR: Server forced disconnect " + msg_view.Color(YellowFg) + "(Superkilled)\n";
+            msg_view.add_text(error);
+            app->set_title(windowTitle);
+            sock.disconnect();
+            clean_up(false);
+            break;
+
+        case CommError:
+            strftime(time_str, 128, " (%T)", ts);
+
+            if (wd_counter <= 0) {
+                error += "--- ERROR: Connection to server lost " + msg_view.Color(YellowFg) + "(WatchDog)\n";
+            } else {
+                error += "--- ERROR: Connection to server lost " + msg_view.Color(YellowFg) + "(CommError)\n";
+            }
+            error += " at";
+            error += time_str;
+            error += "\n";
+
+            msg_view.add_text(error);
+            app->set_title(windowTitle);
+            sock.disconnect();
+            clean_up(false);
+            break;
+
+        default:
+            // nothing to see here folks, move along...
+            break;
+    }
 }
 
 // diagnostic function
@@ -2195,7 +2217,7 @@ bool gbzadmin::update_watchdog()
     if ((wd_counter > 0) && connected) {
         connected = true;
     } else {
-        on_read_data();     // call this to process the watchdog timeout
+//        on_read_data();     // call this to process the watchdog timeout
         connected = false;  // this will quit the timeout
     }
     return connected;

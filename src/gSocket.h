@@ -125,16 +125,19 @@ class gSocket : public sigc::trackable
             netStats = set;
             resetNetStats();
         }
+        bool get_blocking() { return blocking; }
+        void set_blocking(bool set) { blocking = set; }
         float bitFlow();
 
         bool resolve_host(const Glib::ustring& host, const Glib::ustring& port);
 
-        sigc::signal<void> on_tcp_data_pending;
+        sigc::signal<bool, Glib::IOCondition> on_tcp_data_pending;
 
     protected:
-        void sendEnter(unsigned char type, unsigned int team, Glib::ustring callsign,
-                       Glib::ustring motto, Glib::ustring token);
+        void sendEnter(unsigned char type, unsigned int team, Glib::ustring callsign, Glib::ustring motto, Glib::ustring token);
         bool readEnter(Glib::ustring& reason, uint16_t& code, uint16_t& rejcode);
+        bool connect_blocking(int _sockfd, const struct sockaddr *addr, socklen_t addrlen);
+        bool connect_nonblocking(int _sockfd, const struct sockaddr *addr, socklen_t addrlen, int timeout);
 
         int setNonBlocking(int fd);
         int setBlocking(int fd);
@@ -145,6 +148,10 @@ class gSocket : public sigc::trackable
         int check_status(int status_code);
         Glib::ustring get_ip_str(const struct addrinfo *ai);
         void* get_in_addr(struct sockaddr *sa);
+        bool check_server_version(int _sockfd);
+        bool get_my_id(int _sockfd, unsigned char& _id);
+        bool create_connection(int& _sockfd, bool blocking);
+        int send_connection_header(int _sockfd);
 
     private:
         State state;
@@ -161,6 +168,7 @@ class gSocket : public sigc::trackable
         
         Glib::ustring token;
         bool prefetch_token;
+        bool blocking;
 
         Glib::ustring rejectionMessage;
         Glib::ustring serverName;

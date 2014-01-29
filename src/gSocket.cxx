@@ -25,11 +25,14 @@ const char* const BZ_Connect_Header = "BZFLAG\r\n\r\n";
 const char* const BanRefusalString = "REFUSED:";
 
 gSocket::gSocket()
-    :	state(SocketError), sockfd(-1), netStats(true)
 {
+	state = SocketError;
+	sockfd = -1;
+	netStats = true;
     prev_flow = 0.0;
     prefetch_token = false;
     token = "";
+    blocking = true;
 }
 
 gSocket::~gSocket()
@@ -67,9 +70,6 @@ bool gSocket::connect(Glib::ustring host, int p)
     serverName = host;
     port = p;
 
-    // initialize version string
-	version = "BZFS0000";
-
     // resolve the host name address
     if (!resolve_host(host, Glib::ustring::compose("%1", port))) {
         state = ResolveFailure;
@@ -78,135 +78,21 @@ bool gSocket::connect(Glib::ustring host, int p)
     }
 	// get the server IP string
 	serverIP = get_ip_str(&server_info);
-
-    // create a non blocking socket connection to server
-    int sock_type = server_info.ai_socktype | SOCK_NONBLOCK;
-    if ((sockfd = ::socket(server_info.ai_family, sock_type, server_info.ai_protocol)) == -1) {
-        return false;
-    }
-    if (::connect(sockfd, server_info.ai_addr, server_info.ai_addrlen) < 0) {
-    	if (errno == EINPROGRESS) {
-    		do {
-				int result = select_write(sockfd, 10); // wait 10 seconds
-				if (result < 0 && errno != EINTR) {
-					::close(sockfd);
-					return false;
-				} else if (result > 0) {
-					int connectError;
-					socklen_t errorLen = sizeof(int);
-					if (::getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &connectError, &errorLen) < 0) {
-						::close(sockfd);
-						return false;
-					}
-					if (connectError) {
-						::close(sockfd);
-						return false;
-					}
-					break;
-				}
-			} while (true);
-    	} else {
-    		::close(sockfd);
-    		return false;
-    	}
-    }
-    
-    // return to a blocking state
-    setBlocking(sockfd);
-    
-    // try to connect
-//	if (::connect(sockfd, server_info.ai_addr, server_info.ai_addrlen) < 0) {
-//        if (errno != EINPROGRESS) {
-//            ::close(sockfd);
-//            return false;
-//        }
-//        if (!select(sockfd)) {
-//            ::close(sockfd);
-//            return false;
-//        }
-//        // check for connection errors
-//        int connectError;
-//        socklen_t errorLen = sizeof(int);
-//        if (::getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &connectError, &errorLen) < 0) {
-//            ::close(sockfd);
-//            return false;
-//        }
-//        if (connectError) {
-//            ::close(sockfd);
-//            return false;
-//        }
-//    }
-    
+	
+	if (!create_connection(sockfd, true)) {
+		return false;
+	}
+	
     // send the bzflag connection header
-    ::send(sockfd, BZ_Connect_Header, (int)strlen(BZ_Connect_Header), 0);
-
-    bool got_version = false;
-    int loopCount = 0;
-    ssize_t recvd;
-    while (!got_version) {
-        loopCount++;
-        // get server version and verify
-        if (!select(sockfd)) {
-            ::close(sockfd);
-            return false;
-        }
-        recvd = ::recv(sockfd, (char*)version.c_str(), 8, 0);
-        if (recvd == 8) {
-            got_version = true;
-        } else if (loopCount > 20) {
-            ::close(sockfd);
-            return false;
-        }
-        Glib::usleep(G_USEC_PER_SEC / 4); // 1/4 second
+    send_connection_header(sockfd);
+    
+    if (!check_server_version(sockfd)) {
+    	return false;
     }
 
-//    if (recvd < 8) {
-//        close(sockfd);
-//        return false;
-//    }
-
-    if (setNonBlocking(sockfd) < 0) {
-        ::close(sockfd);
-        return false;
-    }
-
-	if (ServerVersion != version) {
-        state = BadVersion;
-		if (BanRefusalString == version) {
-            state = Refused;
-            char message[512];
-            int len = ::recv(sockfd, (char*)message, 512, 0);
-            if (len > 0) {
-                message[len - 1] = 0;
-            } else {
-                message[0] = 0;
-            }
-            rejectionMessage = message;
-        }
-        ::close(sockfd);
-        return false;
-    }
-
-    if (!select(sockfd)) {
-        ::close(sockfd);
-        return false;
-    }
-    // read local player's id
-    recvd = ::recv(sockfd, (char *) &id, sizeof(id), 0);
-    if (recvd < (int) sizeof(id)) {
-        return false;
-    }
-
-    if (id == 0xff) {
-        state = Rejected;
-        ::close(sockfd);
-        return false;
-    }
-
-    if (setBlocking(sockfd) < 0) {
-        ::close(sockfd);
-        return false;
-    }
+	if (!get_my_id(sockfd, id)) {
+		return false;
+	}
 
     // turn on TCP no delay
     setTcpNoDelay(sockfd);
@@ -217,6 +103,11 @@ bool gSocket::connect(Glib::ustring host, int p)
 
     state = Okay;
     return true;
+}
+
+int gSocket::send_connection_header(int _sockfd)
+{
+	return (::send(_sockfd, BZ_Connect_Header, (int)strlen(BZ_Connect_Header), 0));
 }
 
 bool gSocket::resolve_host(const Glib::ustring& host, const Glib::ustring& port)
@@ -252,11 +143,175 @@ bool gSocket::resolve_host(const Glib::ustring& host, const Glib::ustring& port)
     return result;
 }
 
+bool gSocket::create_connection(int& _sockfd, bool blocking)
+{
+	int sock_type = server_info.ai_socktype;
+	
+	if (!blocking) {
+    	sock_type |= SOCK_NONBLOCK;
+		if ((_sockfd = ::socket(server_info.ai_family, sock_type, server_info.ai_protocol)) == -1) {
+		    return false;
+		}
+		if (!connect_nonblocking(_sockfd, server_info.ai_addr, server_info.ai_addrlen, 10)) {
+			return false;
+		}
+	} else {
+		if ((_sockfd = ::socket(server_info.ai_family, sock_type, server_info.ai_protocol)) == -1) {
+		    return false;
+		}
+		if (!connect_blocking(_sockfd, server_info.ai_addr, server_info.ai_addrlen)) {
+			return false;
+		}
+	}
+	return true;
+}
+
+bool gSocket::check_server_version(int _sockfd)
+{
+	version = "BZFS0000";
+	bool got_version = false;
+    int loopCount = 0;
+    ssize_t recvd;
+    
+    do {
+        loopCount++;
+        if (!select(_sockfd)) {
+            ::close(_sockfd);
+            return false;
+        }
+        recvd = ::recv(_sockfd, (char*)version.c_str(), 8, 0);
+        if (recvd == 8) {
+            got_version = true;
+        } else if (loopCount > 20) {  // about 5 seconds
+            ::close(_sockfd);
+            return false;
+        }
+        Glib::usleep(G_USEC_PER_SEC / 4); // 1/4 second
+    } while (!got_version);
+    
+    // we didn't get the entire version string
+//    if (recvd < 8) {
+//    	::close(_sockfd);
+//    	return false;
+//    }
+	// go to nonblocking state, this will be reset to a
+	// blocking state in get_my_id()
+    if (setNonBlocking(_sockfd) < 0) {
+        ::close(_sockfd);
+        return false;
+    }
+
+	if (ServerVersion != version) {
+        state = BadVersion;
+		if (BanRefusalString == version) {
+            state = Refused;
+            char message[512];
+            int len = ::recv(_sockfd, (char*)message, 512, 0);
+            if (len > 0) {
+                message[len - 1] = 0;
+            } else {
+                message[0] = 0;
+            }
+            rejectionMessage = message;
+        }
+        ::close(_sockfd);
+        return false;
+    }
+    return true;
+}
+
+bool gSocket::get_my_id(int _sockfd, unsigned char& _id)
+{
+	if (!select(_sockfd)) {
+        ::close(_sockfd);
+        return false;
+    }
+    // read local player's id
+    ssize_t recvd = ::recv(_sockfd, (char *) &_id, sizeof(_id), 0);
+    if (recvd < (int) sizeof(_id)) {
+        return false;
+    }
+
+    if (_id == 0xff) {
+        state = Rejected;
+        ::close(_sockfd);
+        return false;
+    }
+
+	// go back to blocking state, nonblocking is set in check_server_version()
+    if (setBlocking(_sockfd) < 0) {
+        ::close(_sockfd);
+        return false;
+    }
+    return true;
+}
+
+bool gSocket::connect_blocking(int _sockfd, const struct sockaddr *addr, socklen_t addrlen)
+{
+	if (::connect(_sockfd, server_info.ai_addr, server_info.ai_addrlen) < 0) {
+        if (errno != EINPROGRESS) {
+            ::close(_sockfd);
+            return false;
+        }
+        if (!select(_sockfd)) {
+            ::close(_sockfd);
+            return false;
+        }
+        // check for connection errors
+        int connectError;
+        socklen_t errorLen = sizeof(int);
+        if (::getsockopt(_sockfd, SOL_SOCKET, SO_ERROR, &connectError, &errorLen) < 0) {
+            ::close(_sockfd);
+            return false;
+        }
+        if (connectError) {
+            ::close(_sockfd);
+            return false;
+        }
+    }
+    return true;
+}
+
+// the idea is to enable a timeout on the connect phase
+// the socket passed to this function needs to be nonblocking
+bool gSocket::connect_nonblocking(int _sockfd, const struct sockaddr *addr, socklen_t addrlen, int timeout)
+{
+	if (::connect(_sockfd, server_info.ai_addr, server_info.ai_addrlen) < 0) {
+    	if (errno == EINPROGRESS) {
+    		do {
+				int result = select_write(_sockfd, timeout);
+				if (result < 0 && errno != EINTR) {
+					::close(_sockfd);
+					return false;
+				} else if (result > 0) {
+					int connectError;
+					socklen_t errorLen = sizeof(int);
+					if (::getsockopt(_sockfd, SOL_SOCKET, SO_ERROR, &connectError, &errorLen) < 0) {
+						::close(_sockfd);
+						return false;
+					}
+					if (connectError) {
+						::close(_sockfd);
+						return false;
+					}
+					break;
+				}
+			} while (true);
+    	} else {
+    		::close(_sockfd);
+    		return false;
+    	}
+    }
+    // return to a blocking state
+    setBlocking(_sockfd);
+    
+    return true;
+}
+
 bool gSocket::join(Glib::ustring callsign, Glib::ustring password, Glib::ustring motto)
 {
     uint16_t code, rejCode;
     Glib::ustring reason;
-//    Glib::ustring token("");
 
     // query the list server to get a token
     if (!prefetch_token) {
@@ -270,7 +325,8 @@ bool gSocket::join(Glib::ustring callsign, Glib::ustring password, Glib::ustring
     if (readEnter(reason, code, rejCode)) {
         // we're in! connect the TCP signal
         Glib::IOCondition flags = Glib::IO_IN | Glib::IO_ERR | Glib::IO_HUP | Glib::IO_NVAL;
-        tcp_read = Glib::signal_io().connect(sigc::mem_fun(*this, &gSocket::tcp_data_pending), sockfd, flags);
+        Glib::RefPtr<Glib::IOChannel> channel = Glib::IOChannel::create_from_fd(sockfd);
+        tcp_read = Glib::signal_io().connect(sigc::mem_fun(*this, &gSocket::tcp_data_pending), channel, flags);
 
         return true;
     }
@@ -279,9 +335,9 @@ bool gSocket::join(Glib::ustring callsign, Glib::ustring password, Glib::ustring
     return false;
 }
 
-bool gSocket::tcp_data_pending(Glib::IOCondition)
+bool gSocket::tcp_data_pending(Glib::IOCondition cond)
 {
-    on_tcp_data_pending();
+    on_tcp_data_pending(cond);
     return true;
 }
 
@@ -326,7 +382,8 @@ int gSocket::select_write(int _sockfd, int blockTime)
     return ::select(_sockfd + 1, NULL, (fd_set*)&set, NULL, (struct timeval*)(blockTime >= 0 ? &timeout : NULL));
 }
 
-int gSocket::send(guint16 code, guint16 len,	const void* msg)
+// uses class member sockfd - this function is used outside the class
+int gSocket::send(guint16 code, guint16 len, const void* msg)
 {
     if (state != Okay) {
         return -1;
@@ -349,6 +406,9 @@ int gSocket::send(guint16 code, guint16 len,	const void* msg)
     return sent;
 }
 
+// uses class member sockfd - this function is used outside the class
+// no need to select in this function, the IO signal was received so we 
+// should have data available.
 int gSocket::read(uint16_t& code, uint16_t& len, void* msg, int blockTime)
 {
     code = MsgNull;
@@ -359,37 +419,37 @@ int gSocket::read(uint16_t& code, uint16_t& len, void* msg, int blockTime)
     }
 
     // wait for data
-    int nfound = select(sockfd, blockTime);
+//    int nfound = select(sockfd, blockTime);
 
-    if (nfound == 0) { // timed out or no data
-        return 0;
-    }
-    if (nfound < 0) { // an error occurred
-        return -1;
-    }
+//    if (nfound == 0) { // timed out or no data
+//        return 0;
+//    }
+//    if (nfound < 0) { // an error occurred
+//        return -1;
+//    }
 
     // get packet header
     char headerBuffer[4];
     int rlen = 0;
     rlen = ::recv(sockfd, (char*)headerBuffer, 4, 0);
 
-    int tlen = rlen;
-    while (rlen >= 1 && tlen < 4) {
-        nfound = select(sockfd, -1);
-        if (nfound == 0) {
-            continue;
-        }
-        if (nfound < 0) {
-            return -1;
-        }
-        rlen = ::recv(sockfd, (char*)headerBuffer + tlen, 4 - tlen, 0);
-        if (rlen >= 0) {
-            tlen += rlen;
-        }
-    }
-    if (tlen < 4) {
-        return -1;
-    }
+//    int tlen = rlen;
+//    while (rlen >= 1 && tlen < 4) {
+//        nfound = select(sockfd, -1);
+//        if (nfound == 0) {
+//            continue;
+//        }
+//        if (nfound < 0) {
+//            return -1;
+//        }
+//        rlen = ::recv(sockfd, (char*)headerBuffer + tlen, 4 - tlen, 0);
+//        if (rlen >= 0) {
+//            tlen += rlen;
+//        }
+//    }
+//    if (tlen < 4) {
+//        return -1;
+//    }
 
     if (netStats) {
         bytesReceived += 4;
@@ -405,40 +465,39 @@ int gSocket::read(uint16_t& code, uint16_t& len, void* msg, int blockTime)
     }
     if (len > 0) {
         rlen = ::recv(sockfd, (char*)msg, int(len), 0);
-    } else {
+    } /*else {
         rlen = 0;
-    }
-    if (rlen == int(len)) {	// got the whole message, done
-    	if (netStats) {
-		    bytesReceived += rlen;
-		}
-    } else { // keep reading until we get the whole message
-		tlen = rlen;
-		while (rlen >= 1 && tlen < int(len)) {
-		    nfound = select(sockfd, -1);
-		    if (nfound == 0) {
-		        continue;
-		    }
-		    if (nfound < 0) {
-		        return -1;
-		    }
-		    rlen = ::recv(sockfd, (char*)msg + tlen, int(len) - tlen, 0);
-		    if (rlen >= 0) {
-		        tlen += rlen;
-		    }
-		}
+    }*/
+//    if (rlen == int(len)) {	// got the whole message, done
+//    	if (netStats) {
+//		    bytesReceived += rlen;
+//		}
+//    } else { // keep reading until we get the whole message
+//		tlen = rlen;
+//		while (rlen >= 1 && tlen < int(len)) {
+//		    nfound = select(sockfd, -1);
+//		    if (nfound == 0) {
+//		        continue;
+//		    }
+//		    if (nfound < 0) {
+//		        return -1;
+//		    }
+//		    rlen = ::recv(sockfd, (char*)msg + tlen, int(len) - tlen, 0);
+//		    if (rlen >= 0) {
+//		        tlen += rlen;
+//		    }
+//		}
 		if (netStats && rlen >= 0) {
 		    bytesReceived += rlen;
 		}
-		if (tlen < int(len)) {
-		    return -1;
-		}
-    }
+//		if (tlen < int(len)) {
+//		    return -1;
+//		}
+//    }
     return 1;
 }
 
-void gSocket::sendEnter(unsigned char type, unsigned int team, Glib::ustring callsign,
-                         Glib::ustring motto, Glib::ustring token)
+void gSocket::sendEnter(unsigned char type, unsigned int team, Glib::ustring callsign, Glib::ustring motto, Glib::ustring token)
 {
     if (state != Okay) {
         return;
@@ -461,7 +520,7 @@ void gSocket::sendEnter(unsigned char type, unsigned int team, Glib::ustring cal
     this->send(MsgEnter, sizeof(msg), msg);
 }
 
-bool gSocket::readEnter (Glib::ustring& reason, uint16_t& code, uint16_t& rejcode)
+bool gSocket::readEnter(Glib::ustring& reason, uint16_t& code, uint16_t& rejcode)
 {
     guint16 len;
     char msg[MaxPacketLen];
@@ -491,31 +550,31 @@ bool gSocket::readEnter (Glib::ustring& reason, uint16_t& code, uint16_t& rejcod
     return true;
 }
 
-int gSocket::setNonBlocking(int sockfd)
+int gSocket::setNonBlocking(int _sockfd)
 {
-    int mode = fcntl(sockfd, F_GETFL, 0);
-    if (mode == -1 || fcntl(sockfd, F_SETFL, mode | O_NDELAY) < 0) {
+    int mode = fcntl(_sockfd, F_GETFL, 0);
+    if (mode == -1 || fcntl(_sockfd, F_SETFL, mode | O_NDELAY) < 0) {
         return -1;
     }
     return 0;
 }
 
-int gSocket::setBlocking(int sockfd)
+int gSocket::setBlocking(int _sockfd)
 {
-    int mode = fcntl(sockfd, F_GETFL, 0);
-    if (mode == -1 || fcntl(sockfd, F_SETFL, mode & ~O_NDELAY) < 0) {
+    int mode = fcntl(_sockfd, F_GETFL, 0);
+    if (mode == -1 || fcntl(_sockfd, F_SETFL, mode & ~O_NDELAY) < 0) {
         return -1;
     }
     return 0;
 }
 
-void gSocket::setTcpNoDelay(int sockfd)
+void gSocket::setTcpNoDelay(int _sockfd)
 {
     gint off = 0;
     struct protoent *p = ::getprotobyname("tcp");
 
     if (p) {
-        ::setsockopt(sockfd, p->p_proto, TCP_NODELAY, &off, sizeof(off));
+        ::setsockopt(_sockfd, p->p_proto, TCP_NODELAY, &off, sizeof(off));
     }
 }
 
