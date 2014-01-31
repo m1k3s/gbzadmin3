@@ -53,14 +53,22 @@ void gSocket::disconnect()
     }
 
     tcp_read.disconnect();
-
+#ifdef USING_GIO_NETWORK
+	try {
+		socket->shutdown(true, true);
+		socket->close();
+	} catch (const Gio::Error& error) {
+	    std::cerr << Glib::ustring::compose ("socket->shutdown/close: %1\n", error.what ());
+    }
+#else
     ::shutdown(sockfd, 2);
     ::close(sockfd);
     sockfd = -1;
-
+#endif
     state = SocketError;
 }
 
+#ifndef USING_GIO_NETWORK
 bool gSocket::connect(Glib::ustring host, int p)
 {
     if (state == Okay) { // already connected
@@ -104,6 +112,103 @@ bool gSocket::connect(Glib::ustring host, int p)
     state = Okay;
     return true;
 }
+#else
+bool gSocket::connect2(Glib::ustring host, int p)
+{
+	if (state == Okay) { // already connected
+        return false;
+    }
+	serverName = host;
+    port = p;
+    
+	try {
+        connectable = Gio::NetworkAddress::parse(host, p);
+    } catch (const Gio::Error& error) {
+        std::cerr << Glib::ustring::compose ("Gio::NetworkAddress::parse: %1\n", error.what ());
+        return false;
+    }
+    
+    try {
+        socket = Gio::Socket::create (Gio::SOCKET_FAMILY_IPV4, Gio::SOCKET_TYPE_STREAM, Gio::SOCKET_PROTOCOL_DEFAULT);
+    } catch (const Gio::Error& error) {
+        std::cerr << Glib::ustring::compose ("Gio::Socket::create: %1\n", error.what ());
+        return false;
+    }
+    
+    enumerator = connectable->enumerate ();
+    while (true) {
+        try {
+            address = enumerator->next();
+            if (!address) {
+                return false;
+            }
+        } catch (const Gio::Error& error) {
+            std::cerr << Glib::ustring::compose ("enumerator->next: %1\n", error.what ());
+            return false;
+        }
+		if (address->get_family() == Gio::SOCKET_FAMILY_IPV4) {
+		    try {
+		        socket->connect (address);
+		        serverIP = get_ip_str2(address);
+		        break;
+		    } catch (const Gio::Error& error) {
+			    std::cerr << Glib::ustring::compose ("socket->connect: %1\n", error.what ());
+		        return false;
+		    }
+		}
+    }
+    socket->set_blocking(true);
+    socket->send(BZ_Connect_Header, (int)strlen(BZ_Connect_Header));
+    // check server version
+    try {
+        socket->condition_wait (Glib::IO_IN);
+    } catch (const Gio::Error& error) {
+        std::cerr << Glib::ustring::compose("socket->condition_wait (Glib::IO_IN): %1\n", error.what ());
+        return false;
+    }
+    
+    version = "BZFS0000";
+    try {
+    	char vstr[8];
+    	socket->receive((char*)&vstr[0], 8);
+    	Glib::ustring str(vstr);
+    	version = str.substr(0, 8); // server version
+    	Glib::ustring _id = str.substr(9);
+    	id = atoi(_id.c_str());     // my ID
+    } catch (const Gio::Error& error) {
+	    std::cerr << Glib::ustring::compose ("socket->receive(version): %1\n", error.what ());
+        return false;
+    }
+    if (ServerVersion != version) {
+        state = BadVersion;
+		if (BanRefusalString == version) {
+            state = Refused;
+            char message[512];
+            int len = socket->receive((char*)message, 512);
+            if (len > 0) {
+                message[len - 1] = 0;
+            } else {
+                message[0] = 0;
+            }
+            rejectionMessage = message;
+        }
+        return false;
+    }
+    
+    try {
+    	socket->set_blocking(true);
+    } catch (const Gio::Error& error) {
+	    std::cerr << Glib::ustring::compose ("socket->set_blocking(true): %1\n", error.what ());
+        return false;
+    }
+    
+    // set tcp no delay
+    setTcpNoDelay(socket->get_fd());
+
+    state = Okay;
+	return true;
+}
+#endif
 
 int gSocket::send_connection_header(int _sockfd)
 {
@@ -325,7 +430,7 @@ bool gSocket::join(Glib::ustring callsign, Glib::ustring password, Glib::ustring
     if (readEnter(reason, code, rejCode)) {
         // we're in! connect the TCP signal
         Glib::IOCondition flags = Glib::IO_IN | Glib::IO_ERR | Glib::IO_HUP | Glib::IO_NVAL;
-        Glib::RefPtr<Glib::IOChannel> channel = Glib::IOChannel::create_from_fd(sockfd);
+        Glib::RefPtr<Glib::IOChannel> channel = Glib::IOChannel::create_from_fd(socket->get_fd());
         tcp_read = Glib::signal_io().connect(sigc::mem_fun(*this, &gSocket::tcp_data_pending), channel, flags);
 
         return true;
@@ -398,7 +503,22 @@ int gSocket::send(guint16 code, guint16 len, const void* msg)
     if (msg && len != 0) {
         buf = parser.nboPackString(buf, msg, len);
     }
+#ifndef USING_GIO_NETWORK
     sent = ::send(sockfd, (const char*)msgbuf, len + 4, 0);
+#else
+	try {
+        socket->condition_wait (Glib::IO_OUT);
+    } catch (const Gio::Error& error) {
+        std::cerr << Glib::ustring::compose("%1\n", error.what ());
+        return -1;
+    }
+    try {
+		sent = socket->send(msgbuf, len + 4);
+	} catch (const Gio::Error& error) {
+        std::cerr << Glib::ustring::compose("%1\n", error.what ());
+        return -1;
+    }
+#endif
     if (netStats) {
         bytesSent += sent;
         packetsSent++;
@@ -431,8 +551,16 @@ int gSocket::read(uint16_t& code, uint16_t& len, void* msg, int blockTime)
     // get packet header
     char headerBuffer[4];
     int rlen = 0;
+#ifndef USING_GIO_NETWORK
     rlen = ::recv(sockfd, (char*)headerBuffer, 4, 0);
-
+#else
+	try {
+		rlen = socket->receive(headerBuffer, 4);
+    } catch (const Gio::Error& error) {
+        std::cerr << Glib::ustring::compose ("Error receiving from socket: %1\n", error.what ());
+        return -1;
+    }
+#endif
 //    int tlen = rlen;
 //    while (rlen >= 1 && tlen < 4) {
 //        nfound = select(sockfd, -1);
@@ -459,15 +587,25 @@ int gSocket::read(uint16_t& code, uint16_t& len, void* msg, int blockTime)
     void* buf = headerBuffer;
     buf = parser.nboUnpackUShort(buf, &len);
     buf = parser.nboUnpackUShort(buf, &code);
-
+    
     if (len > MaxPacketLen) {
+    	std::cerr << "len > MaxPacketLen (" << len << " > " << MaxPacketLen << ")" <<std::endl;
         return -1;
     }
     if (len > 0) {
+#ifndef USING_GIO_NETWORK
         rlen = ::recv(sockfd, (char*)msg, int(len), 0);
-    } /*else {
+#else
+	try {
+		rlen = socket->receive((char*)msg, (int)len);
+    } catch (const Gio::Error& error) {
+        std::cerr << Glib::ustring::compose ("Error receiving from socket: %1\n", error.what ());
+        return -1;
+    }
+#endif
+    } else {
         rlen = 0;
-    }*/
+    }
 //    if (rlen == int(len)) {	// got the whole message, done
 //    	if (netStats) {
 //		    bytesReceived += rlen;
@@ -699,6 +837,7 @@ int gSocket::check_status(int status_code)
     return status_code;
 }
 
+#ifndef USING_GIO_NETWORK
 Glib::ustring gSocket::get_ip_str(const struct addrinfo *ai)
 {
 	char addr_str[INET_ADDRSTRLEN];
@@ -713,4 +852,23 @@ void* gSocket::get_in_addr(struct sockaddr *sa)
 	}
 	return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
+#else
+Glib::ustring gSocket::get_ip_str2(const Glib::RefPtr<Gio::SocketAddress>& address)
+{
+	Glib::RefPtr<Gio::InetAddress> inet_address;
+    Glib::ustring str, res;
+    int port;
+
+    Glib::RefPtr<Gio::InetSocketAddress> isockaddr =
+        Glib::RefPtr<Gio::InetSocketAddress>::cast_dynamic (address);
+    if (!isockaddr) {
+        return Glib::ustring ();
+    }
+    inet_address = isockaddr->get_address ();
+    str = inet_address->to_string ();
+    port = isockaddr->get_port ();
+    res = Glib::ustring::compose ("%1:%2", str, port);
+    return res;
+}
+#endif
 

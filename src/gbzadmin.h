@@ -119,7 +119,6 @@ class gbzadmin : public Gtk::Window
         void on_server_combo_changed();
 
         // signal callback function
-//        void on_read_data();
         bool on_read_data(Glib::IOCondition io_condition);
 
         // member functions

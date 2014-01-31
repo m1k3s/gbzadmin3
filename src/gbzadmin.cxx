@@ -1979,7 +1979,6 @@ Glib::ustring gbzadmin::colorize(Player *player)
 // message processing. This one uses signals. This
 // handler will get called by the TCP signal.
 bool gbzadmin::on_read_data(Glib::IOCondition io_condition)
-//void gbzadmin::on_read_data()
 {
 	gint result = MsgNull;
 	if (((io_condition & Glib::IO_IN) != 0) || ((io_condition & Glib::IO_PRI) != 0)) {
@@ -2095,8 +2094,11 @@ void gbzadmin::logon()
     while(Gtk::Main::events_pending()) {  // update the GUI before the connect phase
         Gtk::Main::iteration();
     }
-
-    if (sock.connect(_server, _port)) {
+#ifdef USING_GIO_NETWORK
+    if (sock.connect2(_server, _port)) {
+#else
+	if (sock.connect(_server, _port)) {
+#endif
         if (sock.join(_callsign, _password, _motto)) {
             // display some server info
             Glib::ustring id_str = Glib::ustring::compose("%1", sock.getId());

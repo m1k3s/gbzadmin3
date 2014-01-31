@@ -1,3 +1,11 @@
+commit 59804331571d2ffccb9cb25b367833912e6a2346
+Author: m1k3s <pbrane0@gmail.com>
+Date:   Wed Jan 29 16:46:51 2014 -0500
+
+    slowly reworking network code to use glib::io
+    stuff.gbzadmin::on_read_data now checks Glib::IOCondition before
+    reading the message buffer.
+
 commit 9e62e708d687fdd7b6edfeaa4cce1bf6a271d9fc
 Author: m1k3s <pbrane0@gmail.com>
 Date:   Sun Jan 26 10:38:02 2014 -0500

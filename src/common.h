@@ -40,6 +40,7 @@
 #include <cstdlib>
 
 #define APPNAME "gbzadmin3"
+#define USING_GIO_NETWORK
 
 // notebook pages
 enum {
