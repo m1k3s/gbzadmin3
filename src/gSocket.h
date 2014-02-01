@@ -56,7 +56,7 @@
 #include "parser.h"
 #include "gListServer.h"
 
-#define USING_GIO_NETWORK
+//#define USING_GIO_NETWORK
 
 
 class gSocket : public sigc::trackable
@@ -127,8 +127,10 @@ class gSocket : public sigc::trackable
             netStats = set;
             resetNetStats();
         }
+#ifndef USING_GIO_NETWORK
         bool get_blocking() { return blocking; }
         void set_blocking(bool set) { blocking = set; }
+#endif
         float bitFlow();
 
         bool resolve_host(const Glib::ustring& host, const Glib::ustring& port);
@@ -138,34 +140,39 @@ class gSocket : public sigc::trackable
     protected:
         void sendEnter(unsigned char type, unsigned int team, Glib::ustring callsign, Glib::ustring motto, Glib::ustring token);
         bool readEnter(Glib::ustring& reason, uint16_t& code, uint16_t& rejcode);
+#ifndef USING_GIO_NETWORK
         bool connect_blocking(int _sockfd, const struct sockaddr *addr, socklen_t addrlen);
         bool connect_nonblocking(int _sockfd, const struct sockaddr *addr, socklen_t addrlen, int timeout);
 
         int setNonBlocking(int fd);
         int setBlocking(int fd);
-        void setTcpNoDelay(int fd);
         bool select(int _fd);
         int select(int _fd, int blockTime);
         int select_write(int _fd, int blockTime);
-        int check_status(int status_code);
-#ifdef USING_GIO_NETWORK
-        Glib::ustring get_ip_str(const Glib::RefPtr<Gio::SocketAddress>& address);
-#else
         Glib::ustring get_ip_str(const struct addrinfo *ai);
-#endif
         void* get_in_addr(struct sockaddr *sa);
         bool check_server_version(int _sockfd);
         bool get_my_id(int _sockfd, unsigned char& _id);
         bool create_connection(int& _sockfd, bool blocking);
         int send_connection_header(int _sockfd);
+#endif
+		void setTcpNoDelay(int fd);
+        int check_status(int status_code);
+        
+#ifdef USING_GIO_NETWORK
+        Glib::ustring get_ip_str(const Glib::RefPtr<Gio::SocketAddress>& address);
+#endif
 
     private:
-        State state;
+    	State state;
+#ifndef USING_GIO_NETWORK
         int sockfd;
+        struct addrinfo server_info;
+        bool blocking;
+#endif
         Parser parser;
         gListServer listServer;
         
-        struct addrinfo server_info;
         bool netStats;
         float prev_flow;
         unsigned char id;
@@ -179,7 +186,6 @@ class gSocket : public sigc::trackable
 #endif
         Glib::ustring token;
         bool prefetch_token;
-        bool blocking;
 
         Glib::ustring rejectionMessage;
         Glib::ustring serverName;
@@ -198,25 +204,27 @@ class gSocket : public sigc::trackable
         guint32	packetsReceived;
 };
 
-class gSocketException : public std::exception
-{
-    const char *error;
-    public:
-        gSocketException(const char *e) : error(e) { }
-        const char * what() const throw() {
-            return error;
-        }
-};
+//class gSocketException : public std::exception
+//{
+//    const char *error;
+//    public:
+//        gSocketException(const char *e) : error(e) { }
+//        const char * what() const throw() {
+//            return error;
+//        }
+//};
 
 inline const Glib::ustring& gSocket::getRejectionMessage() const
 {
     return rejectionMessage;
 }
 
+//#ifndef USING_GIO_NETWORK
 inline gSocket::State gSocket::getState() const
 {
     return state;
 }
+//#endif
 
 inline const unsigned char& gSocket::getId() const
 {

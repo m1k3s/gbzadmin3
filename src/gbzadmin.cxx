@@ -946,18 +946,18 @@ void gbzadmin::toggle_capture_file()
 void gbzadmin::parse_config_file(Glib::ustring filename)
 {
     char variable[64];
-    char value[512];
-    char buf[1024];
+    char value[1024];
+    char buf[2048];
     int result = 0;
 
     std::ifstream is;
     is.open(filename.c_str(), std::ios::in);
     if (is.is_open()) {
         do {
-            memset(buf, 0, 1024);
-            is.getline(buf, 512);
+            memset(buf, 0, 2048);
+            is.getline(buf, 1024);
 
-            result = sscanf(buf, "%32[^#=]=%512[^\n]\n", variable, value);
+            result = sscanf(buf, "%64[^#=]=%1024[^\n]\n", variable, value);
             if ((result < 2) || (result == EOF)) {
                 break;
             }
@@ -1007,8 +1007,10 @@ void gbzadmin::parse_config_file(Glib::ustring filename)
 				current_server = value;
             } else if (g_ascii_strcasecmp(variable, "prefetch") == 0) {
             	sock.set_prefetch(atoi(value) ? true : false);
+#ifndef USING_GIO_NETWORK
             } else if (g_ascii_strcasecmp(variable, "blocking") == 0) {
             	sock.set_blocking(atoi(value) ? true : false);
+#endif
             } else if (g_ascii_strcasecmp(variable, "msg_new_rabbit") == 0) {
                 msg_mask["rabbit"] = atoi(value) ? true : false;
             } else if (g_ascii_strcasecmp(variable, "msg_pause") == 0) {
@@ -1104,10 +1106,10 @@ void gbzadmin::save_config_file(Glib::ustring filename)
         
         buf = Glib::ustring::compose("prefetch=%1\n", sock.get_prefetch());
         os.write(buf.c_str(), buf.length());
-        
+#ifndef USING_GIO_NETWORK
         buf = Glib::ustring::compose("blocking=%1\n", sock.get_blocking());
         os.write(buf.c_str(), buf.length());
-
+#endif
         buf = Glib::ustring::compose("window_x=%1\n", win_x);
         os.write(buf.c_str(), buf.length());
 

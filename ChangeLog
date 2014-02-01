@@ -1,3 +1,9 @@
+commit ba7b5dba1f1600d935f63699af832b25bf6108f5
+Author: m1k3s <pbrane0@gmail.com>
+Date:   Fri Jan 31 19:23:14 2014 -0500
+
+    reworked USE_GIO_NETWORK into just the gSocket class.
+
 commit a3827b9d92bb9ae70516e9aa70ae47a1e9dd8bb6
 Author: m1k3s <pbrane0@gmail.com>
 Date:   Fri Jan 31 18:03:22 2014 -0500
