@@ -1,3 +1,10 @@
+commit a3827b9d92bb9ae70516e9aa70ae47a1e9dd8bb6
+Author: m1k3s <pbrane0@gmail.com>
+Date:   Fri Jan 31 18:03:22 2014 -0500
+
+    added Gio and Glib networking to gSocket. there is a define in
+    common.h that enables the new code. This is a work in progress...
+
 commit 59804331571d2ffccb9cb25b367833912e6a2346
 Author: m1k3s <pbrane0@gmail.com>
 Date:   Wed Jan 29 16:46:51 2014 -0500

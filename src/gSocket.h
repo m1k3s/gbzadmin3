@@ -56,6 +56,8 @@
 #include "parser.h"
 #include "gListServer.h"
 
+#define USING_GIO_NETWORK
+
 
 class gSocket : public sigc::trackable
 {
@@ -73,11 +75,7 @@ class gSocket : public sigc::trackable
         gSocket();
         ~gSocket();
 		
-#ifdef USING_GIO_NETWORK
-		bool connect2(Glib::ustring host, int p = 5154);
-#else
         bool connect(Glib::ustring host, int p = 5154);
-#endif
         bool join(Glib::ustring callsign, Glib::ustring password, Glib::ustring motto);
         void disconnect();
         int send(guint16 code, guint16 len, const void* msg);
@@ -151,7 +149,7 @@ class gSocket : public sigc::trackable
         int select_write(int _fd, int blockTime);
         int check_status(int status_code);
 #ifdef USING_GIO_NETWORK
-        Glib::ustring get_ip_str2(const Glib::RefPtr<Gio::SocketAddress>& address);
+        Glib::ustring get_ip_str(const Glib::RefPtr<Gio::SocketAddress>& address);
 #else
         Glib::ustring get_ip_str(const struct addrinfo *ai);
 #endif
@@ -174,12 +172,8 @@ class gSocket : public sigc::trackable
         Glib::ustring version;
 #ifdef USING_GIO_NETWORK
 		Glib::RefPtr<Gio::Socket> socket;
-//		Glib::RefPtr<Gio::SocketAddress> src_address;
 		Glib::RefPtr<Gio::SocketAddress> address;
-//		Gio::SocketType socket_type;
 		GError *error = NULL;
-//		GOptionContext *context;
-//		Glib::RefPtr<Gio::Cancellable> cancellable;
 		Glib::RefPtr<Gio::SocketAddressEnumerator> enumerator;
 		Glib::RefPtr<Gio::SocketConnectable> connectable;
 #endif

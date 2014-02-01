@@ -113,7 +113,7 @@ bool gSocket::connect(Glib::ustring host, int p)
     return true;
 }
 #else
-bool gSocket::connect2(Glib::ustring host, int p)
+bool gSocket::connect(Glib::ustring host, int p)
 {
 	if (state == Okay) { // already connected
         return false;
@@ -149,7 +149,7 @@ bool gSocket::connect2(Glib::ustring host, int p)
 		if (address->get_family() == Gio::SOCKET_FAMILY_IPV4) {
 		    try {
 		        socket->connect (address);
-		        serverIP = get_ip_str2(address);
+		        serverIP = get_ip_str(address);
 		        break;
 		    } catch (const Gio::Error& error) {
 			    std::cerr << Glib::ustring::compose ("socket->connect: %1\n", error.what ());
@@ -853,7 +853,7 @@ void* gSocket::get_in_addr(struct sockaddr *sa)
 	return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 #else
-Glib::ustring gSocket::get_ip_str2(const Glib::RefPtr<Gio::SocketAddress>& address)
+Glib::ustring gSocket::get_ip_str(const Glib::RefPtr<Gio::SocketAddress>& address)
 {
 	Glib::RefPtr<Gio::InetAddress> inet_address;
     Glib::ustring str, res;
