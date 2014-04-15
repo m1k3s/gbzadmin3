@@ -1,3 +1,10 @@
+commit 0b915917bb20d3b5f0c120bce12c2d990a6df988
+Author: m1k3s <pbrane0@gmail.com>
+Date:   Sat Feb 1 06:50:27 2014 -0500
+
+    Gio networking not reliable yet. reworked preprocessor flag
+    implementation.
+
 commit ba7b5dba1f1600d935f63699af832b25bf6108f5
 Author: m1k3s <pbrane0@gmail.com>
 Date:   Fri Jan 31 19:23:14 2014 -0500

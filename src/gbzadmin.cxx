@@ -1088,6 +1088,7 @@ void gbzadmin::save_config_file(Glib::ustring filename)
         }
 
         // write the server list MRU
+        int idx = 0;
         std::list<Glib::ustring>::iterator it = server_mru_str.begin();
         while (it != server_mru_str.end()) {
             if (it == server_mru_str.begin()) {
@@ -1098,8 +1099,12 @@ void gbzadmin::save_config_file(Glib::ustring filename)
                 os.write(buf.c_str(), buf.length());
             }
             it++;
+            idx++;
+            if (idx >= maxServersList) {
+            	os.write("\n", 1); // add newline to end of server mru string
+            	break;
+            }
         }
-        os.write("\n", 1); // add newline to end of server mru string
         
         buf = Glib::ustring::compose("current_server=%1\n", current_server);
         os.write(buf.c_str(), buf.length());
