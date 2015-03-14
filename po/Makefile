@@ -35,7 +35,7 @@ subdir = po
 
 INSTALL = /usr/bin/install -c
 INSTALL_DATA = ${INSTALL} -m 644
-MKINSTALLDIRS = $(top_srcdir)/./mkinstalldirs
+MKINSTALLDIRS = mkdir -p
 
 CC = gcc
 GENCAT = @GENCAT@
@@ -134,12 +134,8 @@ install-exec:
 install-data: install-data-yes
 install-data-no: all
 install-data-yes: all
-	if test -r "$(MKINSTALLDIRS)"; then \
-	  $(MKINSTALLDIRS) $(DESTDIR)$(datadir); \
-	else \
-	  $(SHELL) $(top_srcdir)/mkinstalldirs $(DESTDIR)$(datadir); \
-	fi
-	@catalogs='$(CATALOGS)'; \
+	$(MKINSTALLDIRS) $(DESTDIR)$(datadir); \
+	catalogs='$(CATALOGS)'; \
 	for cat in $$catalogs; do \
 	  cat=`basename $$cat`; \
 	  case "$$cat" in \
@@ -148,11 +144,7 @@ install-data-yes: all
 	  esac; \
 	  lang=`echo $$cat | sed 's/\$(CATOBJEXT)$$//'`; \
 	  dir=$(DESTDIR)$$destdir/$$lang/LC_MESSAGES; \
-	  if test -r "$(MKINSTALLDIRS)"; then \
-	    $(MKINSTALLDIRS) $$dir; \
-	  else \
-	    $(SHELL) $(top_srcdir)/mkinstalldirs $$dir; \
-	  fi; \
+	  $(MKINSTALLDIRS) $$dir; \
 	  if test -r $$cat; then \
 	    $(INSTALL_DATA) $$cat $$dir/$(GETTEXT_PACKAGE)$(INSTOBJEXT); \
 	    echo "installing $$cat as $$dir/$(GETTEXT_PACKAGE)$(INSTOBJEXT)"; \
@@ -176,11 +168,7 @@ install-data-yes: all
 	  fi; \
 	done
 	if test "$(PACKAGE)" = "glib"; then \
-	  if test -r "$(MKINSTALLDIRS)"; then \
-	    $(MKINSTALLDIRS) $(DESTDIR)$(gettextsrcdir); \
-	  else \
-	    $(SHELL) $(top_srcdir)/mkinstalldirs $(DESTDIR)$(gettextsrcdir); \
-	  fi; \
+	  $(MKINSTALLDIRS) $(DESTDIR)$(gettextsrcdir); \
 	  $(INSTALL_DATA) $(srcdir)/Makefile.in.in \
 			  $(DESTDIR)$(gettextsrcdir)/Makefile.in.in; \
 	else \

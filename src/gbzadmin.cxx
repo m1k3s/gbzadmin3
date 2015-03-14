@@ -66,7 +66,7 @@ gbzadmin::gbzadmin() : Gtk::Window()
 
 bool gbzadmin::isConnected()
 {
-    return (sock.getState() == gSocket::Okay);
+	return (sock.getState() == Okay);
 }
 
 void gbzadmin::power_down()
@@ -1557,7 +1557,7 @@ void gbzadmin::handle_killed_message(void *vbuf)
         str += msg_view.colorBullet() + colorize(player) + victimName + " " + defColor;
 
         Glib::ustring killer_str;
-        if ((k_team == v_team) && (k_team != RogueTeam)) {
+        if ((k_team == v_team) && (k_team != RogueTeam) && (game_type != OpenFFA)) {
             killer_str = "teammate ";
             killer_str += killerColor + killerName + msg_view.Color(WhiteFg);
         } else if (killer != victim) {
@@ -1837,6 +1837,7 @@ void gbzadmin::handle_game_query_message(void *vbuf)
 
     vbuf = parser.nboUnpackUShort(vbuf, &tmp);
     game_view.setType(tmp);
+    game_type = tmp;
     if (tmp == RabbitChase) {
         player_view.set_rabbit_mode(true);
     }
@@ -2059,9 +2060,9 @@ void gbzadmin::check_errors(int result)
             strftime(time_str, 128, " (%T)", ts);
 
             if (wd_counter <= 0) {
-                error += "--- ERROR: Connection to server lost " + msg_view.Color(YellowFg) + "(WatchDog)\n";
+                error += "--- ERROR: Connection to server lost " + msg_view.Color(YellowFg) + "(WatchDog)";
             } else {
-                error += "--- ERROR: Connection to server lost " + msg_view.Color(YellowFg) + "(CommError)\n";
+                error += "--- ERROR: Connection to server lost " + msg_view.Color(YellowFg) + "(CommError)";
             }
             error += " at";
             error += time_str;
@@ -2134,43 +2135,48 @@ void gbzadmin::logon()
             set_status_message(StatusConnTime, "Disconnected");
         }
     } else { // failed to connect
-        Glib::ustring str(msg_view.Color(YellowFg));
-        switch (sock.getState()) {
-            case gSocket::BadVersion:
-                str += "--- " + msg_view.Color(RedFg) + "Server versions are not compatible\n";
-                str += "    " + msg_view.Color(YellowFg) + "You tried to connect to a " + sock.getVersion() + " server\n";
-                str += "    using a ";
-                str += ServerVersion;
-                str += " client\n";
-                msg_view.add_text(str);
-                break;
-
-            case gSocket::Refused:
-                str += "--- " + msg_view.Color(RedFg) + sock.getRejectionMessage();
-                msg_view.add_text(str);
-                break;
-
-            case gSocket::Rejected:
-                str += "--- " + msg_view.Color(RedFg) + _server + " has REJECTED me\n";
-                str += ">>> " + msg_view.Color(RedFg) + sock.getRejectionMessage();
-                msg_view.add_text(str);
-                break;
-
-            case gSocket::ResolveFailure:
-                str += ">>> " + msg_view.Color(RedFg) + sock.getRejectionMessage();
-                msg_view.add_text(str);
-                break;
-
-            default:
-                str += "\n--- " + msg_view.Color(RedFg) + "Failed to connect to " + _server;
-                str += msg_view.Color(YellowFg) + " (socket error)\n";
-                msg_view.add_text(str);
-                break;
-        }
+    	get_reason_for_connect_failure();
     }
     // hide the connect dialog here.
     if (connect_dialog->is_visible()) {
         connect_dialog->hide();
+    }
+}
+
+void gbzadmin::get_reason_for_connect_failure()
+{
+	Glib::ustring str(msg_view.Color(YellowFg));
+    switch (sock.getState()) {
+        case BadVersion:
+            str += "--- " + msg_view.Color(RedFg) + "Server versions are not compatible\n";
+            str += "    " + msg_view.Color(YellowFg) + "You tried to connect to a " + sock.getVersion() + " server\n";
+            str += "    using a ";
+            str += ServerVersion;
+            str += " client\n";
+            msg_view.add_text(str);
+            break;
+
+        case Refused:
+            str += "--- " + msg_view.Color(RedFg) + sock.getRejectionMessage();
+            msg_view.add_text(str);
+            break;
+
+        case Rejected:
+            str += "--- " + msg_view.Color(RedFg) + _server + " has REJECTED me\n";
+            str += ">>> " + msg_view.Color(RedFg) + sock.getRejectionMessage();
+            msg_view.add_text(str);
+            break;
+
+        case ResolveFailure:
+            str += ">>> " + msg_view.Color(RedFg) + sock.getRejectionMessage();
+            msg_view.add_text(str);
+            break;
+
+        default:
+            str += "\n--- " + msg_view.Color(RedFg) + "Failed to connect to " + _server;
+            str += msg_view.Color(YellowFg) + " (socket error)\n";
+            msg_view.add_text(str);
+            break;
     }
 }
 

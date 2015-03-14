@@ -642,19 +642,20 @@ S["CXXCPP"]="g++ -E"
 S["GETTEXT_PACKAGE"]="gbzadmin3"
 S["GLIBMM_LIBS"]=""
 S["GLIBMM_CFLAGS"]=""
-S["GLIBMMDEPS_LIBS"]="-lglibmm-2.4 -lgobject-2.0 -lsigc-2.0 -lglib-2.0  "
-S["GLIBMMDEPS_CFLAGS"]="-I/usr/include/glibmm-2.4 -I/usr/lib/x86_64-linux-gnu/glibmm-2.4/include -I/usr/include/sigc++-2.0 -I/usr/lib/x86_64-linux-gnu/sigc++-2.0/include -I"\
-"/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include  "
+S["GLIBMMDEPS_LIBS"]="-lglibmm-2.4 -lgobject-2.0 -lglib-2.0 -lsigc-2.0 "
+S["GLIBMMDEPS_CFLAGS"]="-I/usr/include/glibmm-2.4 -I/usr/lib/x86_64-linux-gnu/glibmm-2.4/include -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr"\
+"/include/sigc++-2.0 -I/usr/lib/x86_64-linux-gnu/sigc++-2.0/include "
 S["PACKAGE_CPPFLAGS"]=""
-S["PACKAGE_LIBS"]="-lgtkmm-2.4 -latkmm-1.6 -lgdkmm-2.4 -lgiomm-2.4 -lpangomm-1.4 -lgtk-x11-2.0 -lglibmm-2.4 -lcairomm-1.0 -lsigc-2.0 -lgdk-x11-2.0 -latk-1.0 -lgio-2.0 "\
-"-lpangoft2-1.0 -lpangocairo-1.0 -lgdk_pixbuf-2.0 -lcairo -lpango-1.0 -lfreetype -lfontconfig -lgobject-2.0 -lglib-2.0  "
-S["PACKAGE_CFLAGS"]="-pthread -I/usr/include/gtkmm-2.4 -I/usr/lib/x86_64-linux-gnu/gtkmm-2.4/include -I/usr/include/atkmm-1.6 -I/usr/include/giomm-2.4 -I/usr/lib/x86_64-"\
-"linux-gnu/giomm-2.4/include -I/usr/include/pangomm-1.4 -I/usr/lib/x86_64-linux-gnu/pangomm-1.4/include -I/usr/include/gtk-2.0 -I/usr/include/gtk-uni"\
-"x-print-2.0 -I/usr/include/gdkmm-2.4 -I/usr/lib/x86_64-linux-gnu/gdkmm-2.4/include -I/usr/include/atk-1.0 -I/usr/include/glibmm-2.4 -I/usr/lib/x86_6"\
-"4-linux-gnu/glibmm-2.4/include -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/sigc++-2.0 -I/usr/lib/x86_64-linu"\
-"x-gnu/sigc++-2.0/include -I/usr/include/cairomm-1.0 -I/usr/lib/x86_64-linux-gnu/cairomm-1.0/include -I/usr/include/pango-1.0 -I/usr/include/cairo -I"\
-"/usr/include/pixman-1 -I/usr/include/freetype2 -I/usr/include/libpng12 -I/usr/lib/x86_64-linux-gnu/gtk-2.0/include -I/usr/include/gdk-pixbuf-2.0 -I/"\
-"usr/include/gio-unix-2.0/ -I/usr/include/harfbuzz  "
+S["PACKAGE_LIBS"]="-lgtkmm-2.4 -latkmm-1.6 -lgtk-x11-2.0 -lgdkmm-2.4 -lgiomm-2.4 -lpangomm-1.4 -lglibmm-2.4 -lcairomm-1.0 -lsigc-2.0 -lgtk-x11-2.0 -lgdk-x11-2.0 -lpang"\
+"ocairo-1.0 -latk-1.0 -lcairo -lgdk_pixbuf-2.0 -lgio-2.0 -lpangoft2-1.0 -lpango-1.0 -lgobject-2.0 -lglib-2.0 -lfontconfig -lfreetype "
+S["PACKAGE_CFLAGS"]="-pthread -I/usr/include/gtkmm-2.4 -I/usr/lib/x86_64-linux-gnu/gtkmm-2.4/include -I/usr/include/atkmm-1.6 -I/usr/include/gtk-unix-print-2.0 -I/usr/in"\
+"clude/gtk-2.0 -I/usr/include/gdkmm-2.4 -I/usr/lib/x86_64-linux-gnu/gdkmm-2.4/include -I/usr/include/giomm-2.4 -I/usr/lib/x86_64-linux-gnu/giomm-2.4/"\
+"include -I/usr/include/pangomm-1.4 -I/usr/lib/x86_64-linux-gnu/pangomm-1.4/include -I/usr/include/glibmm-2.4 -I/usr/lib/x86_64-linux-gnu/glibmm-2.4/"\
+"include -I/usr/include/cairomm-1.0 -I/usr/lib/x86_64-linux-gnu/cairomm-1.0/include -I/usr/include/sigc++-2.0 -I/usr/lib/x86_64-linux-gnu/sigc++-2.0/"\
+"include -I/usr/include/gtk-2.0 -I/usr/lib/x86_64-linux-gnu/gtk-2.0/include -I/usr/include/gio-unix-2.0/ -I/usr/include/cairo -I/usr/include/pango-1."\
+"0 -I/usr/include/atk-1.0 -I/usr/include/cairo -I/usr/include/pixman-1 -I/usr/include/libpng12 -I/usr/include/gdk-pixbuf-2.0 -I/usr/include/libpng12 "\
+"-I/usr/include/pango-1.0 -I/usr/include/harfbuzz -I/usr/include/pango-1.0 -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/us"\
+"r/include/freetype2 "
 S["PKG_CONFIG_LIBDIR"]=""
 S["PKG_CONFIG_PATH"]=""
 S["PKG_CONFIG"]="/usr/bin/pkg-config"
@@ -702,11 +703,11 @@ S["MKDIR_P"]="/bin/mkdir -p"
 S["INSTALL_STRIP_PROGRAM"]="$(install_sh) -c -s"
 S["STRIP"]=""
 S["install_sh"]="${SHELL} /home/mike/projects/gbzadmin3/install-sh"
-S["MAKEINFO"]="makeinfo"
-S["AUTOHEADER"]="autoheader"
-S["AUTOMAKE"]="automake-1.13"
-S["AUTOCONF"]="autoconf"
-S["ACLOCAL"]="aclocal-1.13"
+S["MAKEINFO"]="${SHELL} /home/mike/projects/gbzadmin3/missing makeinfo"
+S["AUTOHEADER"]="${SHELL} /home/mike/projects/gbzadmin3/missing autoheader"
+S["AUTOMAKE"]="${SHELL} /home/mike/projects/gbzadmin3/missing automake-1.14"
+S["AUTOCONF"]="${SHELL} /home/mike/projects/gbzadmin3/missing autoconf"
+S["ACLOCAL"]="${SHELL} /home/mike/projects/gbzadmin3/missing aclocal-1.14"
 S["VERSION"]="2.4.2"
 S["PACKAGE"]="gbzadmin3"
 S["CYGPATH_W"]="echo"

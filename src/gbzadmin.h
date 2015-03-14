@@ -31,6 +31,8 @@
 #include <sys/utsname.h>
 #include <cstdio>
 
+#define USING_GIO_NETWORK // whether or not to use GIO networking class gIOSocket
+
 #if defined(__GXX_EXPERIMENTAL_CXX0X__) || __cplusplus >= 201103L
 	#include <unordered_map>
 #else
@@ -47,8 +49,14 @@
 #include "serverlist_view.h"
 #include "cmdLine.h"
 #include "parser.h"
-#include "gSocket.h"
 #include "gListServer.h"
+#include "socketStates.h"
+
+#ifdef USING_GIO_NETWORK
+	#include "gIOSocket.h"
+#else
+	#include "gSocket.h"
+#endif
 
 const int MaxWdTime = 30;
 
@@ -168,6 +176,7 @@ class gbzadmin : public Gtk::Window
         void server_mru_populate();
         Glib::ustring server_mru_find(Glib::ustring find);
         void check_errors(int result);
+        void get_reason_for_connect_failure();
 
         // timer functions
         bool update_timer();
@@ -240,7 +249,11 @@ class gbzadmin : public Gtk::Window
         serverListView server_list_view;
         cmdLine cmd;
         Parser parser;
-        gSocket sock;
+        #ifdef USING_GIO_NETWORK
+        	gIOSocket sock;
+        #else
+        	gSocket sock;
+        #endif
         gListServer listServer;
 
         // member properties
@@ -260,6 +273,7 @@ class gbzadmin : public Gtk::Window
         gint win_x, win_y;
         gint win_width, win_height;
         int msg_pane, game_pane;
+        guint16 game_type;
 
         // message handler function map
         typedef void (gbzadmin::*messagehandler)(void*);

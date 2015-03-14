@@ -1,5 +1,5 @@
-#ifndef _gSocket_h_
-#define _gSocket_h_
+#ifndef _gIOSocket_h_
+#define _gIOSocket_h_
 // gbzadmin
 // GTKmm bzadmin
 // Copyright (c) 2005 - 2014 Michael Sheppard
@@ -57,9 +57,7 @@
 #include "gListServer.h"
 #include "socketStates.h"
 
-#ifndef USING_GIO_NETWORK
-
-class gSocket : public sigc::trackable
+class gIOSocket : public sigc::trackable
 {
     public:
 //        enum State {
@@ -72,8 +70,8 @@ class gSocket : public sigc::trackable
 //            ResolveFailure
 //        };
 
-        gSocket();
-        ~gSocket();
+        gIOSocket();
+        ~gIOSocket();
 		
         bool connect(Glib::ustring host, int p = 5154);
         bool join(Glib::ustring callsign, Glib::ustring password, Glib::ustring motto);
@@ -127,8 +125,6 @@ class gSocket : public sigc::trackable
             netStats = set;
             resetNetStats();
         }
-        bool get_blocking() { return blocking; }
-        void set_blocking(bool set) { blocking = set; }
         float bitFlow();
 
         bool resolve_host(const Glib::ustring& host, const Glib::ustring& port);
@@ -138,28 +134,13 @@ class gSocket : public sigc::trackable
     protected:
         void sendEnter(unsigned char type, unsigned int team, Glib::ustring callsign, Glib::ustring motto, Glib::ustring token);
         bool readEnter(Glib::ustring& reason, uint16_t& code, uint16_t& rejcode);
-        bool connect_blocking(int _sockfd, const struct sockaddr *addr, socklen_t addrlen);
-        bool connect_nonblocking(int _sockfd, const struct sockaddr *addr, socklen_t addrlen, int timeout);
-
-        int setNonBlocking(int fd);
-        int setBlocking(int fd);
-        bool select(int _fd);
-        int select(int _fd, int blockTime);
-        int select_write(int _fd, int blockTime);
-        Glib::ustring get_ip_str(const struct addrinfo *ai);
-        void* get_in_addr(struct sockaddr *sa);
-        bool check_server_version(int _sockfd);
-        bool get_my_id(int _sockfd, unsigned char& _id);
-        bool create_connection(int& _sockfd, bool blocking);
-        int send_connection_header(int _sockfd);
 		void setTcpNoDelay(int fd);
         int check_status(int status_code);
         
+        Glib::ustring get_ip_str(const Glib::RefPtr<Gio::SocketAddress>& address);
+
     private:
     	State state;
-        int sockfd;
-        struct addrinfo server_info;
-        bool blocking;
         Parser parser;
         gListServer listServer;
         
@@ -167,6 +148,11 @@ class gSocket : public sigc::trackable
         float prev_flow;
         unsigned char id;
         Glib::ustring version;
+		Glib::RefPtr<Gio::Socket> socket;
+		Glib::RefPtr<Gio::SocketAddress> address;
+		GError *error = NULL;
+		Glib::RefPtr<Gio::SocketAddressEnumerator> enumerator;
+		Glib::RefPtr<Gio::SocketConnectable> connectable;
         Glib::ustring token;
         bool prefetch_token;
 
@@ -187,53 +173,52 @@ class gSocket : public sigc::trackable
         guint32	packetsReceived;
 };
 
-//class gSocketException : public std::exception
+//class gIOSocketException : public std::exception
 //{
 //    const char *error;
 //    public:
-//        gSocketException(const char *e) : error(e) { }
+//        gIOSocketException(const char *e) : error(e) { }
 //        const char * what() const throw() {
 //            return error;
 //        }
 //};
 
-inline const Glib::ustring& gSocket::getRejectionMessage() const
+inline const Glib::ustring& gIOSocket::getRejectionMessage() const
 {
     return rejectionMessage;
 }
 
 //#ifndef USING_GIO_NETWORK
-inline State gSocket::getState() const
+inline State gIOSocket::getState() const
 {
     return state;
 }
 //#endif
 
-inline const unsigned char& gSocket::getId() const
+inline const unsigned char& gIOSocket::getId() const
 {
     return id;
 }
 
-inline const char* gSocket::getVersion() const
+inline const char* gIOSocket::getVersion() const
 {
     return version.c_str();
 }
 
-inline const Glib::ustring& gSocket::get_server_IP() const
+inline const Glib::ustring& gIOSocket::get_server_IP() const
 {
     return serverIP;
 }
 
-inline const Glib::ustring& gSocket::get_server_name() const
+inline const Glib::ustring& gIOSocket::get_server_name() const
 {
     return serverName;
 }
 
-inline int gSocket::get_port() const
+inline int gIOSocket::get_port() const
 {
     return port;
 }
-#endif // USING_GIO_NETWORK
 
-#endif // _gSocket_h_
+#endif // _gIOSocket_h_
 
