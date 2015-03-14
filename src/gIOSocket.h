@@ -60,15 +60,6 @@
 class gIOSocket : public sigc::trackable
 {
     public:
-//        enum State {
-//            Okay = 0,
-//            SocketError,
-//            Rejected,
-//            BadVersion,
-//            CrippledVersion,
-//            Refused,
-//            ResolveFailure
-//        };
 
         gIOSocket();
         ~gIOSocket();
@@ -134,7 +125,7 @@ class gIOSocket : public sigc::trackable
     protected:
         void sendEnter(unsigned char type, unsigned int team, Glib::ustring callsign, Glib::ustring motto, Glib::ustring token);
         bool readEnter(Glib::ustring& reason, uint16_t& code, uint16_t& rejcode);
-		void setTcpNoDelay(int fd);
+		void setTcpNoDelay();
         int check_status(int status_code);
         
         Glib::ustring get_ip_str(const Glib::RefPtr<Gio::SocketAddress>& address);
@@ -188,12 +179,10 @@ inline const Glib::ustring& gIOSocket::getRejectionMessage() const
     return rejectionMessage;
 }
 
-//#ifndef USING_GIO_NETWORK
 inline State gIOSocket::getState() const
 {
     return state;
 }
-//#endif
 
 inline const unsigned char& gIOSocket::getId() const
 {

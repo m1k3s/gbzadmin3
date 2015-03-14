@@ -79,7 +79,7 @@ bool gSocket::connect(Glib::ustring host, int p)
 	// get the server IP string
 	serverIP = get_ip_str(&server_info);
 	
-	if (!create_connection(sockfd, true)) {
+	if (!create_connection(sockfd, true)) { // blocking is true
 		return false;
 	}
 	

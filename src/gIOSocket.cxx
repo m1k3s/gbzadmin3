@@ -114,7 +114,7 @@ bool gIOSocket::connect(Glib::ustring host, int p)
     
     socket->send(BZ_Connect_Header, (int)strlen(BZ_Connect_Header));
     
-    // check server version
+    // check server version and retrieve my ID
     try {
         socket->condition_wait (Glib::IO_IN);
     } catch (const Gio::Error& error) {
@@ -158,7 +158,7 @@ bool gIOSocket::connect(Glib::ustring host, int p)
     }
     
     // set tcp no delay
-    setTcpNoDelay(socket->get_fd());
+    setTcpNoDelay();
 
     state = Okay;
 	return true;
@@ -196,7 +196,7 @@ bool gIOSocket::tcp_data_pending(Glib::IOCondition cond)
     on_tcp_data_pending(cond);
     return true;
 }
-// uses class member sockfd - this function is used outside the class
+
 int gIOSocket::send(guint16 code, guint16 len, const void* msg)
 {
     if (state != Okay) {
@@ -213,7 +213,7 @@ int gIOSocket::send(guint16 code, guint16 len, const void* msg)
         buf = parser.nboPackString(buf, msg, len);
     }
 	try {
-        socket->condition_wait (Glib::IO_OUT);
+        socket->condition_wait(Glib::IO_OUT);
     } catch (const Gio::Error& error) {
         std::cerr << Glib::ustring::compose("%1\n", error.what ());
         return -1;
@@ -232,7 +232,6 @@ int gIOSocket::send(guint16 code, guint16 len, const void* msg)
     return sent;
 }
 
-// uses class member sockfd - this function is used outside the class
 // no need to select in this function, the IO signal was received so we 
 // should have data available.
 int gIOSocket::read(uint16_t& code, uint16_t& len, void* msg, int blockTime)
@@ -262,12 +261,12 @@ int gIOSocket::read(uint16_t& code, uint16_t& len, void* msg, int blockTime)
     buf = parser.nboUnpackUShort(buf, &code);
     
     if (len > 0) {
-	try {
-		rlen = socket->receive((char*)msg, (int)len);
-    } catch (const Gio::Error& error) {
-        std::cerr << Glib::ustring::compose ("Error receiving from socket: %1\n", error.what ());
-        return -1;
-    }
+		try {
+			rlen = socket->receive((char*)msg, (int)len);
+		} catch (const Gio::Error& error) {
+			std::cerr << Glib::ustring::compose ("Error receiving from socket: %1\n", error.what ());
+			return -1;
+		}
     } else {
         rlen = 0;
     }
@@ -332,14 +331,18 @@ bool gIOSocket::readEnter(Glib::ustring& reason, uint16_t& code, uint16_t& rejco
     return true;
 }
 
-void gIOSocket::setTcpNoDelay(int _sockfd)
+void gIOSocket::setTcpNoDelay()
 {
     gint off = 0;
     struct protoent *p = ::getprotobyname("tcp");
 
     if (p) {
-        ::setsockopt(_sockfd, p->p_proto, TCP_NODELAY, &off, sizeof(off));
-    }
+    	try {
+    	socket->set_option(p->p_proto, TCP_NODELAY, off);
+		} catch (const Gio::Error& error) {
+			std::cerr << Glib::ustring::compose ("socket->set_option(TCP_NODELAY): %1\n", error.what ());
+		}
+	}
 }
 
 void gIOSocket::resetNetStats()
