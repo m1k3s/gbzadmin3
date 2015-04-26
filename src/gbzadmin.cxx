@@ -2099,7 +2099,7 @@ void gbzadmin::print_message_code(guint16 code)
 void gbzadmin::logon()
 {
     set_status_message(StatusConnTime, "Connecting...");
-    while(Gtk::Main::events_pending()) {  // update the GUI before the connect phase
+    while (Gtk::Main::events_pending()) {  // update the GUI before the connect phase
         Gtk::Main::iteration();
     }
 	if (sock.connect(_server, _port)) {

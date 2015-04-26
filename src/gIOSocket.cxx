@@ -31,6 +31,10 @@ gIOSocket::gIOSocket()
     prev_flow = 0.0;
     prefetch_token = false;
     token = "";
+    bytesSent = 0;
+    bytesReceived = 0;
+    packetsSent = 0;
+    packetsReceived = 0;
 }
 
 gIOSocket::~gIOSocket()
@@ -472,14 +476,13 @@ Glib::ustring gIOSocket::get_ip_str(const Glib::RefPtr<Gio::SocketAddress>& addr
     Glib::ustring str, res;
     int port;
 
-    Glib::RefPtr<Gio::InetSocketAddress> isockaddr =
-        Glib::RefPtr<Gio::InetSocketAddress>::cast_dynamic (address);
+    Glib::RefPtr<Gio::InetSocketAddress> isockaddr = Glib::RefPtr<Gio::InetSocketAddress>::cast_dynamic(address);
     if (!isockaddr) {
-        return Glib::ustring ();
+        return Glib::ustring();
     }
-    inet_address = isockaddr->get_address ();
-    str = inet_address->to_string ();
-    port = isockaddr->get_port ();
-    res = Glib::ustring::compose ("%1:%2", str, port);
-    return res;
+    inet_address = isockaddr->get_address();
+    str = inet_address->to_string();
+    port = isockaddr->get_port();
+    return Glib::ustring::compose("%1:%2", str, port);
+//    return res;
 }

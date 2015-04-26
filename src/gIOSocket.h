@@ -158,10 +158,10 @@ class gIOSocket : public sigc::trackable
 
         // net stats
         time_t	startTime;
-        guint32	bytesSent;
-        guint32	bytesReceived;
-        guint32	packetsSent;
-        guint32	packetsReceived;
+        gssize	bytesSent;
+        gssize	bytesReceived;
+        gssize	packetsSent;
+        gssize	packetsReceived;
 };
 
 //class gIOSocketException : public std::exception
