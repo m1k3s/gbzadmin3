@@ -568,6 +568,7 @@ Gtk::Window *gbzadmin::init_gbzadmin(Glib::RefPtr<Gtk::Builder> _refBuilder)
     init_message_handler_map();
 
     set_status_message(StatusConnTime, "Disconnected");
+    set_status_message(StatusNetStats, "Calculating...");
 
     // replace the input dialog comboboxes with combotextboxes
     replace_input_placeholders();
@@ -2206,7 +2207,7 @@ bool gbzadmin::update_timer()
 
     if (sock.netStatsEnabled()) {
         char str[64];
-        ::sprintf(str, "Flow rate: %5.2fkbps", sock.bitFlow());
+        ::sprintf(str, "Flow rate: %5.2fKBps", sock.bitFlow() / 8.0); // Kilo Bytes per Second
         set_status_message(StatusNetStats, str);
     } else {
         set_status_message(StatusNetStats, "");
