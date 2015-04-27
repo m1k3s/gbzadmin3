@@ -33,8 +33,8 @@ gIOSocket::gIOSocket()
     token = "";
     bytesSent = 0;
     bytesReceived = 0;
-    packetsSent = 0;
-    packetsReceived = 0;
+//    packetsSent = 0;
+//    packetsReceived = 0;
 }
 
 gIOSocket::~gIOSocket()
@@ -231,7 +231,7 @@ int gIOSocket::send(guint16 code, guint16 len, const void* msg)
     
     if (netStats) {
         bytesSent += sent;
-        packetsSent++;
+//        packetsSent++;
     }
     return sent;
 }
@@ -257,7 +257,7 @@ int gIOSocket::read(uint16_t& code, uint16_t& len, void* msg, int blockTime)
     }
     if (netStats) {
         bytesReceived += 4;
-        packetsReceived++;
+//        packetsReceived++;
     }
     // unpack header and get message
     void* buf = headerBuffer;
@@ -354,25 +354,23 @@ void gIOSocket::resetNetStats()
     startTime = time(0);
     bytesSent = 0;
     bytesReceived = 0;
-    packetsSent = 0;
-    packetsReceived = 0;
+//    packetsSent = 0;
+//    packetsReceived = 0;
 }
 
-float gIOSocket::bitFlow()
+float gIOSocket::totalBitsPerSecondRate()
 {
     time_t now = time(0);
     double dt = difftime(now, startTime);
 
-    // one minute moving average
-    // average = ((prev_avg - bitspersec) * exp(-dt/secondsperminute)) + bitspersec
+	// one minute moving (exponential decaying) average
     float bitsTotal = (float)(bytesReceived + bytesSent) * 8.0;
-    float bps = bitsTotal / 1000.0; // kilobits/sec
-    float flow = ((prev_flow - bps) * exp(-dt / 60.0)) + bps;
-    prev_flow = flow; // member variable
+    float cur_flow = ((prev_flow - bitsTotal) * exp(-dt / 60.0)) + bitsTotal;
+    prev_flow = cur_flow;
 
     resetNetStats();
 
-    return flow;
+    return cur_flow;
 }
 
 void gIOSocket::sendLagPing(char pingRequest[2])

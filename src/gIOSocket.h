@@ -99,12 +99,12 @@ class gIOSocket : public sigc::trackable
         guint32 get_bitsReceived() {
             return bytesReceived * 8;
         }
-        guint32 get_packetsSent() {
-            return packetsSent;
-        }
-        guint32 get_packetsRecevied() {
-            return packetsReceived;
-        }
+//        guint32 get_packetsSent() {
+//            return packetsSent;
+//        }
+//        guint32 get_packetsRecevied() {
+//            return packetsReceived;
+//        }
         guint32 get_bitsTotal() {
             return (bytesReceived + bytesSent) * 8;
         }
@@ -116,7 +116,7 @@ class gIOSocket : public sigc::trackable
             netStats = set;
             resetNetStats();
         }
-        float bitFlow();
+        float totalBitsPerSecondRate();
 
         bool resolve_host(const Glib::ustring& host, const Glib::ustring& port);
 
@@ -160,8 +160,8 @@ class gIOSocket : public sigc::trackable
         time_t	startTime;
         gssize	bytesSent;
         gssize	bytesReceived;
-        gssize	packetsSent;
-        gssize	packetsReceived;
+//        gssize	packetsSent;
+//        gssize	packetsReceived;
 };
 
 //class gIOSocketException : public std::exception
