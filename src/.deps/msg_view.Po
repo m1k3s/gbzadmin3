@@ -1,47 +1,35 @@
 msg_view.o: msg_view.cxx /usr/include/stdc-predef.h msg_view.h \
  /usr/include/gtkmm-2.4/gtkmm.h /usr/include/glibmm-2.4/glibmm.h \
- /usr/lib/x86_64-linux-gnu/glibmm-2.4/include/glibmmconfig.h \
+ /usr/lib/glibmm-2.4/include/glibmmconfig.h \
  /usr/include/glibmm-2.4/glibmm/thread.h /usr/include/glib-2.0/glib.h \
  /usr/include/glib-2.0/glib/galloca.h /usr/include/glib-2.0/glib/gtypes.h \
- /usr/lib/x86_64-linux-gnu/glib-2.0/include/glibconfig.h \
+ /usr/lib/glib-2.0/include/glibconfig.h \
  /usr/include/glib-2.0/glib/gmacros.h \
- /usr/lib/gcc/x86_64-linux-gnu/4.9/include/stddef.h \
- /usr/lib/gcc/x86_64-linux-gnu/4.9/include-fixed/limits.h \
- /usr/lib/gcc/x86_64-linux-gnu/4.9/include-fixed/syslimits.h \
- /usr/include/limits.h /usr/include/features.h \
- /usr/include/x86_64-linux-gnu/sys/cdefs.h \
- /usr/include/x86_64-linux-gnu/bits/wordsize.h \
- /usr/include/x86_64-linux-gnu/gnu/stubs.h \
- /usr/include/x86_64-linux-gnu/gnu/stubs-64.h \
- /usr/include/x86_64-linux-gnu/bits/posix1_lim.h \
- /usr/include/x86_64-linux-gnu/bits/local_lim.h \
- /usr/include/linux/limits.h \
- /usr/include/x86_64-linux-gnu/bits/posix2_lim.h \
- /usr/include/x86_64-linux-gnu/bits/xopen_lim.h \
- /usr/include/x86_64-linux-gnu/bits/stdio_lim.h \
- /usr/lib/gcc/x86_64-linux-gnu/4.9/include/float.h \
+ /usr/lib/gcc/x86_64-unknown-linux-gnu/5.1.0/include/stddef.h \
+ /usr/lib/gcc/x86_64-unknown-linux-gnu/5.1.0/include-fixed/limits.h \
+ /usr/lib/gcc/x86_64-unknown-linux-gnu/5.1.0/include-fixed/syslimits.h \
+ /usr/include/limits.h /usr/include/features.h /usr/include/sys/cdefs.h \
+ /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h \
+ /usr/include/gnu/stubs-64.h /usr/include/bits/posix1_lim.h \
+ /usr/include/bits/local_lim.h /usr/include/linux/limits.h \
+ /usr/include/bits/posix2_lim.h /usr/include/bits/xopen_lim.h \
+ /usr/include/bits/stdio_lim.h \
+ /usr/lib/gcc/x86_64-unknown-linux-gnu/5.1.0/include/float.h \
  /usr/include/glib-2.0/glib/gversionmacros.h /usr/include/time.h \
- /usr/include/x86_64-linux-gnu/bits/time.h \
- /usr/include/x86_64-linux-gnu/bits/types.h \
- /usr/include/x86_64-linux-gnu/bits/typesizes.h \
- /usr/include/x86_64-linux-gnu/bits/timex.h /usr/include/xlocale.h \
- /usr/include/glib-2.0/glib/garray.h \
+ /usr/include/bits/time.h /usr/include/bits/types.h \
+ /usr/include/bits/typesizes.h /usr/include/bits/timex.h \
+ /usr/include/xlocale.h /usr/include/glib-2.0/glib/garray.h \
  /usr/include/glib-2.0/glib/gasyncqueue.h \
  /usr/include/glib-2.0/glib/gthread.h \
  /usr/include/glib-2.0/glib/gatomic.h /usr/include/glib-2.0/glib/gerror.h \
- /usr/lib/gcc/x86_64-linux-gnu/4.9/include/stdarg.h \
+ /usr/lib/gcc/x86_64-unknown-linux-gnu/5.1.0/include/stdarg.h \
  /usr/include/glib-2.0/glib/gquark.h /usr/include/glib-2.0/glib/gutils.h \
  /usr/include/glib-2.0/glib/gbacktrace.h /usr/include/signal.h \
- /usr/include/x86_64-linux-gnu/bits/sigset.h \
- /usr/include/x86_64-linux-gnu/bits/signum.h \
- /usr/include/x86_64-linux-gnu/bits/siginfo.h \
- /usr/include/x86_64-linux-gnu/bits/sigaction.h \
- /usr/include/x86_64-linux-gnu/bits/sigcontext.h \
- /usr/include/x86_64-linux-gnu/bits/sigstack.h \
- /usr/include/x86_64-linux-gnu/sys/ucontext.h \
- /usr/include/x86_64-linux-gnu/bits/pthreadtypes.h \
- /usr/include/x86_64-linux-gnu/bits/sigthread.h \
- /usr/include/glib-2.0/glib/gbase64.h \
+ /usr/include/bits/sigset.h /usr/include/bits/signum.h \
+ /usr/include/bits/siginfo.h /usr/include/bits/sigaction.h \
+ /usr/include/bits/sigcontext.h /usr/include/bits/sigstack.h \
+ /usr/include/sys/ucontext.h /usr/include/bits/pthreadtypes.h \
+ /usr/include/bits/sigthread.h /usr/include/glib-2.0/glib/gbase64.h \
  /usr/include/glib-2.0/glib/gbitlock.h \
  /usr/include/glib-2.0/glib/gbookmarkfile.h \
  /usr/include/glib-2.0/glib/gbytes.h \
@@ -51,7 +39,7 @@ msg_view.o: msg_view.cxx /usr/include/stdc-predef.h msg_view.h \
  /usr/include/glib-2.0/glib/gdataset.h /usr/include/glib-2.0/glib/gdate.h \
  /usr/include/glib-2.0/glib/gdatetime.h \
  /usr/include/glib-2.0/glib/gtimezone.h /usr/include/glib-2.0/glib/gdir.h \
- /usr/include/dirent.h /usr/include/x86_64-linux-gnu/bits/dirent.h \
+ /usr/include/dirent.h /usr/include/bits/dirent.h \
  /usr/include/glib-2.0/glib/genviron.h \
  /usr/include/glib-2.0/glib/gfileutils.h \
  /usr/include/glib-2.0/glib/ggettext.h /usr/include/glib-2.0/glib/ghash.h \
@@ -93,91 +81,87 @@ msg_view.o: msg_view.cxx /usr/include/stdc-predef.h msg_view.h \
  /usr/include/glib-2.0/glib/deprecated/gcompletion.h \
  /usr/include/glib-2.0/glib/deprecated/gmain.h \
  /usr/include/glib-2.0/glib/deprecated/grel.h \
- /usr/include/glib-2.0/glib/deprecated/gthread.h \
- /usr/include/x86_64-linux-gnu/sys/types.h /usr/include/endian.h \
- /usr/include/x86_64-linux-gnu/bits/endian.h \
- /usr/include/x86_64-linux-gnu/bits/byteswap.h \
- /usr/include/x86_64-linux-gnu/bits/byteswap-16.h \
- /usr/include/x86_64-linux-gnu/sys/select.h \
- /usr/include/x86_64-linux-gnu/bits/select.h \
- /usr/include/x86_64-linux-gnu/bits/select2.h \
- /usr/include/x86_64-linux-gnu/sys/sysmacros.h /usr/include/pthread.h \
- /usr/include/sched.h /usr/include/x86_64-linux-gnu/bits/sched.h \
- /usr/include/x86_64-linux-gnu/bits/setjmp.h \
+ /usr/include/glib-2.0/glib/deprecated/gthread.h /usr/include/sys/types.h \
+ /usr/include/endian.h /usr/include/bits/endian.h \
+ /usr/include/bits/byteswap.h /usr/include/bits/byteswap-16.h \
+ /usr/include/sys/select.h /usr/include/bits/select.h \
+ /usr/include/sys/sysmacros.h /usr/include/pthread.h /usr/include/sched.h \
+ /usr/include/bits/sched.h /usr/include/bits/setjmp.h \
  /usr/include/glib-2.0/glib/glib-autocleanups.h \
  /usr/include/glibmm-2.4/glibmm/error.h \
  /usr/include/glibmm-2.4/glibmm/exception.h \
  /usr/include/glibmm-2.4/glibmm/ustring.h \
- /usr/include/glibmm-2.4/glibmm/unicode.h /usr/include/c++/4.9/cctype \
- /usr/include/x86_64-linux-gnu/c++/4.9/bits/c++config.h \
- /usr/include/x86_64-linux-gnu/c++/4.9/bits/os_defines.h \
- /usr/include/x86_64-linux-gnu/c++/4.9/bits/cpu_defines.h \
- /usr/include/ctype.h /usr/include/c++/4.9/iosfwd \
- /usr/include/c++/4.9/bits/stringfwd.h \
- /usr/include/c++/4.9/bits/memoryfwd.h \
- /usr/include/c++/4.9/bits/postypes.h /usr/include/c++/4.9/cwchar \
- /usr/include/wchar.h /usr/include/stdio.h \
- /usr/include/x86_64-linux-gnu/bits/wchar.h \
- /usr/include/x86_64-linux-gnu/bits/wchar2.h \
- /usr/include/c++/4.9/iterator \
- /usr/include/c++/4.9/bits/stl_iterator_base_types.h \
- /usr/include/c++/4.9/bits/stl_iterator_base_funcs.h \
- /usr/include/c++/4.9/bits/concept_check.h \
- /usr/include/c++/4.9/debug/debug.h \
- /usr/include/c++/4.9/bits/stl_iterator.h \
- /usr/include/c++/4.9/bits/cpp_type_traits.h \
- /usr/include/c++/4.9/ext/type_traits.h /usr/include/c++/4.9/bits/move.h \
- /usr/include/c++/4.9/bits/ptr_traits.h /usr/include/c++/4.9/ostream \
- /usr/include/c++/4.9/ios /usr/include/c++/4.9/exception \
- /usr/include/c++/4.9/bits/atomic_lockfree_defines.h \
- /usr/include/c++/4.9/bits/char_traits.h \
- /usr/include/c++/4.9/bits/stl_algobase.h \
- /usr/include/c++/4.9/bits/functexcept.h \
- /usr/include/c++/4.9/bits/exception_defines.h \
- /usr/include/c++/4.9/ext/numeric_traits.h \
- /usr/include/c++/4.9/bits/stl_pair.h \
- /usr/include/c++/4.9/bits/predefined_ops.h \
- /usr/include/c++/4.9/bits/localefwd.h \
- /usr/include/x86_64-linux-gnu/c++/4.9/bits/c++locale.h \
- /usr/include/c++/4.9/clocale /usr/include/locale.h \
- /usr/include/x86_64-linux-gnu/bits/locale.h \
- /usr/include/c++/4.9/bits/ios_base.h \
- /usr/include/c++/4.9/ext/atomicity.h \
- /usr/include/x86_64-linux-gnu/c++/4.9/bits/gthr.h \
- /usr/include/x86_64-linux-gnu/c++/4.9/bits/gthr-default.h \
- /usr/include/x86_64-linux-gnu/c++/4.9/bits/atomic_word.h \
- /usr/include/c++/4.9/bits/locale_classes.h /usr/include/c++/4.9/string \
- /usr/include/c++/4.9/bits/allocator.h \
- /usr/include/x86_64-linux-gnu/c++/4.9/bits/c++allocator.h \
- /usr/include/c++/4.9/ext/new_allocator.h /usr/include/c++/4.9/new \
- /usr/include/c++/4.9/bits/ostream_insert.h \
- /usr/include/c++/4.9/bits/cxxabi_forced.h \
- /usr/include/c++/4.9/bits/stl_function.h \
- /usr/include/c++/4.9/backward/binders.h \
- /usr/include/c++/4.9/bits/range_access.h \
- /usr/include/c++/4.9/bits/basic_string.h \
- /usr/include/c++/4.9/bits/basic_string.tcc \
- /usr/include/c++/4.9/bits/locale_classes.tcc \
- /usr/include/c++/4.9/streambuf /usr/include/c++/4.9/bits/streambuf.tcc \
- /usr/include/c++/4.9/bits/basic_ios.h \
- /usr/include/c++/4.9/bits/locale_facets.h /usr/include/c++/4.9/cwctype \
- /usr/include/wctype.h \
- /usr/include/x86_64-linux-gnu/c++/4.9/bits/ctype_base.h \
- /usr/include/c++/4.9/bits/streambuf_iterator.h \
- /usr/include/x86_64-linux-gnu/c++/4.9/bits/ctype_inline.h \
- /usr/include/c++/4.9/bits/locale_facets.tcc \
- /usr/include/c++/4.9/bits/basic_ios.tcc \
- /usr/include/c++/4.9/bits/ostream.tcc /usr/include/c++/4.9/istream \
- /usr/include/c++/4.9/bits/istream.tcc \
- /usr/include/c++/4.9/bits/stream_iterator.h /usr/include/c++/4.9/sstream \
- /usr/include/c++/4.9/bits/sstream.tcc \
+ /usr/include/glibmm-2.4/glibmm/unicode.h /usr/include/c++/5.1.0/cctype \
+ /usr/include/c++/5.1.0/x86_64-unknown-linux-gnu/bits/c++config.h \
+ /usr/include/c++/5.1.0/x86_64-unknown-linux-gnu/bits/os_defines.h \
+ /usr/include/c++/5.1.0/x86_64-unknown-linux-gnu/bits/cpu_defines.h \
+ /usr/include/ctype.h /usr/include/c++/5.1.0/iosfwd \
+ /usr/include/c++/5.1.0/bits/stringfwd.h \
+ /usr/include/c++/5.1.0/bits/memoryfwd.h \
+ /usr/include/c++/5.1.0/bits/postypes.h /usr/include/c++/5.1.0/cwchar \
+ /usr/include/wchar.h /usr/include/stdio.h /usr/include/bits/wchar.h \
+ /usr/include/c++/5.1.0/iterator \
+ /usr/include/c++/5.1.0/bits/stl_iterator_base_types.h \
+ /usr/include/c++/5.1.0/bits/stl_iterator_base_funcs.h \
+ /usr/include/c++/5.1.0/bits/concept_check.h \
+ /usr/include/c++/5.1.0/debug/debug.h \
+ /usr/include/c++/5.1.0/bits/stl_iterator.h \
+ /usr/include/c++/5.1.0/bits/cpp_type_traits.h \
+ /usr/include/c++/5.1.0/ext/type_traits.h \
+ /usr/include/c++/5.1.0/bits/move.h \
+ /usr/include/c++/5.1.0/bits/ptr_traits.h /usr/include/c++/5.1.0/ostream \
+ /usr/include/c++/5.1.0/ios /usr/include/c++/5.1.0/exception \
+ /usr/include/c++/5.1.0/bits/atomic_lockfree_defines.h \
+ /usr/include/c++/5.1.0/bits/char_traits.h \
+ /usr/include/c++/5.1.0/bits/stl_algobase.h \
+ /usr/include/c++/5.1.0/bits/functexcept.h \
+ /usr/include/c++/5.1.0/bits/exception_defines.h \
+ /usr/include/c++/5.1.0/ext/numeric_traits.h \
+ /usr/include/c++/5.1.0/bits/stl_pair.h \
+ /usr/include/c++/5.1.0/bits/predefined_ops.h \
+ /usr/include/c++/5.1.0/bits/localefwd.h \
+ /usr/include/c++/5.1.0/x86_64-unknown-linux-gnu/bits/c++locale.h \
+ /usr/include/c++/5.1.0/clocale /usr/include/locale.h \
+ /usr/include/bits/locale.h /usr/include/c++/5.1.0/bits/ios_base.h \
+ /usr/include/c++/5.1.0/ext/atomicity.h \
+ /usr/include/c++/5.1.0/x86_64-unknown-linux-gnu/bits/gthr.h \
+ /usr/include/c++/5.1.0/x86_64-unknown-linux-gnu/bits/gthr-default.h \
+ /usr/include/c++/5.1.0/x86_64-unknown-linux-gnu/bits/atomic_word.h \
+ /usr/include/c++/5.1.0/bits/locale_classes.h \
+ /usr/include/c++/5.1.0/string /usr/include/c++/5.1.0/bits/allocator.h \
+ /usr/include/c++/5.1.0/x86_64-unknown-linux-gnu/bits/c++allocator.h \
+ /usr/include/c++/5.1.0/ext/new_allocator.h /usr/include/c++/5.1.0/new \
+ /usr/include/c++/5.1.0/bits/ostream_insert.h \
+ /usr/include/c++/5.1.0/bits/cxxabi_forced.h \
+ /usr/include/c++/5.1.0/bits/stl_function.h \
+ /usr/include/c++/5.1.0/backward/binders.h \
+ /usr/include/c++/5.1.0/bits/range_access.h \
+ /usr/include/c++/5.1.0/bits/basic_string.h \
+ /usr/include/c++/5.1.0/ext/alloc_traits.h \
+ /usr/include/c++/5.1.0/bits/basic_string.tcc \
+ /usr/include/c++/5.1.0/bits/locale_classes.tcc \
+ /usr/include/c++/5.1.0/stdexcept /usr/include/c++/5.1.0/streambuf \
+ /usr/include/c++/5.1.0/bits/streambuf.tcc \
+ /usr/include/c++/5.1.0/bits/basic_ios.h \
+ /usr/include/c++/5.1.0/bits/locale_facets.h \
+ /usr/include/c++/5.1.0/cwctype /usr/include/wctype.h \
+ /usr/include/c++/5.1.0/x86_64-unknown-linux-gnu/bits/ctype_base.h \
+ /usr/include/c++/5.1.0/bits/streambuf_iterator.h \
+ /usr/include/c++/5.1.0/x86_64-unknown-linux-gnu/bits/ctype_inline.h \
+ /usr/include/c++/5.1.0/bits/locale_facets.tcc \
+ /usr/include/c++/5.1.0/bits/basic_ios.tcc \
+ /usr/include/c++/5.1.0/bits/ostream.tcc /usr/include/c++/5.1.0/istream \
+ /usr/include/c++/5.1.0/bits/istream.tcc \
+ /usr/include/c++/5.1.0/bits/stream_iterator.h \
+ /usr/include/c++/5.1.0/sstream /usr/include/c++/5.1.0/bits/sstream.tcc \
  /usr/include/glibmm-2.4/glibmm/timeval.h \
  /usr/include/sigc++-2.0/sigc++/sigc++.h \
- /usr/include/sigc++-2.0/sigc++/signal.h /usr/include/c++/4.9/list \
- /usr/include/c++/4.9/bits/stl_list.h /usr/include/c++/4.9/bits/list.tcc \
+ /usr/include/sigc++-2.0/sigc++/signal.h /usr/include/c++/5.1.0/list \
+ /usr/include/c++/5.1.0/bits/stl_list.h \
+ /usr/include/c++/5.1.0/bits/list.tcc \
  /usr/include/sigc++-2.0/sigc++/signal_base.h \
- /usr/include/c++/4.9/cstddef \
- /usr/lib/x86_64-linux-gnu/sigc++-2.0/include/sigc++config.h \
+ /usr/include/c++/5.1.0/cstddef \
+ /usr/lib/sigc++-2.0/include/sigc++config.h \
  /usr/include/sigc++-2.0/sigc++/type_traits.h \
  /usr/include/sigc++-2.0/sigc++/trackable.h \
  /usr/include/sigc++-2.0/sigc++/functors/slot.h \
@@ -232,18 +216,18 @@ msg_view.o: msg_view.cxx /usr/include/stdc-predef.h msg_view.h \
  /usr/include/glib-2.0/gobject/gvaluearray.h \
  /usr/include/glib-2.0/gobject/gvaluetypes.h \
  /usr/include/glib-2.0/gobject/gobject-autocleanups.h \
- /usr/include/c++/4.9/vector /usr/include/c++/4.9/bits/stl_construct.h \
- /usr/include/c++/4.9/ext/alloc_traits.h \
- /usr/include/c++/4.9/bits/stl_uninitialized.h \
- /usr/include/c++/4.9/bits/stl_vector.h \
- /usr/include/c++/4.9/bits/stl_bvector.h \
- /usr/include/c++/4.9/bits/vector.tcc \
+ /usr/include/c++/5.1.0/vector \
+ /usr/include/c++/5.1.0/bits/stl_construct.h \
+ /usr/include/c++/5.1.0/bits/stl_uninitialized.h \
+ /usr/include/c++/5.1.0/bits/stl_vector.h \
+ /usr/include/c++/5.1.0/bits/stl_bvector.h \
+ /usr/include/c++/5.1.0/bits/vector.tcc \
  /usr/include/glibmm-2.4/glibmm/variantiter.h \
- /usr/include/c++/4.9/utility /usr/include/c++/4.9/bits/stl_relops.h \
- /usr/include/c++/4.9/map /usr/include/c++/4.9/bits/stl_tree.h \
- /usr/include/c++/4.9/bits/stl_map.h \
- /usr/include/c++/4.9/bits/stl_multimap.h /usr/include/c++/4.9/stdexcept \
- /usr/include/c++/4.9/typeinfo \
+ /usr/include/c++/5.1.0/utility /usr/include/c++/5.1.0/bits/stl_relops.h \
+ /usr/include/c++/5.1.0/map /usr/include/c++/5.1.0/bits/stl_tree.h \
+ /usr/include/c++/5.1.0/bits/stl_map.h \
+ /usr/include/c++/5.1.0/bits/stl_multimap.h \
+ /usr/include/c++/5.1.0/typeinfo \
  /usr/include/glibmm-2.4/glibmm/variant_basictypes.h \
  /usr/include/glibmm-2.4/glibmm/wrap.h \
  /usr/include/glibmm-2.4/glibmm/objectbase.h \
@@ -256,28 +240,30 @@ msg_view.o: msg_view.cxx /usr/include/stdc-predef.h msg_view.h \
  /usr/include/glibmm-2.4/glibmm/value_custom.h \
  /usr/include/glibmm-2.4/glibmm/value_basictypes.h \
  /usr/include/glibmm-2.4/glibmm/quark.h \
- /usr/include/glibmm-2.4/glibmm/debug.h /usr/include/c++/4.9/memory \
- /usr/include/c++/4.9/bits/stl_tempbuf.h \
- /usr/include/c++/4.9/bits/stl_raw_storage_iter.h \
- /usr/include/c++/4.9/backward/auto_ptr.h /usr/include/c++/4.9/algorithm \
- /usr/include/c++/4.9/bits/stl_algo.h /usr/include/c++/4.9/cstdlib \
- /usr/include/stdlib.h /usr/include/x86_64-linux-gnu/bits/waitflags.h \
- /usr/include/x86_64-linux-gnu/bits/waitstatus.h /usr/include/alloca.h \
- /usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h \
- /usr/include/x86_64-linux-gnu/bits/stdlib-float.h \
- /usr/include/x86_64-linux-gnu/bits/stdlib.h \
- /usr/include/c++/4.9/bits/algorithmfwd.h \
- /usr/include/c++/4.9/bits/stl_heap.h /usr/include/c++/4.9/deque \
- /usr/include/c++/4.9/bits/stl_deque.h \
- /usr/include/c++/4.9/bits/deque.tcc \
+ /usr/include/glibmm-2.4/glibmm/debug.h /usr/include/c++/5.1.0/memory \
+ /usr/include/c++/5.1.0/bits/stl_tempbuf.h \
+ /usr/include/c++/5.1.0/bits/stl_raw_storage_iter.h \
+ /usr/include/c++/5.1.0/backward/auto_ptr.h \
+ /usr/include/c++/5.1.0/algorithm /usr/include/c++/5.1.0/bits/stl_algo.h \
+ /usr/include/c++/5.1.0/cstdlib /usr/include/stdlib.h \
+ /usr/include/bits/waitflags.h /usr/include/bits/waitstatus.h \
+ /usr/include/alloca.h /usr/include/bits/stdlib-bsearch.h \
+ /usr/include/bits/stdlib-float.h \
+ /usr/include/c++/5.1.0/bits/algorithmfwd.h \
+ /usr/include/c++/5.1.0/bits/stl_heap.h /usr/include/c++/5.1.0/deque \
+ /usr/include/c++/5.1.0/bits/stl_deque.h \
+ /usr/include/c++/5.1.0/bits/deque.tcc \
  /usr/include/glibmm-2.4/glibmm/balancedtree.h \
  /usr/include/glibmm-2.4/glibmm/base64.h \
+ /usr/include/glibmm-2.4/glibmm/binding.h \
+ /usr/include/glibmm-2.4/glibmm/object.h \
+ /usr/include/glibmm-2.4/glibmm/utility.h \
  /usr/include/glibmm-2.4/glibmm/bytearray.h \
  /usr/include/sigc++-2.0/sigc++/slot.h \
  /usr/include/glibmm-2.4/glibmm/bytes.h \
  /usr/include/glibmm-2.4/glibmm/checksum.h \
  /usr/include/glibmm-2.4/glibmm/convert.h \
- /usr/include/glibmm-2.4/glibmm/date.h /usr/include/c++/4.9/ctime \
+ /usr/include/glibmm-2.4/glibmm/date.h /usr/include/c++/5.1.0/ctime \
  /usr/include/glibmm-2.4/glibmm/datetime.h \
  /usr/include/glibmm-2.4/glibmm/dispatcher.h \
  /usr/include/glibmm-2.4/glibmm/main.h \
@@ -289,8 +275,6 @@ msg_view.o: msg_view.cxx /usr/include/stdc-predef.h msg_view.h \
  /usr/include/glibmm-2.4/glibmm/containers.h \
  /usr/include/glibmm-2.4/glibmm/sarray.h \
  /usr/include/glibmm-2.4/glibmm/interface.h \
- /usr/include/glibmm-2.4/glibmm/object.h \
- /usr/include/glibmm-2.4/glibmm/utility.h \
  /usr/include/glibmm-2.4/glibmm/init.h \
  /usr/include/glibmm-2.4/glibmm/keyfile.h \
  /usr/include/glibmm-2.4/glibmm/streamiochannel.h \
@@ -298,8 +282,8 @@ msg_view.o: msg_view.cxx /usr/include/stdc-predef.h msg_view.h \
  /usr/include/glibmm-2.4/glibmm/markup.h \
  /usr/include/glibmm-2.4/glibmm/miscutils.h \
  /usr/include/glibmm-2.4/glibmm/module.h \
- /usr/include/glibmm-2.4/glibmm/nodetree.h /usr/include/c++/4.9/stack \
- /usr/include/c++/4.9/bits/stl_stack.h \
+ /usr/include/glibmm-2.4/glibmm/nodetree.h /usr/include/c++/5.1.0/stack \
+ /usr/include/c++/5.1.0/bits/stl_stack.h \
  /usr/include/glibmm-2.4/glibmm/optioncontext.h \
  /usr/include/glibmm-2.4/glibmm/optionentry.h \
  /usr/include/glibmm-2.4/glibmm/optiongroup.h \
@@ -344,10 +328,8 @@ msg_view.o: msg_view.cxx /usr/include/stdc-predef.h msg_view.h \
  /usr/include/glib-2.0/gio/gconverterinputstream.h \
  /usr/include/glib-2.0/gio/gconverteroutputstream.h \
  /usr/include/glib-2.0/gio/gcredentials.h /usr/include/unistd.h \
- /usr/include/x86_64-linux-gnu/bits/posix_opt.h \
- /usr/include/x86_64-linux-gnu/bits/environments.h \
- /usr/include/x86_64-linux-gnu/bits/confname.h /usr/include/getopt.h \
- /usr/include/x86_64-linux-gnu/bits/unistd.h \
+ /usr/include/bits/posix_opt.h /usr/include/bits/environments.h \
+ /usr/include/bits/confname.h /usr/include/getopt.h \
  /usr/include/glib-2.0/gio/gdatainputstream.h \
  /usr/include/glib-2.0/gio/gdataoutputstream.h \
  /usr/include/glib-2.0/gio/gdbusaddress.h \
@@ -469,7 +451,7 @@ msg_view.o: msg_view.cxx /usr/include/stdc-predef.h msg_view.h \
  /usr/include/giomm-2.4/giomm/applaunchcontext.h \
  /usr/include/giomm-2.4/giomm/icon.h \
  /usr/include/giomm-2.4/giomm/application.h \
- /usr/lib/x86_64-linux-gnu/giomm-2.4/include/giommconfig.h \
+ /usr/lib/giomm-2.4/include/giommconfig.h \
  /usr/include/giomm-2.4/giomm/applicationcommandline.h \
  /usr/include/giomm-2.4/giomm/file.h \
  /usr/include/giomm-2.4/giomm/asyncresult.h \
@@ -569,6 +551,7 @@ msg_view.o: msg_view.cxx /usr/include/stdc-predef.h msg_view.h \
  /usr/include/giomm-2.4/giomm/socketservice.h \
  /usr/include/giomm-2.4/giomm/socketsource.h \
  /usr/include/giomm-2.4/giomm/tcpconnection.h \
+ /usr/include/giomm-2.4/giomm/tcpwrapperconnection.h \
  /usr/include/giomm-2.4/giomm/themedicon.h \
  /usr/include/giomm-2.4/giomm/threadedsocketservice.h \
  /usr/include/giomm-2.4/giomm/tlscertificate.h \
@@ -618,11 +601,8 @@ msg_view.o: msg_view.cxx /usr/include/stdc-predef.h msg_view.h \
  /usr/include/pango-1.0/pango/pango-tabs.h \
  /usr/include/pango-1.0/pango/pango-renderer.h \
  /usr/include/pango-1.0/pango/pango-utils.h /usr/include/libio.h \
- /usr/include/_G_config.h \
- /usr/include/x86_64-linux-gnu/bits/sys_errlist.h \
- /usr/include/x86_64-linux-gnu/bits/stdio.h \
- /usr/include/x86_64-linux-gnu/bits/stdio2.h \
- /usr/lib/x86_64-linux-gnu/gtk-2.0/include/gdkconfig.h \
+ /usr/include/_G_config.h /usr/include/bits/sys_errlist.h \
+ /usr/include/bits/stdio.h /usr/lib/gtk-2.0/include/gdkconfig.h \
  /usr/include/gtk-2.0/gdk/gdkdisplay.h \
  /usr/include/gtk-2.0/gdk/gdkevents.h /usr/include/gtk-2.0/gdk/gdkcolor.h \
  /usr/include/gtk-2.0/gdk/gdkdnd.h /usr/include/gtk-2.0/gdk/gdkinput.h \
@@ -653,29 +633,22 @@ msg_view.o: msg_view.cxx /usr/include/stdc-predef.h msg_view.h \
  /usr/include/gtk-2.0/gdk/gdkwindow.h \
  /usr/include/gtk-2.0/gdk/gdkvisual.h \
  /usr/include/gdkmm-2.4/gdkmm/types.h \
- /usr/lib/x86_64-linux-gnu/gdkmm-2.4/include/gdkmmconfig.h \
- /usr/lib/x86_64-linux-gnu/pangomm-1.4/include/pangommconfig.h \
+ /usr/lib/gdkmm-2.4/include/gdkmmconfig.h \
+ /usr/lib/pangomm-1.4/include/pangommconfig.h \
  /usr/include/gdkmm-2.4/gdkmm/rectangle.h \
  /usr/include/cairomm-1.0/cairomm/fontoptions.h \
  /usr/include/cairomm-1.0/cairomm/enums.h /usr/include/cairo/cairo-ft.h \
  /usr/include/cairo/cairo.h /usr/include/freetype2/ft2build.h \
  /usr/include/freetype2/config/ftheader.h \
- /usr/include/x86_64-linux-gnu/freetype2/config/ftheader.h \
  /usr/include/freetype2/freetype.h \
  /usr/include/freetype2/config/ftconfig.h \
- /usr/include/x86_64-linux-gnu/freetype2/config/ftconfig.h \
  /usr/include/freetype2/config/ftoption.h \
- /usr/include/x86_64-linux-gnu/freetype2/config/ftoption.h \
- /usr/include/freetype2/config/ftstdlib.h \
- /usr/include/x86_64-linux-gnu/freetype2/config/ftstdlib.h \
- /usr/include/string.h /usr/include/x86_64-linux-gnu/bits/string3.h \
- /usr/include/setjmp.h /usr/include/x86_64-linux-gnu/bits/setjmp2.h \
- /usr/include/freetype2/fttypes.h /usr/include/freetype2/ftsystem.h \
- /usr/include/freetype2/ftimage.h /usr/include/freetype2/fterrors.h \
- /usr/include/freetype2/ftmoderr.h /usr/include/freetype2/fterrdef.h \
- /usr/include/fontconfig/fontconfig.h \
- /usr/include/x86_64-linux-gnu/sys/stat.h \
- /usr/include/x86_64-linux-gnu/bits/stat.h \
+ /usr/include/freetype2/config/ftstdlib.h /usr/include/string.h \
+ /usr/include/setjmp.h /usr/include/freetype2/fttypes.h \
+ /usr/include/freetype2/ftsystem.h /usr/include/freetype2/ftimage.h \
+ /usr/include/freetype2/fterrors.h /usr/include/freetype2/ftmoderr.h \
+ /usr/include/freetype2/fterrdef.h /usr/include/fontconfig/fontconfig.h \
+ /usr/include/sys/stat.h /usr/include/bits/stat.h \
  /usr/include/gdkmm-2.4/gdkmm/visual.h /usr/include/gdkmm-2.4/gdkmm/gc.h \
  /usr/include/gdkmm-2.4/gdkmm/drawable.h \
  /usr/include/pangomm-1.4/pangomm/font.h \
@@ -709,24 +682,21 @@ msg_view.o: msg_view.cxx /usr/include/stdc-predef.h msg_view.h \
  /usr/include/cairomm-1.0/cairomm/pattern.h \
  /usr/include/cairomm-1.0/cairomm/path.h \
  /usr/include/cairomm-1.0/cairomm/scaledfont.h \
- /usr/include/c++/4.9/valarray /usr/include/c++/4.9/cmath \
- /usr/include/math.h /usr/include/x86_64-linux-gnu/bits/huge_val.h \
- /usr/include/x86_64-linux-gnu/bits/huge_valf.h \
- /usr/include/x86_64-linux-gnu/bits/huge_vall.h \
- /usr/include/x86_64-linux-gnu/bits/inf.h \
- /usr/include/x86_64-linux-gnu/bits/nan.h \
- /usr/include/x86_64-linux-gnu/bits/mathdef.h \
- /usr/include/x86_64-linux-gnu/bits/mathcalls.h \
- /usr/include/x86_64-linux-gnu/bits/mathinline.h \
- /usr/include/c++/4.9/bits/valarray_array.h \
- /usr/include/c++/4.9/bits/valarray_array.tcc \
- /usr/include/c++/4.9/bits/valarray_before.h \
- /usr/include/c++/4.9/bits/slice_array.h \
- /usr/include/c++/4.9/bits/valarray_after.h \
- /usr/include/c++/4.9/bits/gslice.h \
- /usr/include/c++/4.9/bits/gslice_array.h \
- /usr/include/c++/4.9/bits/mask_array.h \
- /usr/include/c++/4.9/bits/indirect_array.h \
+ /usr/include/c++/5.1.0/valarray /usr/include/c++/5.1.0/cmath \
+ /usr/include/math.h /usr/include/bits/huge_val.h \
+ /usr/include/bits/huge_valf.h /usr/include/bits/huge_vall.h \
+ /usr/include/bits/inf.h /usr/include/bits/nan.h \
+ /usr/include/bits/mathdef.h /usr/include/bits/mathcalls.h \
+ /usr/include/bits/mathinline.h \
+ /usr/include/c++/5.1.0/bits/valarray_array.h \
+ /usr/include/c++/5.1.0/bits/valarray_array.tcc \
+ /usr/include/c++/5.1.0/bits/valarray_before.h \
+ /usr/include/c++/5.1.0/bits/slice_array.h \
+ /usr/include/c++/5.1.0/bits/valarray_after.h \
+ /usr/include/c++/5.1.0/bits/gslice.h \
+ /usr/include/c++/5.1.0/bits/gslice_array.h \
+ /usr/include/c++/5.1.0/bits/mask_array.h \
+ /usr/include/c++/5.1.0/bits/indirect_array.h \
  /usr/include/pangomm-1.4/pangomm/tabarray.h \
  /usr/include/pangomm-1.4/pangomm/layoutline.h \
  /usr/include/pangomm-1.4/pangomm/layoutiter.h \
@@ -979,7 +949,7 @@ msg_view.o: msg_view.cxx /usr/include/stdc-predef.h msg_view.h \
  /usr/include/gtk-2.0/gtk/gtktipsquery.h \
  /usr/include/gtkmm-2.4/gtkmm/container.h \
  /usr/include/gtkmm-2.4/gtkmm/widget.h \
- /usr/lib/x86_64-linux-gnu/gtkmm-2.4/include/gtkmmconfig.h \
+ /usr/lib/gtkmm-2.4/include/gtkmmconfig.h \
  /usr/include/atkmm-1.6/atkmm/object.h \
  /usr/include/atkmm-1.6/atkmm/component.h \
  /usr/include/atkmm-1.6/atkmm/relation.h \
@@ -1160,50 +1130,37 @@ msg_view.o: msg_view.cxx /usr/include/stdc-predef.h msg_view.h \
  /usr/include/gtkmm-2.4/gtkmm/treestore.h \
  /usr/include/gtkmm-2.4/gtkmm/uimanager.h \
  /usr/include/gtkmm-2.4/gtkmm/actiongroup.h \
- /usr/include/gtkmm-2.4/gtkmm/viewport.h /usr/include/c++/4.9/iostream \
- ../config.h common.h /usr/include/fcntl.h \
- /usr/include/x86_64-linux-gnu/bits/fcntl.h \
- /usr/include/x86_64-linux-gnu/bits/fcntl-linux.h \
- /usr/include/x86_64-linux-gnu/bits/uio.h \
- /usr/include/x86_64-linux-gnu/bits/fcntl2.h \
- /usr/include/x86_64-linux-gnu/sys/ioctl.h \
- /usr/include/x86_64-linux-gnu/bits/ioctls.h \
- /usr/include/x86_64-linux-gnu/asm/ioctls.h \
- /usr/include/asm-generic/ioctls.h /usr/include/linux/ioctl.h \
- /usr/include/x86_64-linux-gnu/asm/ioctl.h \
- /usr/include/asm-generic/ioctl.h \
- /usr/include/x86_64-linux-gnu/bits/ioctl-types.h \
- /usr/include/x86_64-linux-gnu/sys/ttydefaults.h \
- /usr/include/x86_64-linux-gnu/sys/socket.h \
- /usr/include/x86_64-linux-gnu/sys/uio.h \
- /usr/include/x86_64-linux-gnu/bits/socket.h \
- /usr/include/x86_64-linux-gnu/bits/socket_type.h \
- /usr/include/x86_64-linux-gnu/bits/sockaddr.h \
- /usr/include/x86_64-linux-gnu/asm/socket.h \
- /usr/include/asm-generic/socket.h \
- /usr/include/x86_64-linux-gnu/asm/sockios.h \
- /usr/include/asm-generic/sockios.h \
- /usr/include/x86_64-linux-gnu/bits/socket2.h /usr/include/net/if.h \
- /usr/include/netinet/in.h \
- /usr/lib/gcc/x86_64-linux-gnu/4.9/include/stdint.h /usr/include/stdint.h \
- /usr/include/x86_64-linux-gnu/bits/in.h /usr/include/netinet/tcp.h \
+ /usr/include/gtkmm-2.4/gtkmm/viewport.h /usr/include/c++/5.1.0/iostream \
+ ../config.h common.h /usr/include/fcntl.h /usr/include/bits/fcntl.h \
+ /usr/include/bits/fcntl-linux.h /usr/include/bits/uio.h \
+ /usr/include/sys/ioctl.h /usr/include/bits/ioctls.h \
+ /usr/include/asm/ioctls.h /usr/include/asm-generic/ioctls.h \
+ /usr/include/linux/ioctl.h /usr/include/asm/ioctl.h \
+ /usr/include/asm-generic/ioctl.h /usr/include/bits/ioctl-types.h \
+ /usr/include/sys/ttydefaults.h /usr/include/sys/socket.h \
+ /usr/include/sys/uio.h /usr/include/bits/socket.h \
+ /usr/include/bits/socket_type.h /usr/include/bits/sockaddr.h \
+ /usr/include/asm/socket.h /usr/include/asm-generic/socket.h \
+ /usr/include/asm/sockios.h /usr/include/asm-generic/sockios.h \
+ /usr/include/net/if.h /usr/include/netinet/in.h \
+ /usr/lib/gcc/x86_64-unknown-linux-gnu/5.1.0/include/stdint.h \
+ /usr/include/stdint.h /usr/include/bits/in.h /usr/include/netinet/tcp.h \
  /usr/include/arpa/inet.h /usr/include/netdb.h /usr/include/rpc/netdb.h \
- /usr/include/x86_64-linux-gnu/bits/netdb.h \
- /usr/include/x86_64-linux-gnu/sys/time.h /usr/include/c++/4.9/cstring \
- /usr/include/c++/4.9/cerrno /usr/include/errno.h \
- /usr/include/x86_64-linux-gnu/bits/errno.h /usr/include/linux/errno.h \
- /usr/include/x86_64-linux-gnu/asm/errno.h \
+ /usr/include/bits/netdb.h /usr/include/sys/time.h \
+ /usr/include/c++/5.1.0/cstring /usr/include/c++/5.1.0/cerrno \
+ /usr/include/errno.h /usr/include/bits/errno.h \
+ /usr/include/linux/errno.h /usr/include/asm/errno.h \
  /usr/include/asm-generic/errno.h /usr/include/asm-generic/errno-base.h \
  /usr/include/curl/curl.h /usr/include/curl/curlver.h \
- /usr/include/curl/curlbuild.h /usr/include/curl/curlrules.h \
- /usr/include/curl/easy.h /usr/include/curl/multi.h \
- /usr/include/curl/curl.h view.h /usr/include/c++/4.9/fstream \
- /usr/include/c++/4.9/bits/codecvt.h /usr/include/c++/4.9/cstdio \
- /usr/include/x86_64-linux-gnu/c++/4.9/bits/basic_file.h \
- /usr/include/x86_64-linux-gnu/c++/4.9/bits/c++io.h \
- /usr/include/c++/4.9/bits/fstream.tcc players.h \
- /usr/include/x86_64-linux-gnu/sys/utsname.h \
- /usr/include/x86_64-linux-gnu/bits/utsname.h
+ /usr/include/curl/curlbuild.h /usr/include/curl/curlbuild-64.h \
+ /usr/include/curl/curlrules.h /usr/include/curl/easy.h \
+ /usr/include/curl/multi.h /usr/include/curl/curl.h view.h \
+ /usr/include/c++/5.1.0/fstream /usr/include/c++/5.1.0/bits/codecvt.h \
+ /usr/include/c++/5.1.0/cstdio \
+ /usr/include/c++/5.1.0/x86_64-unknown-linux-gnu/bits/basic_file.h \
+ /usr/include/c++/5.1.0/x86_64-unknown-linux-gnu/bits/c++io.h \
+ /usr/include/c++/5.1.0/bits/fstream.tcc players.h \
+ /usr/include/sys/utsname.h /usr/include/bits/utsname.h
 
 /usr/include/stdc-predef.h:
 
@@ -1213,7 +1170,7 @@ msg_view.h:
 
 /usr/include/glibmm-2.4/glibmm.h:
 
-/usr/lib/x86_64-linux-gnu/glibmm-2.4/include/glibmmconfig.h:
+/usr/lib/glibmm-2.4/include/glibmmconfig.h:
 
 /usr/include/glibmm-2.4/glibmm/thread.h:
 
@@ -1223,53 +1180,53 @@ msg_view.h:
 
 /usr/include/glib-2.0/glib/gtypes.h:
 
-/usr/lib/x86_64-linux-gnu/glib-2.0/include/glibconfig.h:
+/usr/lib/glib-2.0/include/glibconfig.h:
 
 /usr/include/glib-2.0/glib/gmacros.h:
 
-/usr/lib/gcc/x86_64-linux-gnu/4.9/include/stddef.h:
+/usr/lib/gcc/x86_64-unknown-linux-gnu/5.1.0/include/stddef.h:
 
-/usr/lib/gcc/x86_64-linux-gnu/4.9/include-fixed/limits.h:
+/usr/lib/gcc/x86_64-unknown-linux-gnu/5.1.0/include-fixed/limits.h:
 
-/usr/lib/gcc/x86_64-linux-gnu/4.9/include-fixed/syslimits.h:
+/usr/lib/gcc/x86_64-unknown-linux-gnu/5.1.0/include-fixed/syslimits.h:
 
 /usr/include/limits.h:
 
 /usr/include/features.h:
 
-/usr/include/x86_64-linux-gnu/sys/cdefs.h:
+/usr/include/sys/cdefs.h:
 
-/usr/include/x86_64-linux-gnu/bits/wordsize.h:
+/usr/include/bits/wordsize.h:
 
-/usr/include/x86_64-linux-gnu/gnu/stubs.h:
+/usr/include/gnu/stubs.h:
 
-/usr/include/x86_64-linux-gnu/gnu/stubs-64.h:
+/usr/include/gnu/stubs-64.h:
 
-/usr/include/x86_64-linux-gnu/bits/posix1_lim.h:
+/usr/include/bits/posix1_lim.h:
 
-/usr/include/x86_64-linux-gnu/bits/local_lim.h:
+/usr/include/bits/local_lim.h:
 
 /usr/include/linux/limits.h:
 
-/usr/include/x86_64-linux-gnu/bits/posix2_lim.h:
+/usr/include/bits/posix2_lim.h:
 
-/usr/include/x86_64-linux-gnu/bits/xopen_lim.h:
+/usr/include/bits/xopen_lim.h:
 
-/usr/include/x86_64-linux-gnu/bits/stdio_lim.h:
+/usr/include/bits/stdio_lim.h:
 
-/usr/lib/gcc/x86_64-linux-gnu/4.9/include/float.h:
+/usr/lib/gcc/x86_64-unknown-linux-gnu/5.1.0/include/float.h:
 
 /usr/include/glib-2.0/glib/gversionmacros.h:
 
 /usr/include/time.h:
 
-/usr/include/x86_64-linux-gnu/bits/time.h:
+/usr/include/bits/time.h:
 
-/usr/include/x86_64-linux-gnu/bits/types.h:
+/usr/include/bits/types.h:
 
-/usr/include/x86_64-linux-gnu/bits/typesizes.h:
+/usr/include/bits/typesizes.h:
 
-/usr/include/x86_64-linux-gnu/bits/timex.h:
+/usr/include/bits/timex.h:
 
 /usr/include/xlocale.h:
 
@@ -1283,7 +1240,7 @@ msg_view.h:
 
 /usr/include/glib-2.0/glib/gerror.h:
 
-/usr/lib/gcc/x86_64-linux-gnu/4.9/include/stdarg.h:
+/usr/lib/gcc/x86_64-unknown-linux-gnu/5.1.0/include/stdarg.h:
 
 /usr/include/glib-2.0/glib/gquark.h:
 
@@ -1293,23 +1250,23 @@ msg_view.h:
 
 /usr/include/signal.h:
 
-/usr/include/x86_64-linux-gnu/bits/sigset.h:
+/usr/include/bits/sigset.h:
 
-/usr/include/x86_64-linux-gnu/bits/signum.h:
+/usr/include/bits/signum.h:
 
-/usr/include/x86_64-linux-gnu/bits/siginfo.h:
+/usr/include/bits/siginfo.h:
 
-/usr/include/x86_64-linux-gnu/bits/sigaction.h:
+/usr/include/bits/sigaction.h:
 
-/usr/include/x86_64-linux-gnu/bits/sigcontext.h:
+/usr/include/bits/sigcontext.h:
 
-/usr/include/x86_64-linux-gnu/bits/sigstack.h:
+/usr/include/bits/sigstack.h:
 
-/usr/include/x86_64-linux-gnu/sys/ucontext.h:
+/usr/include/sys/ucontext.h:
 
-/usr/include/x86_64-linux-gnu/bits/pthreadtypes.h:
+/usr/include/bits/pthreadtypes.h:
 
-/usr/include/x86_64-linux-gnu/bits/sigthread.h:
+/usr/include/bits/sigthread.h:
 
 /usr/include/glib-2.0/glib/gbase64.h:
 
@@ -1337,7 +1294,7 @@ msg_view.h:
 
 /usr/include/dirent.h:
 
-/usr/include/x86_64-linux-gnu/bits/dirent.h:
+/usr/include/bits/dirent.h:
 
 /usr/include/glib-2.0/glib/genviron.h:
 
@@ -1439,31 +1396,29 @@ msg_view.h:
 
 /usr/include/glib-2.0/glib/deprecated/gthread.h:
 
-/usr/include/x86_64-linux-gnu/sys/types.h:
+/usr/include/sys/types.h:
 
 /usr/include/endian.h:
 
-/usr/include/x86_64-linux-gnu/bits/endian.h:
+/usr/include/bits/endian.h:
 
-/usr/include/x86_64-linux-gnu/bits/byteswap.h:
+/usr/include/bits/byteswap.h:
 
-/usr/include/x86_64-linux-gnu/bits/byteswap-16.h:
+/usr/include/bits/byteswap-16.h:
 
-/usr/include/x86_64-linux-gnu/sys/select.h:
+/usr/include/sys/select.h:
 
-/usr/include/x86_64-linux-gnu/bits/select.h:
+/usr/include/bits/select.h:
 
-/usr/include/x86_64-linux-gnu/bits/select2.h:
-
-/usr/include/x86_64-linux-gnu/sys/sysmacros.h:
+/usr/include/sys/sysmacros.h:
 
 /usr/include/pthread.h:
 
 /usr/include/sched.h:
 
-/usr/include/x86_64-linux-gnu/bits/sched.h:
+/usr/include/bits/sched.h:
 
-/usr/include/x86_64-linux-gnu/bits/setjmp.h:
+/usr/include/bits/setjmp.h:
 
 /usr/include/glib-2.0/glib/glib-autocleanups.h:
 
@@ -1475,157 +1430,159 @@ msg_view.h:
 
 /usr/include/glibmm-2.4/glibmm/unicode.h:
 
-/usr/include/c++/4.9/cctype:
+/usr/include/c++/5.1.0/cctype:
 
-/usr/include/x86_64-linux-gnu/c++/4.9/bits/c++config.h:
+/usr/include/c++/5.1.0/x86_64-unknown-linux-gnu/bits/c++config.h:
 
-/usr/include/x86_64-linux-gnu/c++/4.9/bits/os_defines.h:
+/usr/include/c++/5.1.0/x86_64-unknown-linux-gnu/bits/os_defines.h:
 
-/usr/include/x86_64-linux-gnu/c++/4.9/bits/cpu_defines.h:
+/usr/include/c++/5.1.0/x86_64-unknown-linux-gnu/bits/cpu_defines.h:
 
 /usr/include/ctype.h:
 
-/usr/include/c++/4.9/iosfwd:
+/usr/include/c++/5.1.0/iosfwd:
 
-/usr/include/c++/4.9/bits/stringfwd.h:
+/usr/include/c++/5.1.0/bits/stringfwd.h:
 
-/usr/include/c++/4.9/bits/memoryfwd.h:
+/usr/include/c++/5.1.0/bits/memoryfwd.h:
 
-/usr/include/c++/4.9/bits/postypes.h:
+/usr/include/c++/5.1.0/bits/postypes.h:
 
-/usr/include/c++/4.9/cwchar:
+/usr/include/c++/5.1.0/cwchar:
 
 /usr/include/wchar.h:
 
 /usr/include/stdio.h:
 
-/usr/include/x86_64-linux-gnu/bits/wchar.h:
+/usr/include/bits/wchar.h:
 
-/usr/include/x86_64-linux-gnu/bits/wchar2.h:
+/usr/include/c++/5.1.0/iterator:
 
-/usr/include/c++/4.9/iterator:
+/usr/include/c++/5.1.0/bits/stl_iterator_base_types.h:
 
-/usr/include/c++/4.9/bits/stl_iterator_base_types.h:
+/usr/include/c++/5.1.0/bits/stl_iterator_base_funcs.h:
 
-/usr/include/c++/4.9/bits/stl_iterator_base_funcs.h:
+/usr/include/c++/5.1.0/bits/concept_check.h:
 
-/usr/include/c++/4.9/bits/concept_check.h:
+/usr/include/c++/5.1.0/debug/debug.h:
 
-/usr/include/c++/4.9/debug/debug.h:
+/usr/include/c++/5.1.0/bits/stl_iterator.h:
 
-/usr/include/c++/4.9/bits/stl_iterator.h:
+/usr/include/c++/5.1.0/bits/cpp_type_traits.h:
 
-/usr/include/c++/4.9/bits/cpp_type_traits.h:
+/usr/include/c++/5.1.0/ext/type_traits.h:
 
-/usr/include/c++/4.9/ext/type_traits.h:
+/usr/include/c++/5.1.0/bits/move.h:
 
-/usr/include/c++/4.9/bits/move.h:
+/usr/include/c++/5.1.0/bits/ptr_traits.h:
 
-/usr/include/c++/4.9/bits/ptr_traits.h:
+/usr/include/c++/5.1.0/ostream:
 
-/usr/include/c++/4.9/ostream:
+/usr/include/c++/5.1.0/ios:
 
-/usr/include/c++/4.9/ios:
+/usr/include/c++/5.1.0/exception:
 
-/usr/include/c++/4.9/exception:
+/usr/include/c++/5.1.0/bits/atomic_lockfree_defines.h:
 
-/usr/include/c++/4.9/bits/atomic_lockfree_defines.h:
+/usr/include/c++/5.1.0/bits/char_traits.h:
 
-/usr/include/c++/4.9/bits/char_traits.h:
+/usr/include/c++/5.1.0/bits/stl_algobase.h:
 
-/usr/include/c++/4.9/bits/stl_algobase.h:
+/usr/include/c++/5.1.0/bits/functexcept.h:
 
-/usr/include/c++/4.9/bits/functexcept.h:
+/usr/include/c++/5.1.0/bits/exception_defines.h:
 
-/usr/include/c++/4.9/bits/exception_defines.h:
+/usr/include/c++/5.1.0/ext/numeric_traits.h:
 
-/usr/include/c++/4.9/ext/numeric_traits.h:
+/usr/include/c++/5.1.0/bits/stl_pair.h:
 
-/usr/include/c++/4.9/bits/stl_pair.h:
+/usr/include/c++/5.1.0/bits/predefined_ops.h:
 
-/usr/include/c++/4.9/bits/predefined_ops.h:
+/usr/include/c++/5.1.0/bits/localefwd.h:
 
-/usr/include/c++/4.9/bits/localefwd.h:
+/usr/include/c++/5.1.0/x86_64-unknown-linux-gnu/bits/c++locale.h:
 
-/usr/include/x86_64-linux-gnu/c++/4.9/bits/c++locale.h:
-
-/usr/include/c++/4.9/clocale:
+/usr/include/c++/5.1.0/clocale:
 
 /usr/include/locale.h:
 
-/usr/include/x86_64-linux-gnu/bits/locale.h:
+/usr/include/bits/locale.h:
 
-/usr/include/c++/4.9/bits/ios_base.h:
+/usr/include/c++/5.1.0/bits/ios_base.h:
 
-/usr/include/c++/4.9/ext/atomicity.h:
+/usr/include/c++/5.1.0/ext/atomicity.h:
 
-/usr/include/x86_64-linux-gnu/c++/4.9/bits/gthr.h:
+/usr/include/c++/5.1.0/x86_64-unknown-linux-gnu/bits/gthr.h:
 
-/usr/include/x86_64-linux-gnu/c++/4.9/bits/gthr-default.h:
+/usr/include/c++/5.1.0/x86_64-unknown-linux-gnu/bits/gthr-default.h:
 
-/usr/include/x86_64-linux-gnu/c++/4.9/bits/atomic_word.h:
+/usr/include/c++/5.1.0/x86_64-unknown-linux-gnu/bits/atomic_word.h:
 
-/usr/include/c++/4.9/bits/locale_classes.h:
+/usr/include/c++/5.1.0/bits/locale_classes.h:
 
-/usr/include/c++/4.9/string:
+/usr/include/c++/5.1.0/string:
 
-/usr/include/c++/4.9/bits/allocator.h:
+/usr/include/c++/5.1.0/bits/allocator.h:
 
-/usr/include/x86_64-linux-gnu/c++/4.9/bits/c++allocator.h:
+/usr/include/c++/5.1.0/x86_64-unknown-linux-gnu/bits/c++allocator.h:
 
-/usr/include/c++/4.9/ext/new_allocator.h:
+/usr/include/c++/5.1.0/ext/new_allocator.h:
 
-/usr/include/c++/4.9/new:
+/usr/include/c++/5.1.0/new:
 
-/usr/include/c++/4.9/bits/ostream_insert.h:
+/usr/include/c++/5.1.0/bits/ostream_insert.h:
 
-/usr/include/c++/4.9/bits/cxxabi_forced.h:
+/usr/include/c++/5.1.0/bits/cxxabi_forced.h:
 
-/usr/include/c++/4.9/bits/stl_function.h:
+/usr/include/c++/5.1.0/bits/stl_function.h:
 
-/usr/include/c++/4.9/backward/binders.h:
+/usr/include/c++/5.1.0/backward/binders.h:
 
-/usr/include/c++/4.9/bits/range_access.h:
+/usr/include/c++/5.1.0/bits/range_access.h:
 
-/usr/include/c++/4.9/bits/basic_string.h:
+/usr/include/c++/5.1.0/bits/basic_string.h:
 
-/usr/include/c++/4.9/bits/basic_string.tcc:
+/usr/include/c++/5.1.0/ext/alloc_traits.h:
 
-/usr/include/c++/4.9/bits/locale_classes.tcc:
+/usr/include/c++/5.1.0/bits/basic_string.tcc:
 
-/usr/include/c++/4.9/streambuf:
+/usr/include/c++/5.1.0/bits/locale_classes.tcc:
 
-/usr/include/c++/4.9/bits/streambuf.tcc:
+/usr/include/c++/5.1.0/stdexcept:
 
-/usr/include/c++/4.9/bits/basic_ios.h:
+/usr/include/c++/5.1.0/streambuf:
 
-/usr/include/c++/4.9/bits/locale_facets.h:
+/usr/include/c++/5.1.0/bits/streambuf.tcc:
 
-/usr/include/c++/4.9/cwctype:
+/usr/include/c++/5.1.0/bits/basic_ios.h:
+
+/usr/include/c++/5.1.0/bits/locale_facets.h:
+
+/usr/include/c++/5.1.0/cwctype:
 
 /usr/include/wctype.h:
 
-/usr/include/x86_64-linux-gnu/c++/4.9/bits/ctype_base.h:
+/usr/include/c++/5.1.0/x86_64-unknown-linux-gnu/bits/ctype_base.h:
 
-/usr/include/c++/4.9/bits/streambuf_iterator.h:
+/usr/include/c++/5.1.0/bits/streambuf_iterator.h:
 
-/usr/include/x86_64-linux-gnu/c++/4.9/bits/ctype_inline.h:
+/usr/include/c++/5.1.0/x86_64-unknown-linux-gnu/bits/ctype_inline.h:
 
-/usr/include/c++/4.9/bits/locale_facets.tcc:
+/usr/include/c++/5.1.0/bits/locale_facets.tcc:
 
-/usr/include/c++/4.9/bits/basic_ios.tcc:
+/usr/include/c++/5.1.0/bits/basic_ios.tcc:
 
-/usr/include/c++/4.9/bits/ostream.tcc:
+/usr/include/c++/5.1.0/bits/ostream.tcc:
 
-/usr/include/c++/4.9/istream:
+/usr/include/c++/5.1.0/istream:
 
-/usr/include/c++/4.9/bits/istream.tcc:
+/usr/include/c++/5.1.0/bits/istream.tcc:
 
-/usr/include/c++/4.9/bits/stream_iterator.h:
+/usr/include/c++/5.1.0/bits/stream_iterator.h:
 
-/usr/include/c++/4.9/sstream:
+/usr/include/c++/5.1.0/sstream:
 
-/usr/include/c++/4.9/bits/sstream.tcc:
+/usr/include/c++/5.1.0/bits/sstream.tcc:
 
 /usr/include/glibmm-2.4/glibmm/timeval.h:
 
@@ -1633,17 +1590,17 @@ msg_view.h:
 
 /usr/include/sigc++-2.0/sigc++/signal.h:
 
-/usr/include/c++/4.9/list:
+/usr/include/c++/5.1.0/list:
 
-/usr/include/c++/4.9/bits/stl_list.h:
+/usr/include/c++/5.1.0/bits/stl_list.h:
 
-/usr/include/c++/4.9/bits/list.tcc:
+/usr/include/c++/5.1.0/bits/list.tcc:
 
 /usr/include/sigc++-2.0/sigc++/signal_base.h:
 
-/usr/include/c++/4.9/cstddef:
+/usr/include/c++/5.1.0/cstddef:
 
-/usr/lib/x86_64-linux-gnu/sigc++-2.0/include/sigc++config.h:
+/usr/lib/sigc++-2.0/include/sigc++config.h:
 
 /usr/include/sigc++-2.0/sigc++/type_traits.h:
 
@@ -1753,37 +1710,33 @@ msg_view.h:
 
 /usr/include/glib-2.0/gobject/gobject-autocleanups.h:
 
-/usr/include/c++/4.9/vector:
+/usr/include/c++/5.1.0/vector:
 
-/usr/include/c++/4.9/bits/stl_construct.h:
+/usr/include/c++/5.1.0/bits/stl_construct.h:
 
-/usr/include/c++/4.9/ext/alloc_traits.h:
+/usr/include/c++/5.1.0/bits/stl_uninitialized.h:
 
-/usr/include/c++/4.9/bits/stl_uninitialized.h:
+/usr/include/c++/5.1.0/bits/stl_vector.h:
 
-/usr/include/c++/4.9/bits/stl_vector.h:
+/usr/include/c++/5.1.0/bits/stl_bvector.h:
 
-/usr/include/c++/4.9/bits/stl_bvector.h:
-
-/usr/include/c++/4.9/bits/vector.tcc:
+/usr/include/c++/5.1.0/bits/vector.tcc:
 
 /usr/include/glibmm-2.4/glibmm/variantiter.h:
 
-/usr/include/c++/4.9/utility:
+/usr/include/c++/5.1.0/utility:
 
-/usr/include/c++/4.9/bits/stl_relops.h:
+/usr/include/c++/5.1.0/bits/stl_relops.h:
 
-/usr/include/c++/4.9/map:
+/usr/include/c++/5.1.0/map:
 
-/usr/include/c++/4.9/bits/stl_tree.h:
+/usr/include/c++/5.1.0/bits/stl_tree.h:
 
-/usr/include/c++/4.9/bits/stl_map.h:
+/usr/include/c++/5.1.0/bits/stl_map.h:
 
-/usr/include/c++/4.9/bits/stl_multimap.h:
+/usr/include/c++/5.1.0/bits/stl_multimap.h:
 
-/usr/include/c++/4.9/stdexcept:
-
-/usr/include/c++/4.9/typeinfo:
+/usr/include/c++/5.1.0/typeinfo:
 
 /usr/include/glibmm-2.4/glibmm/variant_basictypes.h:
 
@@ -1811,47 +1764,51 @@ msg_view.h:
 
 /usr/include/glibmm-2.4/glibmm/debug.h:
 
-/usr/include/c++/4.9/memory:
+/usr/include/c++/5.1.0/memory:
 
-/usr/include/c++/4.9/bits/stl_tempbuf.h:
+/usr/include/c++/5.1.0/bits/stl_tempbuf.h:
 
-/usr/include/c++/4.9/bits/stl_raw_storage_iter.h:
+/usr/include/c++/5.1.0/bits/stl_raw_storage_iter.h:
 
-/usr/include/c++/4.9/backward/auto_ptr.h:
+/usr/include/c++/5.1.0/backward/auto_ptr.h:
 
-/usr/include/c++/4.9/algorithm:
+/usr/include/c++/5.1.0/algorithm:
 
-/usr/include/c++/4.9/bits/stl_algo.h:
+/usr/include/c++/5.1.0/bits/stl_algo.h:
 
-/usr/include/c++/4.9/cstdlib:
+/usr/include/c++/5.1.0/cstdlib:
 
 /usr/include/stdlib.h:
 
-/usr/include/x86_64-linux-gnu/bits/waitflags.h:
+/usr/include/bits/waitflags.h:
 
-/usr/include/x86_64-linux-gnu/bits/waitstatus.h:
+/usr/include/bits/waitstatus.h:
 
 /usr/include/alloca.h:
 
-/usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h:
+/usr/include/bits/stdlib-bsearch.h:
 
-/usr/include/x86_64-linux-gnu/bits/stdlib-float.h:
+/usr/include/bits/stdlib-float.h:
 
-/usr/include/x86_64-linux-gnu/bits/stdlib.h:
+/usr/include/c++/5.1.0/bits/algorithmfwd.h:
 
-/usr/include/c++/4.9/bits/algorithmfwd.h:
+/usr/include/c++/5.1.0/bits/stl_heap.h:
 
-/usr/include/c++/4.9/bits/stl_heap.h:
+/usr/include/c++/5.1.0/deque:
 
-/usr/include/c++/4.9/deque:
+/usr/include/c++/5.1.0/bits/stl_deque.h:
 
-/usr/include/c++/4.9/bits/stl_deque.h:
-
-/usr/include/c++/4.9/bits/deque.tcc:
+/usr/include/c++/5.1.0/bits/deque.tcc:
 
 /usr/include/glibmm-2.4/glibmm/balancedtree.h:
 
 /usr/include/glibmm-2.4/glibmm/base64.h:
+
+/usr/include/glibmm-2.4/glibmm/binding.h:
+
+/usr/include/glibmm-2.4/glibmm/object.h:
+
+/usr/include/glibmm-2.4/glibmm/utility.h:
 
 /usr/include/glibmm-2.4/glibmm/bytearray.h:
 
@@ -1865,7 +1822,7 @@ msg_view.h:
 
 /usr/include/glibmm-2.4/glibmm/date.h:
 
-/usr/include/c++/4.9/ctime:
+/usr/include/c++/5.1.0/ctime:
 
 /usr/include/glibmm-2.4/glibmm/datetime.h:
 
@@ -1889,10 +1846,6 @@ msg_view.h:
 
 /usr/include/glibmm-2.4/glibmm/interface.h:
 
-/usr/include/glibmm-2.4/glibmm/object.h:
-
-/usr/include/glibmm-2.4/glibmm/utility.h:
-
 /usr/include/glibmm-2.4/glibmm/init.h:
 
 /usr/include/glibmm-2.4/glibmm/keyfile.h:
@@ -1909,9 +1862,9 @@ msg_view.h:
 
 /usr/include/glibmm-2.4/glibmm/nodetree.h:
 
-/usr/include/c++/4.9/stack:
+/usr/include/c++/5.1.0/stack:
 
-/usr/include/c++/4.9/bits/stl_stack.h:
+/usr/include/c++/5.1.0/bits/stl_stack.h:
 
 /usr/include/glibmm-2.4/glibmm/optioncontext.h:
 
@@ -2009,15 +1962,13 @@ msg_view.h:
 
 /usr/include/unistd.h:
 
-/usr/include/x86_64-linux-gnu/bits/posix_opt.h:
+/usr/include/bits/posix_opt.h:
 
-/usr/include/x86_64-linux-gnu/bits/environments.h:
+/usr/include/bits/environments.h:
 
-/usr/include/x86_64-linux-gnu/bits/confname.h:
+/usr/include/bits/confname.h:
 
 /usr/include/getopt.h:
-
-/usr/include/x86_64-linux-gnu/bits/unistd.h:
 
 /usr/include/glib-2.0/gio/gdatainputstream.h:
 
@@ -2271,7 +2222,7 @@ msg_view.h:
 
 /usr/include/giomm-2.4/giomm/application.h:
 
-/usr/lib/x86_64-linux-gnu/giomm-2.4/include/giommconfig.h:
+/usr/lib/giomm-2.4/include/giommconfig.h:
 
 /usr/include/giomm-2.4/giomm/applicationcommandline.h:
 
@@ -2471,6 +2422,8 @@ msg_view.h:
 
 /usr/include/giomm-2.4/giomm/tcpconnection.h:
 
+/usr/include/giomm-2.4/giomm/tcpwrapperconnection.h:
+
 /usr/include/giomm-2.4/giomm/themedicon.h:
 
 /usr/include/giomm-2.4/giomm/threadedsocketservice.h:
@@ -2583,13 +2536,11 @@ msg_view.h:
 
 /usr/include/_G_config.h:
 
-/usr/include/x86_64-linux-gnu/bits/sys_errlist.h:
+/usr/include/bits/sys_errlist.h:
 
-/usr/include/x86_64-linux-gnu/bits/stdio.h:
+/usr/include/bits/stdio.h:
 
-/usr/include/x86_64-linux-gnu/bits/stdio2.h:
-
-/usr/lib/x86_64-linux-gnu/gtk-2.0/include/gdkconfig.h:
+/usr/lib/gtk-2.0/include/gdkconfig.h:
 
 /usr/include/gtk-2.0/gdk/gdkdisplay.h:
 
@@ -2663,9 +2614,9 @@ msg_view.h:
 
 /usr/include/gdkmm-2.4/gdkmm/types.h:
 
-/usr/lib/x86_64-linux-gnu/gdkmm-2.4/include/gdkmmconfig.h:
+/usr/lib/gdkmm-2.4/include/gdkmmconfig.h:
 
-/usr/lib/x86_64-linux-gnu/pangomm-1.4/include/pangommconfig.h:
+/usr/lib/pangomm-1.4/include/pangommconfig.h:
 
 /usr/include/gdkmm-2.4/gdkmm/rectangle.h:
 
@@ -2681,29 +2632,17 @@ msg_view.h:
 
 /usr/include/freetype2/config/ftheader.h:
 
-/usr/include/x86_64-linux-gnu/freetype2/config/ftheader.h:
-
 /usr/include/freetype2/freetype.h:
 
 /usr/include/freetype2/config/ftconfig.h:
 
-/usr/include/x86_64-linux-gnu/freetype2/config/ftconfig.h:
-
 /usr/include/freetype2/config/ftoption.h:
-
-/usr/include/x86_64-linux-gnu/freetype2/config/ftoption.h:
 
 /usr/include/freetype2/config/ftstdlib.h:
 
-/usr/include/x86_64-linux-gnu/freetype2/config/ftstdlib.h:
-
 /usr/include/string.h:
 
-/usr/include/x86_64-linux-gnu/bits/string3.h:
-
 /usr/include/setjmp.h:
-
-/usr/include/x86_64-linux-gnu/bits/setjmp2.h:
 
 /usr/include/freetype2/fttypes.h:
 
@@ -2719,9 +2658,9 @@ msg_view.h:
 
 /usr/include/fontconfig/fontconfig.h:
 
-/usr/include/x86_64-linux-gnu/sys/stat.h:
+/usr/include/sys/stat.h:
 
-/usr/include/x86_64-linux-gnu/bits/stat.h:
+/usr/include/bits/stat.h:
 
 /usr/include/gdkmm-2.4/gdkmm/visual.h:
 
@@ -2795,45 +2734,45 @@ msg_view.h:
 
 /usr/include/cairomm-1.0/cairomm/scaledfont.h:
 
-/usr/include/c++/4.9/valarray:
+/usr/include/c++/5.1.0/valarray:
 
-/usr/include/c++/4.9/cmath:
+/usr/include/c++/5.1.0/cmath:
 
 /usr/include/math.h:
 
-/usr/include/x86_64-linux-gnu/bits/huge_val.h:
+/usr/include/bits/huge_val.h:
 
-/usr/include/x86_64-linux-gnu/bits/huge_valf.h:
+/usr/include/bits/huge_valf.h:
 
-/usr/include/x86_64-linux-gnu/bits/huge_vall.h:
+/usr/include/bits/huge_vall.h:
 
-/usr/include/x86_64-linux-gnu/bits/inf.h:
+/usr/include/bits/inf.h:
 
-/usr/include/x86_64-linux-gnu/bits/nan.h:
+/usr/include/bits/nan.h:
 
-/usr/include/x86_64-linux-gnu/bits/mathdef.h:
+/usr/include/bits/mathdef.h:
 
-/usr/include/x86_64-linux-gnu/bits/mathcalls.h:
+/usr/include/bits/mathcalls.h:
 
-/usr/include/x86_64-linux-gnu/bits/mathinline.h:
+/usr/include/bits/mathinline.h:
 
-/usr/include/c++/4.9/bits/valarray_array.h:
+/usr/include/c++/5.1.0/bits/valarray_array.h:
 
-/usr/include/c++/4.9/bits/valarray_array.tcc:
+/usr/include/c++/5.1.0/bits/valarray_array.tcc:
 
-/usr/include/c++/4.9/bits/valarray_before.h:
+/usr/include/c++/5.1.0/bits/valarray_before.h:
 
-/usr/include/c++/4.9/bits/slice_array.h:
+/usr/include/c++/5.1.0/bits/slice_array.h:
 
-/usr/include/c++/4.9/bits/valarray_after.h:
+/usr/include/c++/5.1.0/bits/valarray_after.h:
 
-/usr/include/c++/4.9/bits/gslice.h:
+/usr/include/c++/5.1.0/bits/gslice.h:
 
-/usr/include/c++/4.9/bits/gslice_array.h:
+/usr/include/c++/5.1.0/bits/gslice_array.h:
 
-/usr/include/c++/4.9/bits/mask_array.h:
+/usr/include/c++/5.1.0/bits/mask_array.h:
 
-/usr/include/c++/4.9/bits/indirect_array.h:
+/usr/include/c++/5.1.0/bits/indirect_array.h:
 
 /usr/include/pangomm-1.4/pangomm/tabarray.h:
 
@@ -3383,7 +3322,7 @@ msg_view.h:
 
 /usr/include/gtkmm-2.4/gtkmm/widget.h:
 
-/usr/lib/x86_64-linux-gnu/gtkmm-2.4/include/gtkmmconfig.h:
+/usr/lib/gtkmm-2.4/include/gtkmmconfig.h:
 
 /usr/include/atkmm-1.6/atkmm/object.h:
 
@@ -3753,7 +3692,7 @@ msg_view.h:
 
 /usr/include/gtkmm-2.4/gtkmm/viewport.h:
 
-/usr/include/c++/4.9/iostream:
+/usr/include/c++/5.1.0/iostream:
 
 ../config.h:
 
@@ -3761,61 +3700,57 @@ common.h:
 
 /usr/include/fcntl.h:
 
-/usr/include/x86_64-linux-gnu/bits/fcntl.h:
+/usr/include/bits/fcntl.h:
 
-/usr/include/x86_64-linux-gnu/bits/fcntl-linux.h:
+/usr/include/bits/fcntl-linux.h:
 
-/usr/include/x86_64-linux-gnu/bits/uio.h:
+/usr/include/bits/uio.h:
 
-/usr/include/x86_64-linux-gnu/bits/fcntl2.h:
+/usr/include/sys/ioctl.h:
 
-/usr/include/x86_64-linux-gnu/sys/ioctl.h:
+/usr/include/bits/ioctls.h:
 
-/usr/include/x86_64-linux-gnu/bits/ioctls.h:
-
-/usr/include/x86_64-linux-gnu/asm/ioctls.h:
+/usr/include/asm/ioctls.h:
 
 /usr/include/asm-generic/ioctls.h:
 
 /usr/include/linux/ioctl.h:
 
-/usr/include/x86_64-linux-gnu/asm/ioctl.h:
+/usr/include/asm/ioctl.h:
 
 /usr/include/asm-generic/ioctl.h:
 
-/usr/include/x86_64-linux-gnu/bits/ioctl-types.h:
+/usr/include/bits/ioctl-types.h:
 
-/usr/include/x86_64-linux-gnu/sys/ttydefaults.h:
+/usr/include/sys/ttydefaults.h:
 
-/usr/include/x86_64-linux-gnu/sys/socket.h:
+/usr/include/sys/socket.h:
 
-/usr/include/x86_64-linux-gnu/sys/uio.h:
+/usr/include/sys/uio.h:
 
-/usr/include/x86_64-linux-gnu/bits/socket.h:
+/usr/include/bits/socket.h:
 
-/usr/include/x86_64-linux-gnu/bits/socket_type.h:
+/usr/include/bits/socket_type.h:
 
-/usr/include/x86_64-linux-gnu/bits/sockaddr.h:
+/usr/include/bits/sockaddr.h:
 
-/usr/include/x86_64-linux-gnu/asm/socket.h:
+/usr/include/asm/socket.h:
 
 /usr/include/asm-generic/socket.h:
 
-/usr/include/x86_64-linux-gnu/asm/sockios.h:
+/usr/include/asm/sockios.h:
 
 /usr/include/asm-generic/sockios.h:
-
-/usr/include/x86_64-linux-gnu/bits/socket2.h:
 
 /usr/include/net/if.h:
 
 /usr/include/netinet/in.h:
 
-/usr/lib/gcc/x86_64-linux-gnu/4.9/include/stdint.h:
+/usr/lib/gcc/x86_64-unknown-linux-gnu/5.1.0/include/stdint.h:
 
 /usr/include/stdint.h:
 
-/usr/include/x86_64-linux-gnu/bits/in.h:
+/usr/include/bits/in.h:
 
 /usr/include/netinet/tcp.h:
 
@@ -3825,21 +3760,21 @@ common.h:
 
 /usr/include/rpc/netdb.h:
 
-/usr/include/x86_64-linux-gnu/bits/netdb.h:
+/usr/include/bits/netdb.h:
 
-/usr/include/x86_64-linux-gnu/sys/time.h:
+/usr/include/sys/time.h:
 
-/usr/include/c++/4.9/cstring:
+/usr/include/c++/5.1.0/cstring:
 
-/usr/include/c++/4.9/cerrno:
+/usr/include/c++/5.1.0/cerrno:
 
 /usr/include/errno.h:
 
-/usr/include/x86_64-linux-gnu/bits/errno.h:
+/usr/include/bits/errno.h:
 
 /usr/include/linux/errno.h:
 
-/usr/include/x86_64-linux-gnu/asm/errno.h:
+/usr/include/asm/errno.h:
 
 /usr/include/asm-generic/errno.h:
 
@@ -3851,6 +3786,8 @@ common.h:
 
 /usr/include/curl/curlbuild.h:
 
+/usr/include/curl/curlbuild-64.h:
+
 /usr/include/curl/curlrules.h:
 
 /usr/include/curl/easy.h:
@@ -3861,20 +3798,20 @@ common.h:
 
 view.h:
 
-/usr/include/c++/4.9/fstream:
+/usr/include/c++/5.1.0/fstream:
 
-/usr/include/c++/4.9/bits/codecvt.h:
+/usr/include/c++/5.1.0/bits/codecvt.h:
 
-/usr/include/c++/4.9/cstdio:
+/usr/include/c++/5.1.0/cstdio:
 
-/usr/include/x86_64-linux-gnu/c++/4.9/bits/basic_file.h:
+/usr/include/c++/5.1.0/x86_64-unknown-linux-gnu/bits/basic_file.h:
 
-/usr/include/x86_64-linux-gnu/c++/4.9/bits/c++io.h:
+/usr/include/c++/5.1.0/x86_64-unknown-linux-gnu/bits/c++io.h:
 
-/usr/include/c++/4.9/bits/fstream.tcc:
+/usr/include/c++/5.1.0/bits/fstream.tcc:
 
 players.h:
 
-/usr/include/x86_64-linux-gnu/sys/utsname.h:
+/usr/include/sys/utsname.h:
 
-/usr/include/x86_64-linux-gnu/bits/utsname.h:
+/usr/include/bits/utsname.h:

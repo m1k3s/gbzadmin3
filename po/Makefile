@@ -16,7 +16,7 @@ GETTEXT_PACKAGE = gbzadmin3
 PACKAGE = gbzadmin3
 VERSION = 2.4.2
 
-SHELL = /bin/bash
+SHELL = /bin/sh
 
 
 srcdir = .
