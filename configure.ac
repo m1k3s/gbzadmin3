@@ -43,11 +43,11 @@ AC_ARG_ENABLE([debug],
 
 if test "x$want_debug" = "xyes" -a $ac_cv_c_compiler_gnu != no; then
   CFLAGS="$CFLAGS -O0 -ggdb"
-	CXXFLAGS="$CXXFLAGS -O0 -ggdb"
+  CXXFLAGS="$CXXFLAGS -O0 -ggdb"
   AC_DEFINE([DEBUG], 1, [Define for debugging])
 else
   CFLAGS="$CFLAGS -O2"
-	CXXFLAGS="$CXXFLAGS -O2"
+  CXXFLAGS="$CXXFLAGS -O2"
 fi
 
 # Add the languages which your application supports here.
@@ -60,7 +60,7 @@ AC_CHECK_LIB(curl,curl_global_init)
 LIBS=`curl-config --libs`
 
 CFLAGS="$CFLAGS -Wall"
-CXXFLAGS="$CXXFLAGS -Wall"
+CXXFLAGS="$CXXFLAGS -Wall -std=gnu++11"
 
 AC_MSG_CHECKING([for asynaptic programmer])
 AC_MSG_RESULT([found])

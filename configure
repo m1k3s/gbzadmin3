@@ -5980,13 +5980,13 @@ fi
 
 if test "x$want_debug" = "xyes" -a $ac_cv_c_compiler_gnu != no; then
   CFLAGS="$CFLAGS -O0 -ggdb"
-	CXXFLAGS="$CXXFLAGS -O0 -ggdb"
+  CXXFLAGS="$CXXFLAGS -O0 -ggdb"
 
 $as_echo "#define DEBUG 1" >>confdefs.h
 
 else
   CFLAGS="$CFLAGS -O2"
-	CXXFLAGS="$CXXFLAGS -O2"
+  CXXFLAGS="$CXXFLAGS -O2"
 fi
 
 # Add the languages which your application supports here.
@@ -6918,7 +6918,7 @@ fi
 LIBS=`curl-config --libs`
 
 CFLAGS="$CFLAGS -Wall"
-CXXFLAGS="$CXXFLAGS -Wall"
+CXXFLAGS="$CXXFLAGS -Wall -std=gnu++11"
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for asynaptic programmer" >&5
 $as_echo_n "checking for asynaptic programmer... " >&6; }
