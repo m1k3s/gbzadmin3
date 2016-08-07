@@ -583,7 +583,7 @@ void gSocket::resetNetStats()
     packetsReceived = 0;
 }
 
-float gSocket::bitFlow()
+float gSocket::totalBitsPerSecondRate()
 {
     time_t now = time(0);
     double dt = difftime(now, startTime);
@@ -591,13 +591,12 @@ float gSocket::bitFlow()
     // one minute moving average
     // average = ((prev_avg - bitspersec) * exp(-dt/secondsperminute)) + bitspersec
     float bitsTotal = (float)(bytesReceived + bytesSent) * 8.0;
-    float bps = bitsTotal / 1000.0; // kilobits/sec
-    float flow = ((prev_flow - bps) * exp(-dt / 60.0)) + bps;
-    prev_flow = flow; // member variable
+    float cur_flow = ((prev_flow - bitsTotal) * exp(-dt / 60.0)) + bitsTotal;
+    prev_flow = cur_flow; // member variable
 
     resetNetStats();
 
-    return flow;
+    return cur_flow;
 }
 
 void gSocket::sendLagPing(char pingRequest[2])

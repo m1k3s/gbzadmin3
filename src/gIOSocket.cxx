@@ -118,7 +118,7 @@ bool gIOSocket::connect(Glib::ustring host, int p)
     
     socket->send(BZ_Connect_Header, (int)strlen(BZ_Connect_Header));
     
-    // check server version and retrieve my ID
+    // check server version
     try {
         socket->condition_wait (Glib::IO_IN);
     } catch (const Gio::Error& error) {
@@ -128,22 +128,22 @@ bool gIOSocket::connect(Glib::ustring host, int p)
     
     version = "BZFS0000";
     try {
-    	char vstr[8];
-    	socket->receive_with_blocking((char*)&vstr[0], 8, false);
+    	char vstr[8]; // buffer for server version (8 bytes)
+    	socket->receive_with_blocking((char*)&vstr[0], 8, true);
     	Glib::ustring str(vstr);
     	version = str.substr(0, 8); // server version
-    	Glib::ustring _id = str.substr(9);
-    	id = atoi(_id.c_str());     // my ID
+    	std::cout << "received: " << str << std::endl;
     } catch (const Gio::Error& error) {
-	    std::cerr << Glib::ustring::compose ("socket->receive(version): %1\n", error.what ());
+	    std::cerr << Glib::ustring::compose("socket->receive(version): %1\n", error.what());
         return false;
     }
+    
     if (ServerVersion != version) {
         state = BadVersion;
 		if (BanRefusalString == version) {
             state = Refused;
             char message[512];
-            int len = socket->receive_with_blocking((char*)message, 512, true);
+            int len = socket->receive((char*)message, 512);
             if (len > 0) {
                 message[len - 1] = 0;
             } else {
@@ -153,6 +153,20 @@ bool gIOSocket::connect(Glib::ustring host, int p)
         }
         return false;
     }
+    
+	// get my player ID
+    try {
+		char* idstr = new char[1];
+		socket->receive_with_blocking((char*)&idstr[0], sizeof(idstr), false);
+		id = (unsigned char)atoi(idstr);     // my ID
+		if (id == 0xff) {
+			state = Rejected;
+			return false;
+		}
+	} catch (const Gio::Error& error) {
+		std::cerr << Glib::ustring::compose("socket->receive(id): %1\n", error.what ());
+        return false;
+	}
     
     try {
     	socket->set_blocking(true);

@@ -129,7 +129,7 @@ class gSocket : public sigc::trackable
         }
         bool get_blocking() { return blocking; }
         void set_blocking(bool set) { blocking = set; }
-        float bitFlow();
+        float totalBitsPerSecondRate();
 
         bool resolve_host(const Glib::ustring& host, const Glib::ustring& port);
 

@@ -653,8 +653,8 @@ S["PACKAGE_CFLAGS"]="-pthread -I/usr/include/gtkmm-2.4 -I/usr/lib/gtkmm-2.4/incl
 "mm-1.4/include -I/usr/include/glibmm-2.4 -I/usr/lib/glibmm-2.4/include -I/usr/include/cairomm-1.0 -I/usr/lib/cairomm-1.0/include -I/usr/include/sigc"\
 "++-2.0 -I/usr/lib/sigc++-2.0/include -I/usr/include/gtk-2.0 -I/usr/lib/gtk-2.0/include -I/usr/include/pango-1.0 -I/usr/include/atk-1.0 -I/usr/includ"\
 "e/cairo -I/usr/include/pixman-1 -I/usr/include/libdrm -I/usr/include/gdk-pixbuf-2.0 -I/usr/include/libpng16 -I/usr/include/pango-1.0 -I/usr/include/"\
-"freetype2 -I/usr/include/libpng16 -I/usr/include/harfbuzz -I/usr/include/freetype2 -I/usr/include/libpng16 -I/usr/include/harfbuzz -I/usr/include/gl"\
-"ib-2.0 -I/usr/lib/glib-2.0/include"
+"freetype2 -I/usr/include/libpng16 -I/usr/include/harfbuzz -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I/usr/include/freetype2 -I/usr/includ"\
+"e/libpng16 -I/usr/include/harfbuzz -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include"
 S["PKG_CONFIG_LIBDIR"]=""
 S["PKG_CONFIG_PATH"]=""
 S["PKG_CONFIG"]="/usr/bin/pkg-config"
@@ -704,9 +704,9 @@ S["STRIP"]=""
 S["install_sh"]="${SHELL} /home/mike/projects/gbzadmin3/install-sh"
 S["MAKEINFO"]="${SHELL} /home/mike/projects/gbzadmin3/missing makeinfo"
 S["AUTOHEADER"]="${SHELL} /home/mike/projects/gbzadmin3/missing autoheader"
-S["AUTOMAKE"]="${SHELL} /home/mike/projects/gbzadmin3/missing automake-1.14"
+S["AUTOMAKE"]="${SHELL} /home/mike/projects/gbzadmin3/missing automake-1.15"
 S["AUTOCONF"]="${SHELL} /home/mike/projects/gbzadmin3/missing autoconf"
-S["ACLOCAL"]="${SHELL} /home/mike/projects/gbzadmin3/missing aclocal-1.14"
+S["ACLOCAL"]="${SHELL} /home/mike/projects/gbzadmin3/missing aclocal-1.15"
 S["VERSION"]="2.4.2"
 S["PACKAGE"]="gbzadmin3"
 S["CYGPATH_W"]="echo"

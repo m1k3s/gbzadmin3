@@ -11,7 +11,7 @@ gbzadmin3_SOURCES = \
 	main.cxx \
 	utilities.cxx utilities.h \
 	gSocket.cxx gSocket.h \
-	gIOSocket.cxx gIOSocket.h \
+##	gIOSocket.cxx gIOSocket.h \
 	gListServer.cxx gListServer.h \
 	gbzadmin.cxx gbzadmin.h \
 	view.cxx view.h \
