@@ -31,7 +31,7 @@
 #include <sys/utsname.h>
 #include <cstdio>
 
-#define USING_GIO_NETWORK // whether or not to use GIO networking class gIOSocket
+//#define USING_GIO_NETWORK // whether or not to use GIO networking class gIOSocket
 
 #if defined(__GXX_EXPERIMENTAL_CXX0X__) || __cplusplus >= 201103L
 	#include <unordered_map>

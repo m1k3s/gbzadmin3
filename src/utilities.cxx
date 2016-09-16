@@ -43,6 +43,7 @@ Glib::ustring getAppVersion()
 	Glib::ustring machine(getOsInfo("machine"));
 	
 	str = Glib::ustring::compose("gbzadmin-%1.%2-%3-%4-%5", VERSION, getBuildDate(), Gbzadmin_Build_Type, osName, machine);
+	std::cout << str << std::endl;
 	return str;
 }
 
