@@ -211,13 +211,13 @@ CATALOGS =
 CATOBJEXT = .gmo
 CC = gcc
 CCDEPMODE = depmode=gcc3
-CFLAGS =  -O2 -Wall
+CFLAGS = -march=x86-64 -mtune=generic -O2 -pipe -fstack-protector-strong -O2 -Wall
 CPP = gcc -E
-CPPFLAGS = 
+CPPFLAGS = -D_FORTIFY_SOURCE=2
 CXX = g++
 CXXCPP = g++ -E
 CXXDEPMODE = depmode=gcc3
-CXXFLAGS =  -O2 -Wall -std=gnu++11
+CXXFLAGS = -march=x86-64 -mtune=generic -O2 -pipe -fstack-protector-strong -O2 -Wall -std=gnu++11
 CYGPATH_W = echo
 DATADIRNAME = share
 DEFS = -DHAVE_CONFIG_H
@@ -242,7 +242,7 @@ INSTALL_SCRIPT = ${INSTALL}
 INSTALL_STRIP_PROGRAM = $(install_sh) -c -s
 INSTOBJEXT = .mo
 INTLLIBS = 
-LDFLAGS = 
+LDFLAGS = -Wl,-O1,--sort-common,--as-needed,-z,relro
 LIBOBJS = 
 LIBS = -lcurl
 LTLIBOBJS = 
@@ -309,7 +309,7 @@ mandir = ${datarootdir}/man
 mkdir_p = $(MKDIR_P)
 oldincludedir = /usr/include
 pdfdir = ${docdir}
-prefix = /home/mike
+prefix = /usr
 program_transform_name = s,x,x,
 psdir = ${docdir}
 sbindir = ${exec_prefix}/sbin

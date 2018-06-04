@@ -2209,7 +2209,8 @@ bool gbzadmin::update_timer()
     if (sock.netStatsEnabled() ) {
         char str[64];
         float flow_rate = sock.totalBitsPerSecondRate();
-        ::sprintf (str, "Flow rate: %5.2fKBps", flow_rate / 8.0); // Kilo Bytes per Second
+        ::sprintf (str, "Flow rate: %5.2fKBps", (flow_rate / 8.0) / 1000); // Kilo Bytes per Second
+//         ::sprintf (str, "Flow rate: %5.0fbps", flow_rate); // Bits per Second
         set_status_message (StatusNetStats, str);
     } else {
         set_status_message (StatusNetStats, "");

@@ -1,0 +1,12 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=gBZAdmin
+Comment=Bzflag Server Administration
+Icon=observer_icon.png
+Exec=gbzadmin3
+NoDisplay=false
+Categories=X-LocalApps;
+OnlyShowIn=XFCE
+StartupNotify=false
+Terminal=false

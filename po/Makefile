@@ -23,7 +23,7 @@ srcdir = .
 top_srcdir = ..
 
 
-prefix = /home/mike
+prefix = /usr
 exec_prefix = ${prefix}
 datarootdir = ${prefix}/share
 datadir = ${datarootdir}
@@ -46,8 +46,8 @@ XGETTEXT = /usr/bin/xgettext
 MSGMERGE = msgmerge
 
 DEFS = -DHAVE_CONFIG_H
-CFLAGS =  -O2 -Wall
-CPPFLAGS = 
+CFLAGS = -march=x86-64 -mtune=generic -O2 -pipe -fstack-protector-strong -O2 -Wall
+CPPFLAGS = -D_FORTIFY_SOURCE=2
 
 INCLUDES = -I.. -I$(top_srcdir)/intl
 

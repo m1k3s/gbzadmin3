@@ -1,0 +1,35 @@
+!_TAG_FILE_SORTED	2	/0=unsorted, 1=sorted, 2=foldcase/
+BanRefusalString	/home/mike/projects/gbzadmin3/src/gSocket.cxx	/^const char* const BanRefusalString = "REFUSED:";$/;"	v	language:C++
+BZ_Connect_Header	/home/mike/projects/gbzadmin3/src/gSocket.cxx	/^const char* const BZ_Connect_Header = "BZFLAG\\r\\n\\r\\n";$/;"	v	language:C++
+check_server_version	/home/mike/projects/gbzadmin3/src/gSocket.cxx	/^bool gSocket::check_server_version(int _sockfd)$/;"	f	language:C++	class:gSocket
+check_status	/home/mike/projects/gbzadmin3/src/gSocket.cxx	/^int gSocket::check_status(int status_code)$/;"	f	language:C++	class:gSocket
+connect	/home/mike/projects/gbzadmin3/src/gSocket.cxx	/^bool gSocket::connect(Glib::ustring host, int p)$/;"	f	language:C++	class:gSocket
+connect_blocking	/home/mike/projects/gbzadmin3/src/gSocket.cxx	/^bool gSocket::connect_blocking(int _sockfd, const struct sockaddr *addr, socklen_t addrlen)$/;"	f	language:C++	class:gSocket
+connect_nonblocking	/home/mike/projects/gbzadmin3/src/gSocket.cxx	/^bool gSocket::connect_nonblocking(int _sockfd, const struct sockaddr *addr, socklen_t addrlen, int timeout)$/;"	f	language:C++	class:gSocket
+create_connection	/home/mike/projects/gbzadmin3/src/gSocket.cxx	/^bool gSocket::create_connection(int& _sockfd, bool blocking)$/;"	f	language:C++	class:gSocket
+disconnect	/home/mike/projects/gbzadmin3/src/gSocket.cxx	/^void gSocket::disconnect()$/;"	f	language:C++	class:gSocket
+get_in_addr	/home/mike/projects/gbzadmin3/src/gSocket.cxx	/^void* gSocket::get_in_addr(struct sockaddr *sa)$/;"	f	language:C++	class:gSocket
+get_ip_str	/home/mike/projects/gbzadmin3/src/gSocket.cxx	/^Glib::ustring gSocket::get_ip_str(const struct addrinfo *ai)$/;"	f	language:C++	class:gSocket
+get_my_id	/home/mike/projects/gbzadmin3/src/gSocket.cxx	/^bool gSocket::get_my_id(int _sockfd, unsigned char& _id)$/;"	f	language:C++	class:gSocket
+gSocket	/home/mike/projects/gbzadmin3/src/gSocket.cxx	/^gSocket::gSocket()$/;"	f	language:C++	class:gSocket
+join	/home/mike/projects/gbzadmin3/src/gSocket.cxx	/^bool gSocket::join(Glib::ustring callsign, Glib::ustring password, Glib::ustring motto)$/;"	f	language:C++	class:gSocket
+preFetchToken	/home/mike/projects/gbzadmin3/src/gSocket.cxx	/^void gSocket::preFetchToken(Glib::ustring callsign, Glib::ustring password)$/;"	f	language:C++	class:gSocket
+read	/home/mike/projects/gbzadmin3/src/gSocket.cxx	/^int gSocket::read(uint16_t& code, uint16_t& len, void* msg, int blockTime)$/;"	f	language:C++	class:gSocket
+readEnter	/home/mike/projects/gbzadmin3/src/gSocket.cxx	/^bool gSocket::readEnter(Glib::ustring& reason, uint16_t& code, uint16_t& rejcode)$/;"	f	language:C++	class:gSocket
+resetNetStats	/home/mike/projects/gbzadmin3/src/gSocket.cxx	/^void gSocket::resetNetStats()$/;"	f	language:C++	class:gSocket
+resolve_host	/home/mike/projects/gbzadmin3/src/gSocket.cxx	/^bool gSocket::resolve_host(const Glib::ustring& host, const Glib::ustring& port)$/;"	f	language:C++	class:gSocket
+reverseResolve	/home/mike/projects/gbzadmin3/src/gSocket.cxx	/^Glib::ustring gSocket::reverseResolve(Glib::ustring ip, Glib::ustring callsign)$/;"	f	language:C++	class:gSocket
+select	/home/mike/projects/gbzadmin3/src/gSocket.cxx	/^bool gSocket::select(int _sockfd)$/;"	f	language:C++	class:gSocket
+select	/home/mike/projects/gbzadmin3/src/gSocket.cxx	/^int gSocket::select(int _sockfd, int blockTime)$/;"	f	language:C++	class:gSocket
+select_write	/home/mike/projects/gbzadmin3/src/gSocket.cxx	/^int gSocket::select_write(int _sockfd, int blockTime)$/;"	f	language:C++	class:gSocket
+send	/home/mike/projects/gbzadmin3/src/gSocket.cxx	/^int gSocket::send(guint16 code, guint16 len, const void* msg)$/;"	f	language:C++	class:gSocket
+sendEnter	/home/mike/projects/gbzadmin3/src/gSocket.cxx	/^void gSocket::sendEnter(unsigned char type, unsigned int team, Glib::ustring callsign, Glib::ustring motto, Glib::ustring token)$/;"	f	language:C++	class:gSocket
+sendExit	/home/mike/projects/gbzadmin3/src/gSocket.cxx	/^void gSocket::sendExit()$/;"	f	language:C++	class:gSocket
+sendLagPing	/home/mike/projects/gbzadmin3/src/gSocket.cxx	/^void gSocket::sendLagPing(char pingRequest[2])$/;"	f	language:C++	class:gSocket
+send_connection_header	/home/mike/projects/gbzadmin3/src/gSocket.cxx	/^int gSocket::send_connection_header(int _sockfd)$/;"	f	language:C++	class:gSocket
+setBlocking	/home/mike/projects/gbzadmin3/src/gSocket.cxx	/^int gSocket::setBlocking(int _sockfd)$/;"	f	language:C++	class:gSocket
+setNonBlocking	/home/mike/projects/gbzadmin3/src/gSocket.cxx	/^int gSocket::setNonBlocking(int _sockfd)$/;"	f	language:C++	class:gSocket
+setTcpNoDelay	/home/mike/projects/gbzadmin3/src/gSocket.cxx	/^void gSocket::setTcpNoDelay(int _sockfd)$/;"	f	language:C++	class:gSocket
+tcp_data_pending	/home/mike/projects/gbzadmin3/src/gSocket.cxx	/^bool gSocket::tcp_data_pending(Glib::IOCondition cond)$/;"	f	language:C++	class:gSocket
+totalBitsPerSecondRate	/home/mike/projects/gbzadmin3/src/gSocket.cxx	/^float gSocket::totalBitsPerSecondRate()$/;"	f	language:C++	class:gSocket
+~gSocket	/home/mike/projects/gbzadmin3/src/gSocket.cxx	/^gSocket::~gSocket()$/;"	f	language:C++	class:gSocket

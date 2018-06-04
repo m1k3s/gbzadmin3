@@ -1,0 +1,14 @@
+.idea/
+autom4te.cache/
+po/
+pkg/
+aclocal.m4
+*.*~
+*.obj
+*.o
+configure
+config.h
+*.Po
+*.orig
+*.d
+
